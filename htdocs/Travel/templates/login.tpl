@@ -4,7 +4,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>IN ADMIN PANEL | Powered by INDEZINER</title>
 <link rel="stylesheet" type="text/css" href="style.css" />
-<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="notifier.js"></script>
 <script type="text/javascript" src="ddaccordion.js"></script>
 <script type="text/javascript">
 ddaccordion.init({
@@ -30,16 +31,54 @@ ddaccordion.init({
 </script>
 
 <script type="text/javascript" src="jconfirmaction.jquery.js"></script>
-<script type="text/javascript">
-	
-	$(document).ready(function() {
-		$('.ask').jConfirmAction();
-	});
-	
+
+
+
+<script>
+  NotifierjsConfig.defaultTimeOut = 2000;
+  NotifierjsConfig.position = ["bottom", "right"];
 </script>
 
 <script language="javascript" type="text/javascript" src="niceforms.js"></script>
 <link rel="stylesheet" type="text/css" media="all" href="niceforms-default.css" />
+
+<script type="text/javascript">
+	
+	$(document).ready(function() {
+		$('.ask').jConfirmAction();
+		 $("#submit").click(function(){
+		 // alert('Submitted');
+		  $.ajax({
+			type: "POST",
+			url: "login_check.php",
+			data: { userName: $("#userName").val(), password: $("#password").val() } ,
+			success: function(response)
+			{
+			    alert(response);
+				if(response == 'success'){
+				//alert(response);
+				//Notifier.success('Login successful');
+				setTimeout(function() {
+				window.location = "home.php";
+				}, 0);
+			//	window.location = "home.php";
+				}
+				else if(response=='fail')
+				Notifier.error('Login Failed');
+				
+				//window.location = "home.php";
+					
+				
+				//alert(response);
+			}
+		});
+
+		return false;
+		  
+		  });
+	});
+	
+</script>
 
 </head>
 <body>
@@ -55,7 +94,7 @@ ddaccordion.init({
          
          <h3>Travel Manager </h3>
          
-         <a href="#" class="forgot_pass">Forgot password</a> 
+         <a href="forgotPassword.php" class="forgot_pass">Forgot password</a> 
          
          <form action="login_check.php" method="post" class="niceform" method="post" >
          
@@ -77,20 +116,24 @@ ddaccordion.init({
                     </dl>
                     
                      <dl class="submit">
-                    <input type="submit" name="submit" id="submit" value="Login" />
+                    <input type="button" name="submit" id="submit" value="Login" />
                      </dl>
-
+					<dl class="" style="color:red;font-size:13px;padding-left:300px;">
+                    <span name="loginComment" id="loginComment" value="" />
+                     </dl>
                     
                 </fieldset>
                 
          </form>
          </div>  
-          
+          <script>
+		 
+		  </script>
 	
     
     <div class="footer_login">
     
-    	<div class="left_footer_login">Travel | Powered by <a href="http://indeziner.com">INDEZINER</a></div>
+    	<div class="left_footer_login">Travel <a href="">Travel</a></div>
     	<div class="right_footer_login"><a href="http://indeziner.com"><img src="images/indeziner_logo.gif" alt="" title="" border="0" /></a></div>
     
     </div>

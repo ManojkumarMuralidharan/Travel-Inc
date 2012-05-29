@@ -567,5 +567,8 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor 
          </div> 
 		</div>  
 	<div id="backgroundPopup"></div>  
+	<script>
+	 
+	</script>
 </body>
 </html>

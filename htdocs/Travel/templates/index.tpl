@@ -6,16 +6,17 @@
 <title>IN ADMIN PANEL | Powered by INDEZINER</title>
 <link rel="stylesheet" type="text/css" href="style.css" />
 <link rel="icon" type="image/ico" href="Images/favicon.ico"> 
+<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
 
-<script type="text/javascript" src="jquery.min.js"></script>
-
+<script type="text/javascript" src="notifier.js"></script>
 <script type="text/javascript" src="jquery-ui.min.js"></script>
-
+ 
 <link rel="stylesheet" type="text/css" href="jquery-ui.css"/>
 
 <link rel="stylesheet" type="text/css" href="ui.theme.css"/>
 
 <script type="text/javascript" src="ddaccordion.js"></script>
+
 <script type="text/javascript">
 ddaccordion.init({
 	headerclass: "submenuheader", //Shared CSS class name of headers group
@@ -47,10 +48,28 @@ ddaccordion.init({
 
 <script type="text/javascript">
 	
+
 	$(document).ready(function() {
 		$('.ask').jConfirmAction();
+		
+
 	});
 	
+</script>
+         <script>
+		var justLogged=1;
+		var newUserType='user';
+		var travelType='local';
+		var reportsTravelType='both';
+		var reportUserName='';
+		var securityQuestionId={$securityQuestionId};
+		var monthlyReportsYear=(new Date).getFullYear();
+	   </script>
+
+		
+<script>
+  NotifierjsConfig.defaultTimeOut = 2000;
+  NotifierjsConfig.position = ["bottom", "right"];
 </script>
 
 <script language="javascript" type="text/javascript" src="niceforms.js"></script>
@@ -71,7 +90,7 @@ var popupStatus = 0;
 	<div class="header">
     <div class="logo"><a href="#"><img src="images/logo.gif" alt="" title="" border="0" /></a></div>
     
-    <div class="right_header" >Welcome {$userName}, <a href="#" class="messages">(3) Messages</a>|<a href="logout.php" class="logout">Logout</a></div>
+    <div class="right_header" id="titleUserName" >Welcome {$userName}, <a href="#" class="messages">(3) Messages</a>|<a href="logout.php" class="logout">Logout</a></div>
     
     </div>
     
@@ -80,8 +99,8 @@ var popupStatus = 0;
                     <div class="menu" >
                     <ul>
                     <li><a style="font-size:14px;" class="current" href="#" onClick="ChangePage('home');">Home</a></li>
-                    <li><a style="font-size:14px;" href="#">Settings</a></li>
-                    <li><a style="font-size:14px;" href="#" onClick="ChangePage('reports');">Reports</a></li>
+                    <li><a style="font-size:14px;" href="#" onClick="ChangePage('settings');">Settings</a></li>
+                    <li><a style="font-size:14px;" href="#Reports" onClick="ChangePage('reports');">Reports</a></li>
                     <li><a style="font-size:14px;" href="#">Contact Us</a></li>
                     </ul>
                     </div> 
@@ -107,124 +126,11 @@ $page="templates/home.tpl";
     
     <div class="footer">
     
-    	<div class="left_footer">IN ADMIN PANEL | Powered by <a href="http://indeziner.com">INDEZINER</a></div>
+    	<div class="left_footer">Travel<a href="http://indeziner.com">++</a></div>
     	<div class="right_footer"><a href="http://indeziner.com"><img src="images/indeziner_logo.gif" alt="" title="" border="0" /></a></div>
     
     </div>
 </div>		
-<div id="popupDisplayComments">  
-			<a id="popupDisplayCommentsClose">x</a>  
-			<h1>Comments</h1>  
-			<div class="form">
-         <form action="" method="post" class="niceform">
-		   <Table>
-		   
-		   <tr>
-		   
-		   <td><textarea name="comments" id="supervisor_comments" rows="5" cols="36"></textarea></td>
-		   </tr>
-		   </Table>
-         </form>
-		 
-         </div> 
-</div>  
-	<div id="popupComments">  
-			<a id="popupCommentsClose">x</a>  
-			<h1>Decline / On Hold</h1>  
-			<div class="form">
-         <form action="" method="post" class="niceform">
-		   <Table>
-		   
-		   <tr>
-		   <td>Comments</td>
-		   <td><textarea name="comments" id="supervisor_comments" rows="5" cols="36"></textarea></td>
-		   </tr>
-		   <tr>
-		   <td>Reasons</td>
-		   <td><textarea name="Reasons" id="reasonRequest" rows="5" cols="36"></textarea></td>
-		   </tr>
-		   
-		   </Table>
-		   <Table style="padding-left:70px"><tr><td>
-		   <a href="#" style="position:relative;" class="bt_blue"><span class="bt_blue_lft"></span><strong>OnHold</strong><span class="bt_blue_r"></span></a>
-		   </td>
-		   
 
-		   <td>
-		   <a href="#" style="position:relative;"  class="bt_red ask"><span class="bt_red_lft"></span><strong>Decline</strong><span class="bt_red_r"></span></a> 
-		   </td>
-		   </tr>
-		   </Table>
-         </form>
-		 
-         </div> 
-		</div>  
-		<div id="popupContact">  
-			<a id="popupContactClose">x</a>  
-			<h1>Create your Request</h1>  
-			<div class="form">
-         <form action="" method="post" class="niceform">
-		   <Table>
-		   <tr>
-		   <td>Name</td>
-		   <td><input type="text" /></td>   
-		   </tr>
-		   
-		   <tr>
-		   <td>Type of Travel</td>
-		   <td>
-		   
-		   <div class="NewSelect" onClick="newSelect();"> 
-		   <img src="img/0.png" class="NewSelectLeft">
-		   <div class="NewSelectRight">Local</div>
-			   <div class="NewSelectTarget" id="123" style="display: none; ">
-				   <ul class="NewSelectOptions">
-				   <li><a href="javascript:;">Local</a></li>
-				   <li><a href="javascript:;">International</a></li>
-				   </ul>
-			   </div>
-		   </div>
-		 
-		  
-		   
-		   </td>   
-		   </tr>
-		   
-		   <tr>
-		   <td>From</td>
-		   <td><input type="text" /></td>   
-		   </tr>
-		   
-		   <tr>
-		   <td>To</td>
-		   <td><input type="text" /></td>   
-		   </tr>
-		   
-		   <tr>
-		   <td>Purpose</td>
-		   <td><input type="text" /></td>   
-		   </tr>
-		   
-		   <tr>
-		   <td>Cost</td>
-		   <td><input type="text" /></td>   
-		   </tr>
-		   
-		   <tr>
-		   <td>Comments</td>
-		   <td><textarea name="comments" id="comments" rows="5" cols="36"></textarea></td>
-		   </tr>
-		   
-		   
-		   </Table>
-		   <Table style="padding-left:150px"><tr><td>
-		   <input type="submit" name="submit" id="submit" value="Submit" /></td>
-		   </td></tr>
-		   </Table>
-         </form>
-		 
-         </div> 
-		</div>  
-	<div id="backgroundPopup"></div>  
 </body>
 </html>

@@ -34,49 +34,21 @@
 			<th scope="col" class="rounded">TravelType</th>
 			<th scope="col" class="rounded">Cost</th>
 			<th scope="col" class="rounded">Purpose</th>
-			<th scope="col" class="rounded">Comments</th>
-            <th scope="col" class="rounded-q4">Edit</th>
+			<th scope="col" class="rounded-q4">Comments</th>
+            
 
         </tr>
     </thead>
         <tfoot>
     	<tr>
-        	<td colspan="9" style="width:835px;"class="rounded-foot-left"><em>Your have 2 results.</em></td>
+        	<td colspan="8" style="width:835px;"class="rounded-foot-left"><em>Your have 2 results.</em></td>
         	<td class="rounded-foot-right">&nbsp;</td>
 
         </tr>
     </tfoot>
-    <tbody>
-    	<tr>
-        	
-            <td >#12345</td>
-            <td>details</td>
-            <td>150$</td>
-            <td>Mumbai,India</td>
-			<td>Washington</td>
-			<td>International</td>
-            <td>1500$</td>
-            <td>12/05/2010</td>
-            <td><a href="#" class="ask"><img src="images/request_comment.png" alt="" title="" border="0" /></a></td>
-            <td><a href="#"><img src="images/user_edit.png" alt="" title="" border="0" /></a></td>
-           
-        </tr>
-        
-    	<tr>
-        	
-            <td >#22342</td>
-            <td>details</td>
-            <td>150$</td>
-            <td>Seattle,CA</td>
-			<td>TX</td>
-			<td>Local</td>
-            <td>2000$</td>
-            <td>12/05/2010</td>
-			<td><a href="#" class="ask"><img src="images/request_comment.png" alt="" title="" border="0" /></a></td>
-            <td><a href="#"><img src="images/user_edit.png" alt="" title="" border="0" /></a></td>
-           
-        </tr> 
-        
+    <tbody id="reportsContents">
+	
+    
     	
     </tbody>
 </table>
@@ -84,7 +56,7 @@
 <tr><td>
 <div style="align:center;">
 	 <a href="#" class="bt_red"><span class="bt_red_lft"></span><strong>Email</strong><span class="bt_red_r"></span></a>
-     <a href="#" id="createRequest" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
+     <a href="#" id="generateExcel" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
 </div>
 </td></tr>
 </table>
@@ -98,5 +70,5 @@
       
      
      </div><!-- end of right content-->
-            
+          
     

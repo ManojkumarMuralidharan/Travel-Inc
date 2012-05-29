@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-18 20:34:50
+<?php /* Smarty version Smarty-3.1.8, created on 2012-05-29 16:50:23
          compiled from ".\templates\reports.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:293284fb555b96065a0-05138723%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     'b69c84c55ff66c12e36135cbb373dc36ea058547' => 
     array (
       0 => '.\\templates\\reports.tpl',
-      1 => 1337366073,
+      1 => 1338303011,
       2 => 'file',
     ),
   ),
@@ -57,49 +57,21 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 			<th scope="col" class="rounded">TravelType</th>
 			<th scope="col" class="rounded">Cost</th>
 			<th scope="col" class="rounded">Purpose</th>
-			<th scope="col" class="rounded">Comments</th>
-            <th scope="col" class="rounded-q4">Edit</th>
+			<th scope="col" class="rounded-q4">Comments</th>
+            
 
         </tr>
     </thead>
         <tfoot>
     	<tr>
-        	<td colspan="9" style="width:835px;"class="rounded-foot-left"><em>Your have 2 results.</em></td>
+        	<td colspan="8" style="width:835px;"class="rounded-foot-left"><em>Your have 2 results.</em></td>
         	<td class="rounded-foot-right">&nbsp;</td>
 
         </tr>
     </tfoot>
-    <tbody>
-    	<tr>
-        	
-            <td >#12345</td>
-            <td>details</td>
-            <td>150$</td>
-            <td>Mumbai,India</td>
-			<td>Washington</td>
-			<td>International</td>
-            <td>1500$</td>
-            <td>12/05/2010</td>
-            <td><a href="#" class="ask"><img src="images/request_comment.png" alt="" title="" border="0" /></a></td>
-            <td><a href="#"><img src="images/user_edit.png" alt="" title="" border="0" /></a></td>
-           
-        </tr>
-        
-    	<tr>
-        	
-            <td >#22342</td>
-            <td>details</td>
-            <td>150$</td>
-            <td>Seattle,CA</td>
-			<td>TX</td>
-			<td>Local</td>
-            <td>2000$</td>
-            <td>12/05/2010</td>
-			<td><a href="#" class="ask"><img src="images/request_comment.png" alt="" title="" border="0" /></a></td>
-            <td><a href="#"><img src="images/user_edit.png" alt="" title="" border="0" /></a></td>
-           
-        </tr> 
-        
+    <tbody id="reportsContents">
+	
+    
     	
     </tbody>
 </table>
@@ -107,7 +79,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 <tr><td>
 <div style="align:center;">
 	 <a href="#" class="bt_red"><span class="bt_red_lft"></span><strong>Email</strong><span class="bt_red_r"></span></a>
-     <a href="#" id="createRequest" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
+     <a href="#" id="generateExcel" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
 </div>
 </td></tr>
 </table>
@@ -121,5 +93,5 @@ $_valid = $_smarty_tpl->decodeProperties(array (
       
      
      </div><!-- end of right content-->
-            
+          
     <?php }} ?>

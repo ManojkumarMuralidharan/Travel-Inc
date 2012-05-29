@@ -371,6 +371,18 @@ function newSelect() { //extend Selects
 	}
 }
 ///
+
+function newSelect() { //extend Selects
+	
+	
+	if(document.getElementById('editTravelTypeDiv').style.display!='block'){
+	document.getElementById('editTravelTypeDiv').style.display='block';
+	}else if(document.getElementById('editTravelTypeDiv').style.display=='block'){
+	document.getElementById('editTravelTypeDiv').style.display='none';
+	}
+}
+
+///
 function selects(el) { //extend Selects
 	el.oldClassName = el.className;
 	el.dummy = document.createElement('div');

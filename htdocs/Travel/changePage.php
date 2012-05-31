@@ -22,6 +22,7 @@ $smarty->assign('supervisorRecordCount',$_SESSION['supervisorRecordCount']);
 $smarty->display('home.tpl');
 }
 else if($pageType=="reports"){
+$smarty->assign('reportCount',$_SESSION['reportCount']);
 $subordinates=include 'fetchSubordinates.php';
 $smarty->assign('subordinates',$subordinates);
 $smarty->display('reports.tpl');

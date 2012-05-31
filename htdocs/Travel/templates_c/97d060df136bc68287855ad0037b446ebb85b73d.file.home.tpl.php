@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-25 21:09:11
+<?php /* Smarty version Smarty-3.1.8, created on 2012-05-31 22:17:18
          compiled from ".\templates\home.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:206224fb55589f273d8-72747964%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     '97d060df136bc68287855ad0037b446ebb85b73d' => 
     array (
       0 => '.\\templates\\home.tpl',
-      1 => 1337972831,
+      1 => 1338495432,
       2 => 'file',
     ),
   ),
@@ -44,7 +44,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 		</script>
     <h2>My Requests</h2> 
                     
-<table class="rounded-corner" summary="2007 Major IT Companies' Profit">
+<table id="mt" class="rounded-corner" summary="2007 Major IT Companies' Profit">
     <thead>
     	<tr>
         	<th scope="col" class="rounded-company"></th>
@@ -69,7 +69,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 
         </tr>
     </tfoot>
-    <tbody>
+    <tbody id="userRecordBody">
         
     	<?php echo $_smarty_tpl->tpl_vars['userRecordContent']->value;?>
 
@@ -79,14 +79,14 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 <table style="padding-left:280px;">
 <tr><td>
 <div style="align:center;">
-	 <a href="#" class="bt_red"><span class="bt_red_lft"></span><strong>Cancel request</strong><span class="bt_red_r"></span></a>
+	 <a href="#" id="cancelRequestButton" class="bt_red"><span class="bt_red_lft"></span><strong>Cancel request</strong><span class="bt_red_r"></span></a>
      <a href="#" id="createRequest" class="bt_green"><span class="bt_green_lft"></span><strong>New Request</strong><span class="bt_green_r"></span></a> 
 </div>
 </td></tr>
 </table>
      
-        <div class="pagination">
-        <span class="disabled"><< prev</span><span class="current">1</span><a href="">2</a><a href="">3</a><a href="">4</a><a href="">5</a>...<a href="">10</a><a href="">11</a><a href="">12</a>...<a href="">100</a><a href="">101</a><a href="">next >></a>
+        <div id="userRecordsPaginationElement" class="pagination">
+	
         </div> 
      
     
@@ -129,7 +129,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 
 				</tr>
 				</tfoot>
-				<tbody>
+				<tbody id="supervisorRecordBody">
 					<?php echo $_smarty_tpl->tpl_vars['supervisorRecordContent']->value;?>
 
 				</tbody>
@@ -138,14 +138,14 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 					<tr><td>
 					<div style="align:center;">
 						 
-						 <a href="#" style="position:relative;" class="bt_blue"><span class="bt_blue_lft"></span><strong>OnHold</strong><span class="bt_blue_r"></span></a>
-						 <a href="#" style="position:relative;"  class="bt_red"><span class="bt_red_lft"></span><strong>Decline</strong><span class="bt_red_r"></span></a> 
-						 <a href="#" style="position:relative;" id="createRequest" class="bt_green"><span class="bt_green_lft"></span><strong>Approve</strong><span class="bt_green_r"></span></a>
+						 <a href="#" style="position:relative;" id="onHoldButton" class="bt_blue"><span class="bt_blue_lft"></span><strong>OnHold</strong><span class="bt_blue_r"></span></a>
+						 <a href="#" style="position:relative;" id="declineButton" class="bt_red"><span class="bt_red_lft"></span><strong>Decline</strong><span class="bt_red_r"></span></a> 
+						 <a href="#" style="position:relative;" id="approveButton" class="bt_green"><span class="bt_green_lft"></span><strong>Approve</strong><span class="bt_green_r"></span></a>
 						
 					 </div> 
 					</td></tr>
 				</table> 
-				<div class="pagination">
+				<div id="supervisorRecordsPaginationElement" class="pagination">
 					<span class="disabled"><< prev</span><span class="current">1</span><a href="">2</a><a href="">3</a><a href="">4</a><a href="">5</a>...<a href="">10</a><a href="">11</a><a href="">12</a>...<a href="">100</a><a href="">101</a><a href="">next >></a>
 				</div> 
      
@@ -288,13 +288,13 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 		   <td>Type of Travel</td>
 		   <td>
 		   
-		   <div class="NewSelect" onClick="newSelect();"> 
+		   <div class="NewSelect" onClick="newEditSelect();"> 
 		   <img src="img/0.png" class="NewSelectLeft">
 		   <div class="NewSelectRight" id="travelTypeEditFormElement">Local</div>
 			   <div class="NewSelectTarget" id="editTravelTypeDiv" style="display: none; ">
 				   <ul class="NewSelectOptions">
 				   <li><a href="javascript:;" onClick="travelType='local';$('#travelTypeEditFormElement').text('Local');">Local</a></li>
-				   <li><a href="javascript:;" onClick="travelType='international';$('#travelEditTypeFormElement').text('International');">International</a></li>
+				   <li><a href="javascript:;" onClick="travelType='international';$('#travelTypeEditFormElement').text('International');">International</a></li>
 				   </ul>
 			   </div>
 		   </div>

@@ -47,6 +47,10 @@ ddaccordion.init({
 	$(document).ready(function() {
 		$('.ask').jConfirmAction();
 		 $("#submit").click(function(){
+		 if($("#userName").val()==''||$("#password").val() ==''){
+		 Notifier.warning("Please enter the credentials");
+		 return;
+		 }
 		 // alert('Submitted');
 		  $.ajax({
 			type: "POST",
@@ -54,7 +58,7 @@ ddaccordion.init({
 			data: { userName: $("#userName").val(), password: $("#password").val() } ,
 			success: function(response)
 			{
-			    alert(response);
+			   // alert(response);
 				if(response == 'success'){
 				//alert(response);
 				//Notifier.success('Login successful');

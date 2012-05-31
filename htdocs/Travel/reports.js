@@ -17,7 +17,20 @@ xmlhttp.send("reportType="+reportType);
 		 if (xmlhttp.readyState==4){
 			  if (xmlhttp.status==200 || window.location.href.indexOf("http")==-1){
 			   document.getElementById("reportsDisplay").innerHTML=xmlhttp.responseText;
+			   
+			   if(reportType=='1'){
+			   
+			   }else if(reportType=='2'){
+			   
+			   }
+			   
+			   
 		$("#generateMonthlyReports").click(function(){
+		if(monthlyReportsYear==''){
+		Notifier.warning("Please select a year");
+		return;
+		}
+		
 		var checkedlist='';
 		$(":checkbox").each(function() {
 		if(this.value!='all'){
@@ -31,7 +44,6 @@ xmlhttp.send("reportType="+reportType);
 		
 		 }
 		
-		
 		//	checkedlist.=this.name;
 			//checkedlist.=';';
 		
@@ -40,7 +52,12 @@ xmlhttp.send("reportType="+reportType);
 		   this.checked = false; // or, to uncheck
 		   this.checked = !this.checked; // or, to toggle*/
 		});	
-		alert(checkedlist);
+		
+		if(checkedlist==''){
+		Notifier.warning("Please select a month");
+		return;
+		}
+		//alert(checkedlist);
 		//alert(monthlyReportsYear);
 		
 			$.ajax({
@@ -48,10 +65,14 @@ xmlhttp.send("reportType="+reportType);
 			url: "fetchMonthlyReports.php",
 			data: { months: checkedlist, year: monthlyReportsYear, reportType: 'monthly' },
 			}).done(function(data) { 
+			//addalert(data);
 			//alert(data);
 					$('#reportsContents').html(data);		
-					
-						$('#reportsContents').html(data);
+					setupPagination($('#reportsContents'),$('#reportRecordsPaginationElement'),$('#current_ReportsRecords_page'),$('#show_ReportsRecords_per_page'));
+					 $('#reportRecordsPaginationElement a').click(function(e) {
+					 e.preventDefault();
+					 });
+					//	$('#reportsContents').html(data);
 					$(".reportCommentsDisplay").click(function(){
 					$("#1").hide();
 					$("#2").hide();
@@ -91,10 +112,18 @@ xmlhttp.send("reportType="+reportType);
 		});
 		
 		
-		
-	
+
 		
 	$("#generateReportsButton").click(function(){
+	if($('#datepicker').val()==''||$('#datepicker1').val()==''){
+	Notifier.warning("Please select a date");
+	return;
+	}
+	if(reportUserName==''){
+	Notifier.warning("Please select a user");
+	return;
+	}
+	
 			//alert($('#reportUserName').val());
 		$.ajax({
 		type: "POST",
@@ -104,6 +133,12 @@ xmlhttp.send("reportType="+reportType);
 		//alert(data);
 		
 		$('#reportsContents').html(data);
+		setupPagination($('#reportsContents'),$('#reportRecordsPaginationElement'),$('#current_ReportsRecords_page'),$('#show_ReportsRecords_per_page'));
+				
+		 $('#reportRecordsPaginationElement a').click(function(e) {
+		 e.preventDefault();
+		 });
+
 			$(".reportCommentsDisplay").click(function(){
 			$("#1").hide();
 			$("#2").hide();
@@ -204,9 +239,55 @@ xmlhttp.send("page="+pageName);
 			buttonImageOnly: true
 		});
 		
+	$("#generateRegularExcel").click(function(){
+	//x	alert();
+	//	 $('#target').submit();
+		 
+	if(reportUserName==''){
+	Notifier.warning("Please select appropriate value");
+	return;
+	}
+	var str='fetchExcelReports.php?travelType='+reportsTravelType+'&fromDate='+$("#datepicker").val()+'&toDate='+$("#datepicker1").val()+'&reportUserName='+reportUserName+'&reportType=excelReport';
+	window.location.href=str;
+	//$(this).attr('href',str);
+
+		
+		});
+		
+	$("#generateMonthlyExcel").click(function(){
+		 
+	var checkedlist='';
+		$(":checkbox").each(function() {
+		if(this.value!='all'){
+			if(this.checked==true){
+			checkedlist+=this.value+';';
+			}
+		 }else if(this.value=='all'){
+		 if(this.checked==true){
+			 checkedlist='1;2;3;4;5;6;7;8;9;10;11;12;';
+			}
+		
+		 }
+		});
+		 
+	var str='fetchMonthlyReportsExcel.php?months='+checkedlist+'&year='+monthlyReportsYear+'&reportType=monthly' ;
+	//$(this).attr('href',str);
+	window.location.href=str;
+		
+		});
+	
 
 		$("#generateReportsButton").click(function(){
-			alert($('#reportUserName').val());
+//alert($('#reportUserName').val());
+
+if($('#datepicker').val()==''||$('#datepicker1').val()==''){
+Notifier.warning("Please select a date");
+return;
+}
+	if(reportUserName==''){
+	Notifier.warning("Please select a user");
+	return;
+	}
 		$.ajax({
 		type: "POST",
 		url: "fetchReports.php",
@@ -215,6 +296,10 @@ xmlhttp.send("page="+pageName);
 		//alert(data);
 		
 		$('#reportsContents').html(data);
+		setupPagination($('#reportsContents'),$('#reportRecordsPaginationElement'),$('#current_ReportsRecords_page'),$('#show_ReportsRecords_per_page'));
+	   	$('#reportRecordsPaginationElement a').click(function(e) {
+		 e.preventDefault();
+		 });
 			$(".reportCommentsDisplay").click(function(){
 			$("#1").hide();
 			$("#2").hide();
@@ -230,7 +315,7 @@ xmlhttp.send("page="+pageName);
 			url: "fetchComments.php",
 			data: { id: $(this).attr('id'), type: 'comments'  },
 			}).done(function(data) { 
-			alert(data);
+			//alert(data);
 			
 			if(data=='fail')
 			Notifier.error('User creation failed');
@@ -268,6 +353,16 @@ xmlhttp.send("page="+pageName);
 			if(pageName=='home'){
 			//alert('home it is');
 				M7();
+				setupPagination($('#userRecordBody'),$('#userRecordsPaginationElement'),$('#current_UserRecords_page'),$('#show_UserRecords_per_page'));
+				setupPagination($('#supervisorRecordBody'),$('#supervisorRecordsPaginationElement'),$('#current_SupervisorRecords_page'),$('#show_SupervisorRecords_per_page'));
+				
+				$('#userRecordsPaginationElement a').click(function(e) {
+				 e.preventDefault();
+				 });
+				 $('#supervisorRecordsPaginationElement a').click(function(e) {
+				 e.preventDefault();
+				 });
+		
 				}
 				if(pageName=='settings'){
 				//alert('settings it is');
@@ -276,12 +371,16 @@ xmlhttp.send("page="+pageName);
 					source: "searchSupervisor.php",
 					
 				});
-
+			
 
 				}
 				if(pageName=='reports'){
-				alert('reports');
+				//alert('reports');
 				M7();
+			
+				 $('#reportRecordsPaginationElement a').click(function(e) {
+				 e.preventDefault();
+				 });
 				}
 		//	selects(reportUserSelect);
 			   NFInit();
@@ -301,11 +400,16 @@ function changeReport(value){
 					$("#1").toggleClass('NFh');
 						
 					$("#2").toggleClass('NFh');
+					$("#generateRegularExcel").attr('style','display:block');
+					$("#generateMonthlyExcel").attr('style','display:none');
 					ChangereportType('regular');
 					}else if(value=='2'){
 					$('#reportsContents').html('');
 					$("#1").toggleClass('NFh');
 					$("#2").toggleClass('NFh');
+					
+					$("#generateRegularExcel").attr('style','display:none');
+					$("#generateMonthlyExcel").attr('style','display:block');
 					ChangereportType('monthly');
 					//alert(value);					
 					}

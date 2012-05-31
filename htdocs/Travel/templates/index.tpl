@@ -40,6 +40,8 @@ ddaccordion.init({
 })
 </script>
 
+<script type="text/javascript" src="jpaginate.js"></script>
+
 <script type="text/javascript" src="jconfirmaction.jquery.js"></script>
 
 <script type="text/javascript" src="logout.js"></script>
@@ -51,8 +53,18 @@ ddaccordion.init({
 
 	$(document).ready(function() {
 		$('.ask').jConfirmAction();
-		
+	
+		setupPagination($('#userRecordBody'),$('#userRecordsPaginationElement'),$('#current_UserRecords_page'),$('#show_UserRecords_per_page'));
+		setupPagination($('#supervisorRecordBody'),$('#supervisorRecordsPaginationElement'),$('#current_SupervisorRecords_page'),$('#show_SupervisorRecords_per_page'));
+		setupPagination($('#reportsContents'),$('#reportRecordsPaginationElement'),$('#current_ReportsRecords_page'),$('#show_ReportsRecords_per_page'));
+	   $('#userRecordsPaginationElement a').click(function(e) {
+		 e.preventDefault();
+		 });
+		 $('#supervisorRecordsPaginationElement a').click(function(e) {
+		 e.preventDefault();
+		 });
 
+ 
 	});
 	
 </script>
@@ -60,10 +72,10 @@ ddaccordion.init({
 		var justLogged=1;
 		var newUserType='user';
 		var travelType='local';
-		var reportsTravelType='both';
+		var reportsTravelType='local';
 		var reportUserName='';
 		var securityQuestionId={$securityQuestionId};
-		var monthlyReportsYear=(new Date).getFullYear();
+		var monthlyReportsYear='';
 	   </script>
 
 		
@@ -131,6 +143,14 @@ $page="templates/home.tpl";
     
     </div>
 </div>		
+<input type="hidden" id="current_UserRecords_page"/>
+<input type="hidden" id="show_UserRecords_per_page"/>
+
+<input type="hidden" id="current_SupervisorRecords_page"/>
+<input type="hidden" id="show_SupervisorRecords_per_page"/>
+
+<input type="hidden" id="current_ReportsRecords_page"/>
+<input type="hidden" id="show_ReportsRecords_per_page"/>
 
 </body>
 </html>

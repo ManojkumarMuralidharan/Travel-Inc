@@ -372,7 +372,7 @@ function newSelect() { //extend Selects
 }
 ///
 
-function newSelect() { //extend Selects
+function newEditSelect() { //extend Selects
 	
 	
 	if(document.getElementById('editTravelTypeDiv').style.display!='block'){

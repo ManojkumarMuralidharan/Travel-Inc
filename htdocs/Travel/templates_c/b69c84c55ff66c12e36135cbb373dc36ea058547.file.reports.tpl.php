@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-29 16:50:23
+<?php /* Smarty version Smarty-3.1.8, created on 2012-05-31 22:28:46
          compiled from ".\templates\reports.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:293284fb555b96065a0-05138723%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     'b69c84c55ff66c12e36135cbb373dc36ea058547' => 
     array (
       0 => '.\\templates\\reports.tpl',
-      1 => 1338303011,
+      1 => 1338496121,
       2 => 'file',
     ),
   ),
@@ -17,6 +17,10 @@ $_valid = $_smarty_tpl->decodeProperties(array (
   ),
   'version' => 'Smarty-3.1.8',
   'unifunc' => 'content_4fb555b960e767_38654841',
+  'variables' => 
+  array (
+    'reportCount' => 0,
+  ),
   'has_nocache_code' => false,
 ),false); /*/%%SmartyHeaderCode%%*/?>
 <?php if ($_valid && !is_callable('content_4fb555b960e767_38654841')) {function content_4fb555b960e767_38654841($_smarty_tpl) {?>    
@@ -64,7 +68,8 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     </thead>
         <tfoot>
     	<tr>
-        	<td colspan="8" style="width:835px;"class="rounded-foot-left"><em>Your have 2 results.</em></td>
+        	<td colspan="8" style="width:835px;"class="rounded-foot-left"><em>Your have <?php echo $_smarty_tpl->tpl_vars['reportCount']->value;?>
+ results.</em></td>
         	<td class="rounded-foot-right">&nbsp;</td>
 
         </tr>
@@ -79,13 +84,15 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 <tr><td>
 <div style="align:center;">
 	 <a href="#" class="bt_red"><span class="bt_red_lft"></span><strong>Email</strong><span class="bt_red_r"></span></a>
-     <a href="#" id="generateExcel" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
+
+     <a href="#"  id="generateRegularExcel" style="display:block" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
+	 <a href="#"  id="generateMonthlyExcel" style="display:none" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
 </div>
 </td></tr>
 </table>
      
-        <div class="pagination">
-        <span class="disabled"><< prev</span><span class="current">1</span><a href="">2</a><a href="">3</a><a href="">4</a><a href="">5</a>...<a href="">10</a><a href="">11</a><a href="">12</a>...<a href="">100</a><a href="">101</a><a href="">next >></a>
+        <div id="reportRecordsPaginationElement" class="pagination">
+       
         </div> 
      
     

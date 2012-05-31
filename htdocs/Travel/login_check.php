@@ -37,7 +37,7 @@ if($count==1){
 				if($count==1){
 					$supervisor=mysql_result($result,0,"supervisor");
 					$_SESSION['supervisor']=$supervisor;
-
+					$_SESSION['reportCount']=0;
 					$sql="SELECT active FROM $tbl_name WHERE username='".$myusername."' and 
 					password='".$mypassword."';";
 					$result=mysql_query($sql);

@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-24 21:27:07
+<?php /* Smarty version Smarty-3.1.8, created on 2012-05-31 19:20:23
          compiled from ".\templates\login.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:38224fb3b5c8ea3c34-80224467%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     '0390f83576cc40b989c12a7362afcba143967e43' => 
     array (
       0 => '.\\templates\\login.tpl',
-      1 => 1337887621,
+      1 => 1338484821,
       2 => 'file',
     ),
   ),
@@ -68,6 +68,10 @@ ddaccordion.init({
 	$(document).ready(function() {
 		$('.ask').jConfirmAction();
 		 $("#submit").click(function(){
+		 if($("#userName").val()==''||$("#password").val() ==''){
+		 Notifier.warning("Please enter the credentials");
+		 return;
+		 }
 		 // alert('Submitted');
 		  $.ajax({
 			type: "POST",
@@ -75,7 +79,7 @@ ddaccordion.init({
 			data: { userName: $("#userName").val(), password: $("#password").val() } ,
 			success: function(response)
 			{
-			    alert(response);
+			   // alert(response);
 				if(response == 'success'){
 				//alert(response);
 				//Notifier.success('Login successful');

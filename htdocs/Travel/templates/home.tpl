@@ -16,7 +16,7 @@
 		</script>
     <h2>My Requests</h2> 
                     
-<table class="rounded-corner" summary="2007 Major IT Companies' Profit">
+<table id="mt" class="rounded-corner" summary="2007 Major IT Companies' Profit">
     <thead>
     	<tr>
         	<th scope="col" class="rounded-company"></th>
@@ -40,7 +40,7 @@
 
         </tr>
     </tfoot>
-    <tbody>
+    <tbody id="userRecordBody">
         
     	{$userRecordContent}
 		
@@ -49,14 +49,14 @@
 <table style="padding-left:280px;">
 <tr><td>
 <div style="align:center;">
-	 <a href="#" class="bt_red"><span class="bt_red_lft"></span><strong>Cancel request</strong><span class="bt_red_r"></span></a>
+	 <a href="#" id="cancelRequestButton" class="bt_red"><span class="bt_red_lft"></span><strong>Cancel request</strong><span class="bt_red_r"></span></a>
      <a href="#" id="createRequest" class="bt_green"><span class="bt_green_lft"></span><strong>New Request</strong><span class="bt_green_r"></span></a> 
 </div>
 </td></tr>
 </table>
      
-        <div class="pagination">
-        <span class="disabled"><< prev</span><span class="current">1</span><a href="">2</a><a href="">3</a><a href="">4</a><a href="">5</a>...<a href="">10</a><a href="">11</a><a href="">12</a>...<a href="">100</a><a href="">101</a><a href="">next >></a>
+        <div id="userRecordsPaginationElement" class="pagination">
+	
         </div> 
      
     
@@ -97,7 +97,7 @@
 
 				</tr>
 				</tfoot>
-				<tbody>
+				<tbody id="supervisorRecordBody">
 					{$supervisorRecordContent}
 				</tbody>
 				</table>	
@@ -105,14 +105,14 @@
 					<tr><td>
 					<div style="align:center;">
 						 
-						 <a href="#" style="position:relative;" class="bt_blue"><span class="bt_blue_lft"></span><strong>OnHold</strong><span class="bt_blue_r"></span></a>
-						 <a href="#" style="position:relative;"  class="bt_red"><span class="bt_red_lft"></span><strong>Decline</strong><span class="bt_red_r"></span></a> 
-						 <a href="#" style="position:relative;" id="createRequest" class="bt_green"><span class="bt_green_lft"></span><strong>Approve</strong><span class="bt_green_r"></span></a>
+						 <a href="#" style="position:relative;" id="onHoldButton" class="bt_blue"><span class="bt_blue_lft"></span><strong>OnHold</strong><span class="bt_blue_r"></span></a>
+						 <a href="#" style="position:relative;" id="declineButton" class="bt_red"><span class="bt_red_lft"></span><strong>Decline</strong><span class="bt_red_r"></span></a> 
+						 <a href="#" style="position:relative;" id="approveButton" class="bt_green"><span class="bt_green_lft"></span><strong>Approve</strong><span class="bt_green_r"></span></a>
 						
 					 </div> 
 					</td></tr>
 				</table> 
-				<div class="pagination">
+				<div id="supervisorRecordsPaginationElement" class="pagination">
 					<span class="disabled"><< prev</span><span class="current">1</span><a href="">2</a><a href="">3</a><a href="">4</a><a href="">5</a>...<a href="">10</a><a href="">11</a><a href="">12</a>...<a href="">100</a><a href="">101</a><a href="">next >></a>
 				</div> 
      
@@ -255,13 +255,13 @@
 		   <td>Type of Travel</td>
 		   <td>
 		   
-		   <div class="NewSelect" onClick="newSelect();"> 
+		   <div class="NewSelect" onClick="newEditSelect();"> 
 		   <img src="img/0.png" class="NewSelectLeft">
 		   <div class="NewSelectRight" id="travelTypeEditFormElement">Local</div>
 			   <div class="NewSelectTarget" id="editTravelTypeDiv" style="display: none; ">
 				   <ul class="NewSelectOptions">
 				   <li><a href="javascript:;" onClick="travelType='local';$('#travelTypeEditFormElement').text('Local');">Local</a></li>
-				   <li><a href="javascript:;" onClick="travelType='international';$('#travelEditTypeFormElement').text('International');">International</a></li>
+				   <li><a href="javascript:;" onClick="travelType='international';$('#travelTypeEditFormElement').text('International');">International</a></li>
 				   </ul>
 			   </div>
 		   </div>

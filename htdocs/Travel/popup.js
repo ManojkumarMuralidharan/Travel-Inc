@@ -217,7 +217,118 @@ $(document).ready(function(){
 	//alert();
 	 //LOADING POPUP
 	//Click the button event!
-
+	
+/*	$('#approveButton').click(function(){
+	//alert();	
+	 var checkValues = [];
+	 $('input[name=userRecordsCheckbox]:checked').each(function() {
+      //alert($(this).parent().parent().find('td a').attr('id'));
+      checkValues.push($(this).parent().parent().find('td a').attr('id'));
+    });
+	alert(checkValues);
+	});*/
+	
+	
+	$('#cancelRequestButton').click(function(){
+	 var checkValues = [];
+	 $('input[name=userRecordsCheckbox]:checked').each(function() {
+      checkValues.push($(this).parent().parent().find('td a').attr('id'));
+    });
+	
+		$.ajax({
+		type: "POST",
+		url: "cancelRequest.php",
+		data: { id: checkValues },
+		}).done(function(data) { 
+		alert(data);
+		window.location.href="home.php";
+		});
+	});
+	
+	$('#approveButton').click(function(){
+	 var checkValues = [];
+	 $('input[name=supervisorRecordsCheckbox]:checked').each(function() {
+      checkValues.push($(this).parent().parent().find('td a').attr('id'));
+    });
+	//alert(checkValues);
+	
+		$.ajax({
+		type: "POST",
+		url: "supervisorActionOnRequest.php",
+		data: { id: checkValues, action: 'Approved' },
+		}).done(function(data) { 
+		alert(data);
+		window.location.href="home.php";
+		});
+	});
+	
+	
+	$('#declineButton').click(function(){
+	 var checkValues = [];
+	 $('input[name=supervisorRecordsCheckbox]:checked').each(function() {
+      checkValues.push($(this).parent().parent().find('td a').attr('id'));
+    });
+	//alert(checkValues);
+	
+		$.ajax({
+		type: "POST",
+		url: "supervisorActionOnRequest.php",
+		data: { id: checkValues, action: 'Declined' },
+		}).done(function(data) { 
+		alert(data);
+		window.location.href="home.php";
+		});
+	});
+	
+	
+	$('#onHoldButton').click(function(){
+	 var checkValues = [];
+	 $('input[name=supervisorRecordsCheckbox]:checked').each(function() {
+      checkValues.push($(this).parent().parent().find('td a').attr('id'));
+    });
+	//alert(checkValues);
+	
+		$.ajax({
+		type: "POST",
+		url: "supervisorActionOnRequest.php",
+		data: { id: checkValues, action: 'On Hold' },
+		}).done(function(data) { 
+		alert(data);
+		window.location.href="home.php";
+		});
+	});
+	
+	
+	
+	$('#cancelRequestButton').click(function(){
+	 var checkValues = [];
+	 $('input[name=userRecordsCheckbox]:checked').each(function() {
+      checkValues.push($(this).parent().parent().find('td a').attr('id'));
+    });
+	
+		$.ajax({
+		type: "POST",
+		url: "cancelRequest.php",
+		data: { id: checkValues },
+		}).done(function(data) { 
+		alert(data);
+		window.location.href="home.php";
+		});
+	});
+	
+	
+$('#userRecordsPaginationElement a').click(function(e) {
+ e.preventDefault();
+ });
+ $('#supervisorRecordsPaginationElement a').click(function(e) {
+ e.preventDefault();
+ });
+ $('#reportRecordsPaginationElement a').click(function(e) {
+ e.preventDefault();
+ });
+ 
+ 	
+		
 	$( "#newRequestFromDate" ).datepicker({
 			showOn: "button",
 			buttonImage: "Images/calendar.gif",
@@ -264,7 +375,7 @@ $(document).ready(function(){
 		Notifier.warning('Wrong password');
 		}else if(data=='success'){
 		Notifier.success('Security Question changed');
-		alert(securityQuestionId);
+		//alert(securityQuestionId);
         disablePopup();
 		}else if(data=='fail')
 		Notifier.error('Security Question change failed');
@@ -283,6 +394,11 @@ $(document).ready(function(){
 		});
 		 
 	 $("#updatePassword").click(function(){
+		
+		if($('#newPassword').val()==''||$('#newPassword').val()==''||$('#reNewPassword').val()==''){
+		Notifier.warning('Please enter all values');
+		return;
+		}
 		
 		if($('#newPassword').val()!=$('#reNewPassword').val()){
 		Notifier.warning('Passwords doesn`t match');
@@ -315,14 +431,24 @@ $(document).ready(function(){
 		
 	
 	 $("#createNewUserButton").click(function(){
-	
+	if($('#addNewUserName').val()=='' ){
+	Notifier.warning("Please enter a user name");
+	return;
+	}
+ 	if($('#newSupervisor').val()==''){
+	Notifier.warning("Please enter a supervisor name");
+	return;
+	}
+		
 		$.ajax({
 		type: "POST",
 		url: "addNewUser.php",
 		data: { userName: $('#addNewUserName').val(), supervisor: $('#newSupervisor').val() ,userType: newUserType},
 		}).done(function(data) { 
-		
-		if(data=='userexists'){
+		//alert(data);
+		if(data=='supervisorError'){
+		Notifier.warning('Supervisor does not exist or user is not supervisor');
+		}else if(data=='userexists'){
 		Notifier.warning('User already exists');
 		}else if(data=='success'){
 		Notifier.success('User created');
@@ -338,6 +464,53 @@ $(document).ready(function(){
 	
 	$("#createNewRequestButton").click(function(){
 	
+	if($('#newRequestSource').val() ==''){
+	Notifier.warning("Please enter value for Source");
+	return;
+	}	
+	
+	if($('#newRequestDestination').val()==''){
+	Notifier.warning("Please enter value for Destination");
+	return;
+	}
+	
+	if($('#newRequestFromDate').val()==''){
+	Notifier.warning("Please enter value for From date");
+	return;
+	}
+	
+	if($('#newRequestToDate').val()==''){
+	Notifier.warning("Please enter value for Todate");
+	return;
+	}
+	
+	if( (new Date($('#newRequestFromDate').val()).getTime() > new Date($('#newRequestToDate').val()).getTime()))
+	{
+	Notifier.warning("Start Date is after End Date");
+	return;
+	}
+	
+	if($('#newRequestPurpose').val()==''){
+	Notifier.warning("Please enter value for purpose");
+	return;
+	}
+	
+	if($('#newRequestCost').val()==''){
+	Notifier.warning("Please enter value for Cost");
+	return;
+	}else{
+	
+	var match =$('#newRequestCost').val().match(/(\d$)/);
+		if(!match){
+		Notifier.warning("Please enter a numeric value without '$'");
+		return;}
+	}
+	
+	if($('#newRequestComments').val()==''){
+	Notifier.warning("Please enter value for comments");
+	return;
+	}
+	
 		$.ajax({
 		type: "POST",
 		url: "addNewRequest.php",
@@ -345,7 +518,7 @@ $(document).ready(function(){
 		fromDate: $('#newRequestFromDate').val(),ToDate: $('#newRequestToDate').val() , purpose:$('#newRequestPurpose').val() ,
 		cost:$('#newRequestCost').val() , comments:$('#newRequestComments').val()},
 		}).done(function(data) { 
-		alert(data);
+		//alert(data);
 		
 		if(data=='recordexists'){
 		Notifier.warning('Duplicate record');
@@ -392,7 +565,7 @@ $(document).ready(function(){
 	
 	
 	$("#clearButton").click(function(){
-		alert();
+		//alert();
 		});
 		
 	//Report Generation
@@ -437,7 +610,7 @@ $(document).ready(function(){
 	
 	$(".commentsDisplay").click(function(){
 	$('#popupCommentsTitle').text('Comments');
-	alert($(this).attr('id'));
+	//alert($(this).attr('id'));
 	
 		$.ajax({
 		type: "POST",
@@ -606,7 +779,7 @@ $(document).ready(function(){
 	//CLOSING POPUP
 	//Click the x event!
 	$("#popupDisplayReportCommentsClose").click(function(){
-	alert();
+	//alert();
 			$("#1").show();
 			$("#2").show();
 			$("#travelTypeLocal").show();
@@ -658,7 +831,7 @@ $(document).ready(function(){
 	//Press Escape event!
 	$(document).keypress(function(e){
 		if(e.keyCode==27 && popupDisplayReportCommentStatus==1){
-		alert();
+	//	alert();
 			$("#1").show();
 			$("#2").show();
 			$("#travelTypeLocal").show();

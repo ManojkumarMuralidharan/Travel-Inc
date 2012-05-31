@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-29 20:41:13
+<?php /* Smarty version Smarty-3.1.8, created on 2012-05-31 20:19:33
          compiled from ".\templates\index.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:228624fb40c7e6398b3-47310342%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     '749422d4cfc3eb5677cf499730392b6accd4d1c7' => 
     array (
       0 => '.\\templates\\index.tpl',
-      1 => 1338316871,
+      1 => 1338488323,
       2 => 'file',
     ),
   ),
@@ -66,6 +66,8 @@ ddaccordion.init({
 })
 </script>
 
+<script type="text/javascript" src="jpaginate.js"></script>
+
 <script type="text/javascript" src="jconfirmaction.jquery.js"></script>
 
 <script type="text/javascript" src="logout.js"></script>
@@ -77,8 +79,18 @@ ddaccordion.init({
 
 	$(document).ready(function() {
 		$('.ask').jConfirmAction();
-		
+	
+		setupPagination($('#userRecordBody'),$('#userRecordsPaginationElement'),$('#current_UserRecords_page'),$('#show_UserRecords_per_page'));
+		setupPagination($('#supervisorRecordBody'),$('#supervisorRecordsPaginationElement'),$('#current_SupervisorRecords_page'),$('#show_SupervisorRecords_per_page'));
+		setupPagination($('#reportsContents'),$('#reportRecordsPaginationElement'),$('#current_ReportsRecords_page'),$('#show_ReportsRecords_per_page'));
+	   $('#userRecordsPaginationElement a').click(function(e) {
+		 e.preventDefault();
+		 });
+		 $('#supervisorRecordsPaginationElement a').click(function(e) {
+		 e.preventDefault();
+		 });
 
+ 
 	});
 	
 </script>
@@ -86,11 +98,11 @@ ddaccordion.init({
 		var justLogged=1;
 		var newUserType='user';
 		var travelType='local';
-		var reportsTravelType='both';
+		var reportsTravelType='local';
 		var reportUserName='';
 		var securityQuestionId=<?php echo $_smarty_tpl->tpl_vars['securityQuestionId']->value;?>
 ;
-		var monthlyReportsYear=(new Date).getFullYear();
+		var monthlyReportsYear='';
 	   </script>
 
 		
@@ -160,6 +172,14 @@ $page="templates/home.tpl";
     
     </div>
 </div>		
+<input type="hidden" id="current_UserRecords_page"/>
+<input type="hidden" id="show_UserRecords_per_page"/>
+
+<input type="hidden" id="current_SupervisorRecords_page"/>
+<input type="hidden" id="show_SupervisorRecords_per_page"/>
+
+<input type="hidden" id="current_ReportsRecords_page"/>
+<input type="hidden" id="show_ReportsRecords_per_page"/>
 
 </body>
 </html><?php }} ?>

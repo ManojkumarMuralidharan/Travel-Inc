@@ -52,11 +52,11 @@
     	
     </tbody>
 </table>
-<table style="padding-left:280px;">
+<table style="padding-left:180px;">
 <tr><td>
 <div style="align:center;">
 	 <a href="#" class="bt_red"><span class="bt_red_lft"></span><strong>Email</strong><span class="bt_red_r"></span></a>
-
+	<a href="#"  id="generateMonthlyConsolidatedExcel" style="display:none" class="bt_green"><span class="bt_green_lft"></span><strong>Consolidated Excel</strong><span class="bt_green_r"></span></a> 
      <a href="#"  id="generateRegularExcel" style="display:block" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
 	 <a href="#"  id="generateMonthlyExcel" style="display:none" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
 </div>

@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-31 22:17:18
+<?php /* Smarty version Smarty-3.1.8, created on 2012-06-11 18:43:21
          compiled from ".\templates\home.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:206224fb55589f273d8-72747964%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     '97d060df136bc68287855ad0037b446ebb85b73d' => 
     array (
       0 => '.\\templates\\home.tpl',
-      1 => 1338495432,
+      1 => 1339432999,
       2 => 'file',
     ),
   ),
@@ -343,9 +343,17 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 		   
 		   
 		   </Table>
-		   <Table style="padding-left:150px"><tr><td>
-		   <input type="button" name="submit" id="editRequestButton" value="Edit Request" /></td>
-		   </td></tr>
+		   <Table style="padding-left:50px">
+		   <tr>
+		   
+		   <td>
+		   <input type="button" name="submit" id="editRequestButton" value="Edit Request" />
+		   </td>
+		   <td>
+		   <input type="button" name="submit" id="duplicateRequestButton" value="Duplicate Request" />
+		   </td>
+		   
+		   </tr>
 		   </Table>
          </form>
 		 

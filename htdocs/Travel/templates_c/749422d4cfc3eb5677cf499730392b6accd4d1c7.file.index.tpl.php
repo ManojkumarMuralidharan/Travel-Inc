@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-31 20:19:33
+<?php /* Smarty version Smarty-3.1.8, created on 2012-06-18 21:02:20
          compiled from ".\templates\index.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:228624fb40c7e6398b3-47310342%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     '749422d4cfc3eb5677cf499730392b6accd4d1c7' => 
     array (
       0 => '.\\templates\\index.tpl',
-      1 => 1338488323,
+      1 => 1340046076,
       2 => 'file',
     ),
   ),
@@ -68,11 +68,16 @@ ddaccordion.init({
 
 <script type="text/javascript" src="jpaginate.js"></script>
 
+<script type="text/javascript" src="jquery.plupload.queue.js"></script>
+
+<script type="text/javascript" src="plupload.full.js"></script>
+
 <script type="text/javascript" src="jconfirmaction.jquery.js"></script>
 
 <script type="text/javascript" src="logout.js"></script>
 
 <script type="text/javascript" src="reports.js"></script>
+
 
 <script type="text/javascript">
 	
@@ -103,6 +108,9 @@ ddaccordion.init({
 		var securityQuestionId=<?php echo $_smarty_tpl->tpl_vars['securityQuestionId']->value;?>
 ;
 		var monthlyReportsYear='';
+	
+		
+		
 	   </script>
 
 		
@@ -114,6 +122,7 @@ ddaccordion.init({
 <script language="javascript" type="text/javascript" src="niceforms.js"></script>
 <script language="javascript" type="text/javascript" src="popup.js"></script>
 <script language="javascript" type="text/javascript" src="datePicker.js"></script>
+
 <script type="text/javascript">
 //SETTING UP OUR POPUP  
 //0 means disabled; 1 means enabled; 
@@ -122,6 +131,8 @@ var popupStatus = 0;
 </script>
 <link rel="stylesheet" type="text/css" media="all" href="niceforms-default.css" />
 <link rel="stylesheet" type="text/css" media="all" href="popupform-default.css"/>
+<link rel="stylesheet" type="text/css" media="all" href="jquery.plupload.queue.css"/>
+
 </head>
 <body>
 <div id="main_container">
@@ -141,6 +152,9 @@ var popupStatus = 0;
                     <li><a style="font-size:14px;" class="current" href="#" onClick="ChangePage('home');">Home</a></li>
                     <li><a style="font-size:14px;" href="#" onClick="ChangePage('settings');">Settings</a></li>
                     <li><a style="font-size:14px;" href="#Reports" onClick="ChangePage('reports');">Reports</a></li>
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('uploadExcel');">Upload</a></li>
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('budget');">Budget</a></li>
+					
                     <li><a style="font-size:14px;" href="#">Contact Us</a></li>
                     </ul>
                     </div> 

@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-29 19:49:23
+<?php /* Smarty version Smarty-3.1.8, created on 2012-06-06 16:09:29
          compiled from ".\templates\monthlyReports.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:310854fb66d7f47d0d3-60868624%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     '9703ad32b23e5ffc6c6a0eaf87a789415da9624a' => 
     array (
       0 => '.\\templates\\monthlyReports.tpl',
-      1 => 1338312505,
+      1 => 1338991764,
       2 => 'file',
     ),
   ),
@@ -28,14 +28,14 @@ $_valid = $_smarty_tpl->decodeProperties(array (
                     <dl>
                         <dt><label for="Year">Year:</label></dt>
                         <dd>
-                            <select size="1" name="gender" id="monthlyReportsYear">
+                            <select size="1" name="gender"  id="">
 								<option value="" onClick="Notifier.warning('Select a year');"></option>
                                 <option value="1999" onClick="monthlyReportsYear=this.text;">1999</option>
                                 <option value="2000" onClick="monthlyReportsYear=this.text;">2000</option>
                                 <option value="2001" onClick="monthlyReportsYear=this.text;">2001</option>
                                 <option value="2002" onClick="monthlyReportsYear=this.text;">2002</option>
                                 <option value="2003" onClick="monthlyReportsYear=this.text;">2003</option>
-								 <option value="2012" onClick="monthlyReportsYear=this.text;">2012</option>
+								<option value="2012" onClick="monthlyReportsYear=this.text;">2012</option>
                             </select>
                         </dd>
                     </dl>

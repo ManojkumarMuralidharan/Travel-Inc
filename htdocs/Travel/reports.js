@@ -26,6 +26,7 @@ xmlhttp.send("reportType="+reportType);
 			   
 			   
 		$("#generateMonthlyReports").click(function(){
+		alert(monthlyReportsYear);
 		if(monthlyReportsYear==''){
 		Notifier.warning("Please select a year");
 		return;
@@ -224,10 +225,78 @@ xmlhttp.open("POST","changePage.php",true);
 xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
 xmlhttp.send("page="+pageName);
 	xmlhttp.onreadystatechange=function(){
+
 		 if (xmlhttp.readyState==4){
 			  if (xmlhttp.status==200 || window.location.href.indexOf("http")==-1){
+			  
+			
+			  
 			   document.getElementById("pageContent").innerHTML=xmlhttp.responseText;
-					$('#securityQuesSelect').attr('value',securityQuestionId );
+			   
+			   if(pageName=='budget'){
+			   
+			   
+			   }
+			   $('.updateBudget').click(function(){
+				//alert($(this).parent().parent().parent().parent().find('tr td span').attr('id'));
+				$psid=$(this).parent().parent().parent().parent().find('tr td span').attr('id');
+				$budget=$(this).parent().parent().parent().parent().find('tr td input').attr('value')
+				alert($budget);
+				
+				
+				
+				Notifier.success('Updated');
+			   
+			   });
+			   
+				// Setup html5 version
+				$("#html4_uploader").pluploadQueue({
+					// General settings
+					runtimes : 'html4',
+					filters : [{title : "Excel files", extensions : "xls"} ],
+					 preinit : {
+						Init: function(up, info) {
+							//log('[Init]', 'Info:', info, 'Features:', up.features);
+							//alert('Init');
+							$('#html4_uploader_filelist').load('getFiles.php');
+							$('#html4_uploader_filelist').attr('style','overflow-y: scroll');
+							//$('.plupload_file_action').text('Download');
+								
+						
+						},
+						UploadFile: function(up, file) {
+							//log('[UploadFile]', file);
+							// You can override settings before the file is uploaded
+							// up.settings.url = 'upload.php?id=' + file.id;
+							// up.settings.multipart_params = {param1 : 'value1', param2 : 'value2'};
+
+						}
+					},
+
+					init : {
+					Error: function(up, args) {
+					// Called when a error has occured
+					alert('[error] ', args);
+					},
+					StateChanged: function(up) {
+					// Called when the state of the queue is changed
+					log('[StateChanged]', up.state == plupload.STARTED ? "STARTED" : "STOPPED");
+					if(up.state == plupload.STARTED){
+					alert("started");
+					}
+					},
+
+					},
+					url : 'testUpload.php'
+				});
+				
+							$('html4_uploader_filelist').click(function(){
+							alert($(this));
+							});
+		
+			   
+		$('#securityQuesSelect').attr('value',securityQuestionId );
+		
 		$( "#datepicker" ).datepicker({
 			showOn: "button",
 			buttonImage: "Images/calendar.gif",
@@ -238,13 +307,47 @@ xmlhttp.send("page="+pageName);
 			buttonImage: "Images/calendar.gif",
 			buttonImageOnly: true
 		});
-		
+		$("#upload").click(function(){
+		//	alert();
+		/*	var filename = $("#file").attr('value');
+			 $.ajaxFileUpload
+        (
+            {
+                url:'testUpload.php', 
+                secureuri:false,
+                fileElementId:'file',
+                dataType: 'json',
+                success: function (data, status)
+                {
+                    if(typeof(data.error) != 'undefined')
+                    {
+                        if(data.error != '')
+                        {
+                            alert(data.error);
+                        }else
+                        {
+                            alert(data.msg);
+                        }
+                    }
+                },
+                error: function (data, status, e)
+                {
+                    alert(e);
+                }
+            }
+        )
+        
+			*/
+		});
 	$("#generateRegularExcel").click(function(){
 	//x	alert();
 	//	 $('#target').submit();
-		 
+	if($('#datepicker').val()==''||$('#datepicker1').val()==''){
+	Notifier.warning("Please select a date");
+	return;
+	}
 	if(reportUserName==''){
-	Notifier.warning("Please select appropriate value");
+	Notifier.warning("Please select appropriate user");
 	return;
 	}
 	var str='fetchExcelReports.php?travelType='+reportsTravelType+'&fromDate='+$("#datepicker").val()+'&toDate='+$("#datepicker1").val()+'&reportUserName='+reportUserName+'&reportType=excelReport';
@@ -253,6 +356,32 @@ xmlhttp.send("page="+pageName);
 
 		
 		});
+		
+		$("#generateMonthlyConsolidatedExcel").click(function(){
+		 
+	var checkedlist='';
+		$(":checkbox").each(function() {
+		if(this.value!='all'){
+			if(this.checked==true){
+			checkedlist+=this.value+';';
+			}
+		 }else if(this.value=='all'){
+		 if(this.checked==true){
+			 checkedlist='1;2;3;4;5;6;7;8;9;10;11;12;';
+			}
+		
+		 }
+		});
+		 if(checkedlist==''){
+	Notifier.warning("Please select appropriate month");
+	return;
+	}
+	var str='fetchMonthlyConsolidatedReportsExcel.php?months='+checkedlist+'&year='+monthlyReportsYear+'&reportType=monthly' ;
+	//$(this).attr('href',str);
+	window.location.href=str;
+		
+		});
+		
 		
 	$("#generateMonthlyExcel").click(function(){
 		 
@@ -269,7 +398,10 @@ xmlhttp.send("page="+pageName);
 		
 		 }
 		});
-		 
+	if(checkedlist==''){
+	Notifier.warning("Please select appropriate month");
+	return;
+	}
 	var str='fetchMonthlyReportsExcel.php?months='+checkedlist+'&year='+monthlyReportsYear+'&reportType=monthly' ;
 	//$(this).attr('href',str);
 	window.location.href=str;
@@ -402,6 +534,8 @@ function changeReport(value){
 					$("#2").toggleClass('NFh');
 					$("#generateRegularExcel").attr('style','display:block');
 					$("#generateMonthlyExcel").attr('style','display:none');
+					$("#generateMonthlyConsolidatedExcel").attr('style','display:none');
+					
 					ChangereportType('regular');
 					}else if(value=='2'){
 					$('#reportsContents').html('');
@@ -410,6 +544,7 @@ function changeReport(value){
 					
 					$("#generateRegularExcel").attr('style','display:none');
 					$("#generateMonthlyExcel").attr('style','display:block');
+					$("#generateMonthlyConsolidatedExcel").attr('style','display:block');
 					ChangereportType('monthly');
 					//alert(value);					
 					}

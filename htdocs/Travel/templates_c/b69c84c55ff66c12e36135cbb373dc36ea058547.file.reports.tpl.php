@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-31 22:28:46
+<?php /* Smarty version Smarty-3.1.8, created on 2012-06-01 20:06:39
          compiled from ".\templates\reports.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:293284fb555b96065a0-05138723%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     'b69c84c55ff66c12e36135cbb373dc36ea058547' => 
     array (
       0 => '.\\templates\\reports.tpl',
-      1 => 1338496121,
+      1 => 1338573994,
       2 => 'file',
     ),
   ),
@@ -80,11 +80,11 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     	
     </tbody>
 </table>
-<table style="padding-left:280px;">
+<table style="padding-left:180px;">
 <tr><td>
 <div style="align:center;">
 	 <a href="#" class="bt_red"><span class="bt_red_lft"></span><strong>Email</strong><span class="bt_red_r"></span></a>
-
+	<a href="#"  id="generateMonthlyConsolidatedExcel" style="display:none" class="bt_green"><span class="bt_green_lft"></span><strong>Consolidated Excel</strong><span class="bt_green_r"></span></a> 
      <a href="#"  id="generateRegularExcel" style="display:block" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
 	 <a href="#"  id="generateMonthlyExcel" style="display:none" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
 </div>

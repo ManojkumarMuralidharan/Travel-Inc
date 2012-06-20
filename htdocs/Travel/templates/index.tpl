@@ -42,11 +42,16 @@ ddaccordion.init({
 
 <script type="text/javascript" src="jpaginate.js"></script>
 
+<script type="text/javascript" src="jquery.plupload.queue.js"></script>
+
+<script type="text/javascript" src="plupload.full.js"></script>
+
 <script type="text/javascript" src="jconfirmaction.jquery.js"></script>
 
 <script type="text/javascript" src="logout.js"></script>
 
 <script type="text/javascript" src="reports.js"></script>
+
 
 <script type="text/javascript">
 	
@@ -76,6 +81,9 @@ ddaccordion.init({
 		var reportUserName='';
 		var securityQuestionId={$securityQuestionId};
 		var monthlyReportsYear='';
+	
+		
+		
 	   </script>
 
 		
@@ -87,6 +95,7 @@ ddaccordion.init({
 <script language="javascript" type="text/javascript" src="niceforms.js"></script>
 <script language="javascript" type="text/javascript" src="popup.js"></script>
 <script language="javascript" type="text/javascript" src="datePicker.js"></script>
+
 <script type="text/javascript">
 //SETTING UP OUR POPUP  
 //0 means disabled; 1 means enabled; 
@@ -95,6 +104,8 @@ var popupStatus = 0;
 </script>
 <link rel="stylesheet" type="text/css" media="all" href="niceforms-default.css" />
 <link rel="stylesheet" type="text/css" media="all" href="popupform-default.css"/>
+<link rel="stylesheet" type="text/css" media="all" href="jquery.plupload.queue.css"/>
+
 </head>
 <body>
 <div id="main_container">
@@ -113,6 +124,9 @@ var popupStatus = 0;
                     <li><a style="font-size:14px;" class="current" href="#" onClick="ChangePage('home');">Home</a></li>
                     <li><a style="font-size:14px;" href="#" onClick="ChangePage('settings');">Settings</a></li>
                     <li><a style="font-size:14px;" href="#Reports" onClick="ChangePage('reports');">Reports</a></li>
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('uploadExcel');">Upload</a></li>
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('budget');">Budget</a></li>
+					
                     <li><a style="font-size:14px;" href="#">Contact Us</a></li>
                     </ul>
                     </div> 

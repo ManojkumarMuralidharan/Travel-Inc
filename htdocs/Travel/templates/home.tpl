@@ -310,9 +310,17 @@
 		   
 		   
 		   </Table>
-		   <Table style="padding-left:150px"><tr><td>
-		   <input type="button" name="submit" id="editRequestButton" value="Edit Request" /></td>
-		   </td></tr>
+		   <Table style="padding-left:50px">
+		   <tr>
+		   
+		   <td>
+		   <input type="button" name="submit" id="editRequestButton" value="Edit Request" />
+		   </td>
+		   <td>
+		   <input type="button" name="submit" id="duplicateRequestButton" value="Duplicate Request" />
+		   </td>
+		   
+		   </tr>
 		   </Table>
          </form>
 		 

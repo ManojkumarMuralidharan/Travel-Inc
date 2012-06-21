@@ -1,0 +1,672 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Abfragesprache - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.search.lucene.searching.html">Einen Index durchsuchen</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.search.lucene.query-api.html">Abfrage Erzeugungs API</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.search.lucene.query-language" class="section"><div class="info"><h1 class="title">Abfragesprache</h1></div>
+    
+
+    <p class="para">
+        Java Lucene und <span class="classname">Zend_Search_Lucene</span> bieten sehr mächtige
+        Abfragesprachen.
+    </p>
+
+    <p class="para">
+        Diese Sprachen sind großteils die selben mit ein paar kleineren Unterschieden welche
+        anbei erklärt werden.
+    </p>
+
+    <p class="para">
+        Die komplette Java Lucene Syntax Dokumentation der Abfragesprache kann
+        <a href="http://lucene.apache.org/java/2_3_0/queryparsersyntax.html" class="link external">&raquo; hier</a>
+        gefunden werden.
+    </p>
+
+    <div class="section" id="zend.search.lucene.query-language.terms" name="zend.search.lucene.query-language.terms"><div class="info"><h1 class="title">Ausdrücke</h1></div>
+        
+
+        <p class="para">
+            Eine Abfrage wird in Ausdrücke und Operatoren zerteilt. Es gibt drei Arten von
+            Ausdrücken: Einzelne Ausdrücke, Phrasen und Unterabfragen.
+        </p>
+
+        <p class="para">
+            Ein einzelner Ausdruck ist ein einzelnes Wort wie &quot;Test&quot; oder &quot;Hallo&quot;.
+        </p>
+
+        <p class="para">
+            Eine Phrase ist eine Gruppe von Wörtern die von doppelten Hochkommata umgeben sind wie
+            &quot;Hallo Dolly&quot;.
+        </p>
+
+        <p class="para">
+            Eine Unterabfrage ist eine Abfrage die von Klammern umgeben ist wie &quot;(Hallo Dolly)&quot;.
+        </p>
+
+        <p class="para">
+            Mehrere Ausdrücke können mithilfe eines boolschen Operators miteinander kombiniert
+            werden um komplexere Abfragen zu formen (siehe anbei).
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.fields" name="zend.search.lucene.query-language.fields"><div class="info"><h1 class="title">Felder</h1></div>
+        
+
+        <p class="para">
+            Lucene unterstützt Felder von Daten. Wenn eine Suche durchgeführt wird kann man entweder
+            ein Feld spezifizieren, oder ein Standardfeld verwenden. Der Name des Feldes hängt von
+            den indizierten Daten ab und das Standardfeld wird durch aktuelle Einstellungen
+            definiert.
+        </p>
+
+        <p class="para">
+            Der erste und größte Unterschied zu Java Lucene ist der das Ausdrücke standardmäßig
+            über <em class="emphasis">alle Felder</em> gesucht werden.
+        </p>
+
+        <p class="para">
+            Es gibt zwei statische Methoden in der <span class="classname">Zend_Search_Lucene</span> Klasse
+            welche dem Entwickler das Konfigurieren dieser Einstellungen erlauben:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$defaultSearchField</span> = Zend_Search_Lucene::<span style="color: #006600;">getDefaultSearchField</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Search_Lucene::<span style="color: #006600;">setDefaultSearchField</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'contents'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Der <b><tt>NULL</tt></b> Wert bedeutet, das die Suche über alle Felder durchgeführt
+            wird. Das ist die Standardeinstellung.
+        </p>
+
+        <p class="para">
+            Es können spezielle Felder gesucht werden indem der Feldname gefolgt von einem
+            Doppelpunkt &quot;:&quot; angegeben wird, gefolgt von dem Begriff nach dem gesucht wird.
+        </p>
+
+        <p class="para">
+            Als Beispiel nehmen wir an das ein Lucene Index zwei Felder enthält - title und text -
+            text ist das Standardfeld. Wenn man das &quot;Der richtige Weg&quot; benannte Dokument finden will
+            welches den Text &quot;gehe nicht diesen Weg&quot; enthält, geht das mit:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">title:&quot;Der richtige Weg&quot; AND text:go</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            oder
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">title:&quot;Mach es richtig&quot; AND go</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Weil &quot;text&quot; das Standardfeld ist, wird der Feld Indikator nicht benötigt.
+        </p>
+
+        <p class="para">
+            Beachte: Das Feld nur nur für den Ausdruck, die Phrase oder die Unterabfrage gültig die
+            direkt danach folgt, sodas die Abfrage
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">title:Mach es richtig</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            nur &quot;Mach&quot; im title Feld finden wird. Es findet &quot;es&quot; und &quot;richtig&quot; im Standardfeld (wenn
+            das Standardfeld gesetzt ist) oder in allen indizierten Felder (wenn das Standardfeld
+            auf <b><tt>NULL</tt></b> gesetzt ist).
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.wildcard" name="zend.search.lucene.query-language.wildcard"><div class="info"><h1 class="title">Wildcards</h1></div>
+        
+
+        <p class="para">
+            Lucene unterstützt Einzelzeichen und Mehrfachzeichen Suchen mit Wildcards in einzelnen
+            Ausdrücken (aber nicht innerhalb von Phrasenabfragen).
+        </p>
+
+        <p class="para">
+            Um eine Einzelzeichen Wildcardsuche durchzuführen kann das &quot;?&quot; Zeichen verwendet werden.
+        </p>
+
+        <p class="para">
+            Um eine Mehrzeichen Wildcardsuche durchzuführen kann das &quot;*&quot; Zeichen verwendet werden.
+        </p>
+
+        <p class="para">
+            Die Einzelzeichen Wildcardsuche schucht nach Strings die dem Begriff entsprechen wobei
+            das &quot;?&quot; durch ein beliebiges einzelnes Zeichen ersetzt wird. Um, zum Beispiel, nach
+            &quot;Text&quot; oder &quot;Test&quot; zu suchen kann die folgende Suche verwendet werden:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Te?t</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Mehrzeichen Wildcardsuche sucht nach 0 oder mehr Zeichen wenn Strings nach passenden
+            Begriffen sucht. Um, zum Beispiel, nach Test, Tests oder Tester zu suchen, kann die
+            folgende Suche verwendet werden:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Test*</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Es können &quot;?&quot;, &quot;*&quot; oder beide an jeder Stelle des Ausdrucks verwendet werden:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">*schrei?t*</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Sucht nach &quot;schreibt&quot;, &quot;schreibtisch&quot;, &quot;beschreibt&quot;, &quot;schreist&quot; und so weiter.
+        </p>
+
+        <p class="para">
+            Beginnend mit ZF 1.7.7 benötigen Wildcard Präfixe einen nicht-Wildcard Präfix. Die
+            standardmäßige Länge des Präfixes ist 3 (wie in Java Lucene). Die Ausdrücke
+            &quot;*&quot;, &quot;te?t&quot;, &quot;*wr?t*&quot; werden also eine Exception werfen
+
+            <a href="#fnid1" name="fn1"><sup>[1]</sup></a>
+                <span class="classname">Zend_Search_Lucene_Search_QueryParserException</span><span class="classname">Zend_Search_Lucene_Exception</span>
+            .
+        </p>
+
+        <p class="para">
+            Das kann durch Verwendung der Methoden
+             <span class="methodname">Zend_Search_Lucene_Search_Query_Wildcard::getMinPrefixLength()</span>
+            und
+             <span class="methodname">Zend_Search_Lucene_Search_Query_Wildcard::setMinPrefixLength()</span>
+            geändert werden.
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.modifiers" name="zend.search.lucene.query-language.modifiers"><div class="info"><h1 class="title">Ausdrücke verändern</h1></div>
+        
+
+        <p class="para">
+            Lucene unterstützt die Veränderung von Abfrageausdrücken und bietet damit ein beites
+            Spektrum von Suchoptionen.
+        </p>
+
+        <p class="para">
+            Der &quot;~&quot; Modifikator kann für verwendet werden um eine annähernde Suche auf Phrasen oder
+            Fuzzy Suchen für individuelle Ausdrücke durchzuführen.
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.range" name="zend.search.lucene.query-language.range"><div class="info"><h1 class="title">Bereichs Suchen</h1></div>
+        
+
+        <p class="para">
+            Bereichsabfragen erlauben es Entwicklern passende Dokumente zu finden deren Werte der
+            Felder zwischen der unteren und oberen Grenze sind die durch die Bereichsabfrage
+            spezifiziert wurden. Bereichsabfragen können inklusive oder exklusive der oberen und
+            unteren Grenze sein. Sortierungen werden lexikalisch durchgeführt.
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">mod_date:[20020101 TO 20030101]</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Das wird Dokumente finden dessen lod_date Felder Werte zwischen 20020101 und 20030101
+            inklusive haben. Es ist zu beachten das Bereichsabfragen nicht für Datumsfelder
+            reserviert sind. Bereichsabfragen können auch mit nicht-datums Felder verwendet werden:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">title:{Aida TO Carmen}</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Das wird alle Dokumente finden dessen Titel zwischen Aida und Carmen sortiert sind,
+            aber ohne Aida und Carmen.
+        </p>
+
+        <p class="para">
+            Bereichsabfragen inklusive, werden durch eine eckige Klammer abgegrenzt.
+            Bereichsabfragen exklusive werden durch geschlungene Klammern abgegrenzt.
+        </p>
+
+        <p class="para">
+            Wenn kein Feld spezifiziert wurde sucht <span class="classname">Zend_Search_Lucene</span>
+            standardmäßig nach spezifizierten Intervallen in allen Feldern.
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">{Aida TO Carmen}</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.fuzzy" name="zend.search.lucene.query-language.fuzzy"><div class="info"><h1 class="title">Fuzzy Suchen</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> unterstützt, genauso wie Java Lucene, die
+            Fuzzy Suche basierend auf der Levenshtein Distanz oder dem Edit Algorithmus. Um eine
+            Fuzzy Suche durchzuführen muß das Tilde Symbol &quot;~&quot;, am Ende eines einzelnen Wortbegriffs
+            verwendet werden. Um zum Beispiel nach einem Begriff zu suchen der in der Aussprache
+            ähnlich zu &quot;Raum&quot; ist kann die folgende Fuzzy Suche verwendet werden:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">roam~</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Diese Suche wird Begriffe wie &quot;Baum&quot; und &quot;Saum&quot; finden. Zusätzliche (optionale)
+            Parameter können die benötigte Ähnlichkeit spezifizieren. Der Wert muß zwischen 0 und 1
+            sein. Mit einem Wert näher bei 1 werden nur Begriffe mit einer höheren Warscheinlichkeit
+            gefunden. Zum Beispiel:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">roam~0.8</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Der verwendete Standardwert wenn der Parameter nicht angegeben wurde ist 0.5.
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.matched-terms-limitations" name="zend.search.lucene.query-language.matched-terms-limitations"><div class="info"><h1 class="title">Einschränkung passender Ausdrücke</h1></div>
+        
+
+        <p class="para">
+            Wildcard, Bereichs- und Fuzzy Suchabfragen können bei zu vielen Ausdrücken passen.
+            Das kann die Geschwindigkeit der Suche sehr stark verlangsamen.
+        </p>
+
+        <p class="para">
+            Deshalb setzt <span class="classname">Zend_Search_Lucene</span> ein Limit der passenden
+            Ausdrücke pro Abfrage (Unterabfrage). Dieses Limit kann durch Verwendung der Methoden
+             <span class="methodname">Zend_Search_Lucene::getTermsPerQueryLimit()</span> und
+             <span class="methodname">Zend_Search_Lucene::setTermsPerQueryLimit($limit)</span> empfangen und
+            gesetzt werden.
+        </p>
+
+        <p class="para">
+            Das standardmäßige Limit für passende Ausdrücke ist 1024.
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.proximity-search" name="zend.search.lucene.query-language.proximity-search"><div class="info"><h1 class="title">Angenäherte Suchen</h1></div>
+        
+
+        <p class="para">
+            Lucene unterstützt das Finden von Wörtern aus einer Phrase die einen spezifizierten
+            Abstand an Wörtern in einem String weg sind. Um eine angenäherte Suche durchzuführen muß
+            das Tilde, &quot;~&quot;, Symbol am Ende der Phrase verwendet werden. Um zum Beispiel nach &quot;Zend&quot;
+            und &quot;Framework&quot; innerhalb von 10 Wörtern zueinander in einem Dokument zu suchen kann die
+            folgende Suche verwendet werden:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;Zend Framework&quot;~10</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.boosting" name="zend.search.lucene.query-language.boosting"><div class="info"><h1 class="title">Einen Ausdruck schneller machen</h1></div>
+        
+
+        <p class="para">
+            Java Lucene und <span class="classname">Zend_Search_Lucene</span> bieten einen Level der
+            Relevanz von passenden Dokumenten basierend auf den gefundenen Ausdrücken. Um die
+            Relevanz eines Ausdrucks zu erhöhen kann das Karet, &quot;^&quot;, Symbol mit einem Boost Faktor
+            (einer Zahl) am Ende des Ausdrucks nach dem gesucht wird, verwendet werden. Je höher
+            Boost Faktor ist, desdo relevanter wird der Ausdruck werden.
+        </p>
+
+        <p class="para">
+            Das boosten erlaubt die Kontrolle der Relevanz eines Dokuments durch das boosten
+            individueller Ausdrücke. Wenn man zum Beispiel nach
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">PHP framework</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            sucht und will das der Ausdruck &quot;PHP&quot; mehr Relevanz hat, kann er durch Verwendung des ^
+            Symbols zusammen mit einem Boost Faktor beim Ausdruck geboostet werden. Man würde zum
+            Beispiel folgendes angeben:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">PHP^4 framework</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Das macht Dokumente in denen der Ausdruck <acronym class="acronym">PHP</acronym> vorkommt relevanter.
+            Man kann genauso Phrasenausdrücke boosten und Unterabfragen wie im Beispiel gezeigt:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;PHP framework&quot;^4 &quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Standardwert ist der Boost Faktor 1. Auch wenn der Boost Faktor positiv sein muß, kann
+            er kleiner als 1 sein (z.B. 0.2).
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.boolean" name="zend.search.lucene.query-language.boolean"><div class="info"><h1 class="title">Boolsche Operatoren</h1></div>
+        
+
+        <p class="para">
+            Boolsche Operatoren erlauben es Ausdrücke durch logische Operatoren zu kombinieren.
+            Lucene unterstützt AND, &quot;+&quot;, OR, NOT und &quot;-&quot; als boolsche Operatoren. In Java Lucene
+            müssen alle boolschen Operatoren GROßGESCHRIEBEN werden. In
+            <span class="classname">Zend_Search_Lucene</span> nicht.
+        </p>
+
+        <p class="para">
+            AND, OR, und NOT Operatoren und &quot;+&quot;, &quot;-&quot; definieren zwei unterschiedliche Stile um
+            boolsche Abfragen zu erstellen. Im Gegensatz zu Java Lucene erlaubt es
+            <span class="classname">Zend_Search_Lucene</span> nicht diese zwei Stile zu mischen.
+        </p>
+
+        <p class="para">
+            Wenn der AND/OR/NOT Stil verwendet wird dann muß der AND oder OR Operator zwischen allen
+            Abfrageausdrücken vorhanden sein. Jedem Ausdruck kann auch ein NOT Operator
+            vorangestellt werden. Der AND Operator hat eine höhere Präzedenz als der OR Operator.
+            Das unterscheidet sich vom Verhalten von Java Lucene.
+        </p>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.and" name="zend.search.lucene.query-language.boolean.and"><div class="info"><h1 class="title">AND</h1></div>
+            
+
+            <p class="para">
+                Der AND Operator bedeutet das alle Ausdrücke der &quot;AND Gruppe&quot; in einigen Teilen der
+                gesuchten Feld(er) passen müssen.
+            </p>
+
+            <p class="para">
+                Um nach Dokumenten zu Suchen die &quot;PHP Framework&quot; und &quot;Zend Framework&quot; enthalten kann
+                die folgende Abfrage verwendet werden:
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;PHP Framework&quot; AND &quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.or" name="zend.search.lucene.query-language.boolean.or"><div class="info"><h1 class="title">OR</h1></div>
+            
+
+            <p class="para">
+                Der OR Operator teilt die Abfrage in verschiedene optionale Begriffe.
+            </p>
+
+            <p class="para">
+                Um nach Dokumenten zu Suchen die &quot;PHP Framework&quot; oder &quot;Zend Framework&quot; enthalten
+                kann die folgende Abfrage verwendet werden:
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;PHP Framework&quot; OR &quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.not" name="zend.search.lucene.query-language.boolean.not"><div class="info"><h1 class="title">NOT</h1></div>
+            
+
+            <p class="para">
+                Der NOT Operator scheidet Dokumente aus die den Ausdruck nach NOT enthalten. Aber
+                eine &quot;AND Gruppe&quot; die nur Ausdrücke mit NOT Operatoren enthält, gibt ein leeres
+                Ergebnis zurück statt einem kompletten Set von indizierten Dokumenten.
+            </p>
+
+            <p class="para">
+                Um nach Dokumenten zu Suchen die &quot;PHP Framework&quot; enthalten aber &quot;Zend Framework&quot;
+                nicht kann die folgende Abfrage verwendet werden:
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;PHP Framework&quot; AND NOT &quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.other-form" name="zend.search.lucene.query-language.boolean.other-form"><div class="info"><h1 class="title">&amp;&amp;, ||, und ! Operatoren</h1></div>
+            
+
+            <p class="para">
+                &amp;&amp;, ||, und ! können statt den AND, OR und NOT Notation verwendet werden.
+            </p>
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.plus" name="zend.search.lucene.query-language.boolean.plus"><div class="info"><h1 class="title">+</h1></div>
+            
+
+            <p class="para">
+                Der &quot;+&quot; oder benötigende Operator erfordert das der Ausdruck nach dem &quot;+&quot; Symbol im
+                passenden Dokument vorhanden ist.
+            </p>
+
+            <p class="para">
+                Um nach Dokumenten zu Suchen die &quot;Zend&quot; enthalten müssen und &quot;Framework&quot; enthalten
+                können, kann die folgende Abfrage verwendet werden:
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">+Zend Framework</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.minus" name="zend.search.lucene.query-language.boolean.minus"><div class="info"><h1 class="title">-</h1></div>
+            
+
+            <p class="para">
+                Der &quot;-&quot; oder ausschließende Operator schließt Dokumente aus die dem Ausdruck nach
+                dem &quot;-&quot; Symbol entsprechen.
+            </p>
+
+            <p class="para">
+                Um nach Dokumenten zu Suchen die &quot;PHP Framework&quot; enthalten aber &quot;Zend Framework&quot;
+                nicht, kann die folgende Abfrage verwendet werden:
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;PHP Framework&quot; -&quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.no-operator" name="zend.search.lucene.query-language.boolean.no-operator"><div class="info"><h1 class="title">kein Operator</h1></div>
+            
+
+            <p class="para">
+                Wenn kein Operator verwendet wird, dann wird das Suchverhalten durch den
+                &quot;standardmäßigen boolschen Operator&quot; bestimmt.
+            </p>
+
+            <p class="para">
+                Dieser ist standardmäßig auf &#039;OR&#039; gesetzt.
+            </p>
+
+            <p class="para">
+                Das impliziert das jeder Ausdruck standardmäßig optional ist. Er kann oder kann
+                nicht innerhalb des Dokuments enthalten sein, aber Dokumenten mit diesem Ausdruck
+                haben einen Höheren Stellenwert.
+            </p>
+
+            <p class="para">
+                Um nach Dokumenten zu Suchen die &quot;PHP Framework&quot; benötigen und &quot;Zend Framework&quot;
+                enthalten können kann die folgende Abfrage verwendet werden:
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">+&quot;PHP Framework&quot; &quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Der standardmäßige boolsche Operator kann mit den
+                <span class="classname">Zend_Search_Lucene_Search_QueryParser::setDefaultOperator($operator)</span>
+                und
+                <span class="classname">Zend_Search_Lucene_Search_QueryParser::getDefaultOperator()</span>
+                Methoden gesetzt oder geholt werden.
+            </p>
+
+            <p class="para">
+                Diese Methoden arbeiten mit den
+                <span class="classname">Zend_Search_Lucene_Search_QueryParser::B_AND</span> und
+                <span class="classname">Zend_Search_Lucene_Search_QueryParser::B_OR</span> Konstanten.
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.grouping" name="zend.search.lucene.query-language.grouping"><div class="info"><h1 class="title">Gruppieren</h1></div>
+        
+
+        <p class="para">
+            Java Lucene und <span class="classname">Zend_Search_Lucene</span> unterstützen die Verwendung
+            von Klammern um Fälle zu gruppieren und Unterabfragen zu erstellen. Das kann nützlich
+            sein wenn man die boolsche Operatoren für eine Abfrage kontrollieren will, oder
+            unterschiedliche Abfragestile mischen will:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">+(Framework OR Bibliothek) +php</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> unterstützt Unterabfragen von beliebigen
+            Ebenen.
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.field-grouping" name="zend.search.lucene.query-language.field-grouping"><div class="info"><h1 class="title">Felder gruppieren</h1></div>
+        
+
+        <p class="para">
+            Lucene unterstützt auch die Verwendung von Klammern um mehrere Fälle in ein einzelnes
+            Feld zu gruppieren.
+        </p>
+
+        <p class="para">
+            Um nach einem Titel zu suchen die sowohl das Wort &quot;Rückkehr&quot; und die Phrase &quot;rosaroter
+            Panther&quot; kann die folgende Abfrage verwendet werden:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">title:(+Rückkehr +&quot;rosaroter Panther&quot;)</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.escaping" name="zend.search.lucene.query-language.escaping"><div class="info"><h1 class="title">Escapen von speziellen Zeichen</h1></div>
+        
+
+        <p class="para">
+            Lucene unterstützt das Escapen von speziellen Zeichen die in der Abfragesyntax verwendet
+            werden. Die aktuelle Liste der speziellen Zeichen ist:
+        </p>
+
+        <p class="para">
+            + - &amp;&amp; || ! ( ) { } [ ] ^ &quot; ~ * ? : \
+        </p>
+
+        <p class="para">
+            + und - in einem einzelnen Ausdruck werden automatisch als normale Zeichen behandelt.
+        </p>
+
+        <p class="para">
+            Für andere Instanzen von solchen Zeichen kann das \ vor jedem speziellen Zeichen
+            verwendet werden der escaped werden soll. Um zum Beispiel nach (1+1):2 zu suchen kann
+            die folgende Abfrage verwendet werden:
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">\(1\+1\)\:2</div></li></ol></div></div></div>
+
+    </div>
+<div class="footnote"><a name="fnid1" href="#fn1"><sup>[1]</sup></a><span class="para footnote">
+                    Es ist zu beachten das es nicht zu einer
+                     kommt,
+                    sondern zu einer . Sie wird
+                    wärend dem Umschreiben der Abfrage geworfen.
+                </span></div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.search.lucene.searching.html">Einen Index durchsuchen</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.search.lucene.query-api.html">Abfrage Erzeugungs API</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></li>
+  <li><a href="zend.search.lucene.overview.html">&Uuml;berblick</a></li>
+  <li><a href="zend.search.lucene.index-creation.html">Indexerstellung</a></li>
+  <li><a href="zend.search.lucene.searching.html">Einen Index durchsuchen</a></li>
+  <li class="active"><a href="zend.search.lucene.query-language.html">Abfragesprache</a></li>
+  <li><a href="zend.search.lucene.query-api.html">Abfrage Erzeugungs API</a></li>
+  <li><a href="zend.search.lucene.charset.html">Zeichens&auml;tze</a></li>
+  <li><a href="zend.search.lucene.extending.html">Erweiterbarkeit</a></li>
+  <li><a href="zend.search.lucene.java-lucene.html">Zusammenarbeit Mit Java Lucene</a></li>
+  <li><a href="zend.search.lucene.advanced.html">Erweitert</a></li>
+  <li><a href="zend.search.lucene.best-practice.html">Die besten Anwendungen</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

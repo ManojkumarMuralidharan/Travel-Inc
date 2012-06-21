@@ -1,0 +1,350 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Plugins laden - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.loader.autoloader-resource.html">Ressource Autoloader</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.loader.html">Zend_Loader</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.locale.html">Zend_Locale</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.loader.pluginloader" class="section"><div class="info"><h1 class="title">Plugins laden</h1></div>
+    
+
+    <p class="para">
+        Eine Anzahl von Zend Framework Komponenten ist steckbar, und erlaubt es Funktionen dynamisch
+        zu laden durch die Angabe eines Klassenpräfixes und einem Pfad zu den Klassendaten die nicht
+        notwendigerweise im <span class="property">include_path</span> sind, oder nicht notwendigerweise den
+        traditionellen Namenskonventionen folgen. <span class="classname">Zend_Loader_PluginLoader</span>
+        bietet übliche Funktionalitäten für diesen Prozess.
+    </p>
+
+    <p class="para">
+        Die grundsätzliche Verwendung vom <span class="classname">PluginLoader</span> folgt den
+        Namenskonventionen vom Zend Framework mit einer Klasse pro Datei, der Verwendung von
+        Unterstrichen als Verzeichnistrenner bei der Auflösung von Pfaden. Es erlaubt die Übergabe
+        eines optionalen Klasenpräfixes der vorangestellt wird, wenn eine bestimmte Pluginklasse
+        geladen wird. Zusätzlich können Pfade in LIFO Reihenfolge durchsucht werden. Die LIFO Suche
+        und der Klassen Präfix erlaubt es für die Plugins Namensräumen zu definieren, und auf diese
+        Weise Plugins zu überladen die vorher registriert wurden.
+    </p>
+
+    <div class="section" id="zend.loader.pluginloader.usage" name="zend.loader.pluginloader.usage"><div class="info"><h1 class="title">Grundsätzliche Verwendung</h1></div>
+        
+
+        <p class="para">
+            Nehmen wir zuerst die folgende Verzeichnis Struktur und Klassendateien an, und dass das
+            oberste Verzeichnis und das Library Verzeichnis im include_path sind:
+        </p>
+
+        <div class="programlisting txt"><div class="txtcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">application/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; modules/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; foo/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; views/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; helpers/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormLabel.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormSubmit.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; bar/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; views/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; helpers/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormSubmit.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">library/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; View/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Helper/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormLabel.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormSubmit.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormText.php</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Jetzt wird ein Plugin Lader erstellt um die verschiedenen vorhandenene View Helfer
+            Repositories anzusprechen:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$loader</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Loader_PluginLoader<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Zend_View_Helper'</span>, <span style="color: #ff0000;">'Zend/View/Helper/'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Foo_View_Helper'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'application/modules/foo/views/helpers'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Bar_View_Helper'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'application/modules/bar/views/helpers'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Anschließend kann ein gegebener View Helfer geladen werden indem nur der Teil des
+            Klassennamens verwendet wird der dem Präfix folgt wie er definiert wurde als die Pfade
+            hinzugefügt wurden:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// lädt den 'FormText' Helfer:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$formTextClass</span> = <span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">load</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'FormText'</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// 'Zend_View_Helper_FormText';</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// lädt den 'FormLabel' Helfer:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$formLabelClass</span> = <span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">load</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'FormLabel'</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// 'Foo_View_Helper_FormLabel'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// lädt den 'FormSubmit' Helfer:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$formSubmitClass</span> = <span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">load</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'FormSubmit'</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// 'Bar_View_Helper_FormSubmit'</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Sobald die Klasse geladen wurde, kann diese Instanziiert werden.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Mehrere Pfade können für einen gegebenen Präfix registriert werden</b><br /></span>
+            
+
+            
+                In einigen Fällen kann es gewünscht sein den gleichen Präfix für mehrere Pfade zu
+                verwenden. <span class="classname">Zend_Loader_PluginLoader</span> registriert aktuell ein
+                Array von Pfaden für jeden gegebenen Präfix; der zuletzt resistrierte wird als erste
+                geprüft. Das ist teilweise nützlich wenn Inkubator Komponenten verwendet werden.
+            <br />
+        </p></blockquote>
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                Optional kann ein Array von Präfix / Pfad Paaren angegeben werden (oder Präfix /
+                Pfade -- Plural, Pfade sind erlaubt) und als Parameter dem Kontruktor übergeben
+                werden:
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$loader</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Loader_PluginLoader<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Zend_View_Helper'</span> =&gt; <span style="color: #ff0000;">'Zend/View/Helper/'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Foo_View_Helper'</span>&nbsp; =&gt; <span style="color: #ff0000;">'application/modules/foo/views/helpers'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Bar_View_Helper'</span>&nbsp; =&gt; <span style="color: #ff0000;">'application/modules/bar/views/helpers'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p></blockquote>
+
+        <p class="para">
+            <span class="classname">Zend_Loader_PluginLoader</span> erlaubt es auch optional Plugins über
+            Plugin-fähige Objekte zu teilen, ohne das eine Singleton Instanz verwendet werden muß.
+            Das wird durch eine statische Registrierung ermöglicht. Der Name des Registry muß bei
+            der Instanziierung als zweiter Parameter an den Konstruktor übergeben werden:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Speichere Plugins in der statischen Registry 'foobar':</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$loader</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Loader_PluginLoader<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #ff0000;">'foobar'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Andere Komponenten die den <span class="classname">PluginLoader</span> instanziieren un den
+            gleichen Registry Namen verwenden haben dann Zugriff auf bereits geladene Pfade und
+            Plugins.
+        </p>
+    </div>
+
+    <div class="section" id="zend.loader.pluginloader.paths" name="zend.loader.pluginloader.paths"><div class="info"><h1 class="title">Plugin Pfade manipulieren</h1></div>
+        
+
+        <p class="para">
+            Das Beispiel der vorherigen Sektion zeigt wie Pfade zu einem Plugin Loader hinzugefügt
+            werden können. Aber was kann getan werden um herauszufinden ob ein Pfad bereits geladen,
+            entfernt oder anderes wurde?
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">getPaths($prefix = null)</span> gibt alle Pfade als Präfix /
+                    Pfad Paare zurück wenn kein <var class="varname">$prefix</var> angegeben wurde, oder nur
+                    die registrierten Pfade für einen gegebenen Präfix wenn ein
+                    <var class="varname">$prefix</var> vorhanden ist.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">clearPaths($prefix = null)</span> löscht standardmäßig alle
+                    registrierten Pfade, oder nur die mit einem gegebenen Präfix assoziierten, wenn
+                    <var class="varname">$prefix</var> angegeben wurde und dieser im Stack vorhanden ist.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">removePrefixPath($prefix, $path = null)</span> erlaubt das
+                    selektive löschen eines speziellen Pfades der mit einem gegebenen Präfix
+                    assoziiert ist. Wenn <var class="varname">$path</var> nicht angegeben wurde, werden alle
+                    Pfade für diesen Präfix entfernt. Wenn <var class="varname">$path</var> angegeben wurde
+                    und dieser für den Präfix existiert, dann wird nur dieser Pfad entfernt.
+                </p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="zend.loader.pluginloader.checks" name="zend.loader.pluginloader.checks"><div class="info"><h1 class="title">Testen auf Plugins und Klassennamen erhalten</h1></div>
+        
+
+        <p class="para">
+            Hier und da soll einfach eruiert werden ob eine Pluginklasse bereits geladen wurde bevor
+            eine Aktion ausgeführt wird.  <span class="methodname">isLoaded()</span> nimmt einen Pluginnamen
+            und gibt den Status zurück.
+        </p>
+
+        <p class="para">
+            Ein anderer üblicher Fall für das <span class="classname">PluginLoader</span> ist das eruieren
+            des voll qualifizierten Plugin Klassennamens von geladenen Klassen;
+             <span class="methodname">getClassName()</span> bietet diese Funktionalität. Typischerweise wird
+            dieses in Verbindung mit  <span class="methodname">isLoaded()</span> verwendet:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">isLoaded</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Adapter'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$class</span>&nbsp; &nbsp;= <span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">getClassName</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Adapter'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$adapter</span> = <a href="http://www.php.net/call_user_func"><span style="color: #000066;">call_user_func</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$class</span>, <span style="color: #ff0000;">'getInstance'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.loader.pluginloader.performance" name="zend.loader.pluginloader.performance"><div class="info"><h1 class="title">Bessere Performance für Plugins erhalten</h1></div>
+        
+
+        <p class="para">
+            Das Laden von Plugins kann eine teure Operation sein. Im Innersten muß es durch jeden
+            Präfix springen, dann durch jeden Pfad dieses Präfixes, solange bis es eine passende
+            Datei findet -- und welche die erwartete Klasse definiert. In Fällen wo die Datei
+            existiert aber die Klasse nicht definiert ist, wird ein Fehler auf dem
+            <acronym class="acronym">PHP</acronym> Fehlerstack hinzugefügt, was auch eine teure Operation ist. Die
+            Frage die sich stellt lautet also: Wie kann man die Flexibilität der Plugins behalten
+            und auch die Performance sicherstellen?
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Loader_PluginLoader</span> bietet ein optional einschaltbares
+            Feature für genau diese Situation, einen integrierten Cache für die Klassendateien. Wenn
+            er aktiviert wird, erstellt er eine Datei die alle erfolgreichen Includes enthält welche
+            dann von der Bootstrap Datei aus aufgerufen werden kann. Durch Verwendung dieser
+            Strategie, kann die Performance für Produktive Server sehr stark verbessert werden.
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #1 Verwendung des integrierten Klassendatei Caches des PluginLoaders</b></p></div>
+            
+
+            <div class="example-contents"><p>
+                Um den integrierten Klassendatei Cache zu verwenden muß einfach der folgende Code in
+                die Bootstrap Datei eingefügt werden:
+            </p></div>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$classFileIncCache</span> = APPLICATION_PATH . <span style="color: #ff0000;">'/../data/pluginLoaderCache.php'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/file_exists"><span style="color: #000066;">file_exists</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$classFileIncCache</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">include_once</span> <span style="color: #0000ff;">$classFileIncCache</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Loader_PluginLoader::<span style="color: #006600;">setIncludeFileCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$classFileIncCache</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <div class="example-contents"><p>
+                Natürlich, veriiert der Pfad und der Dateiname basieren auf den eigenen
+                Bedürfnissen. Dieser Code sollte so früh wie möglich vorhanden sein um
+                sicherzustellen das Plugin-basierende Komponenten davon Verwendung machen können.
+            </p></div>
+
+            <div class="example-contents"><p>
+                Wärend der Entwicklung kann es gewünscht sein den Cache auszuschalten. Eine Methode
+                um das zu tun ist die Verwendung eines Konfigurationsschlüsses um festzustellen ob
+                der PluginLoader cachen soll oder nicht.
+            </p></div>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$classFileIncCache</span> = APPLICATION_PATH . <span style="color: #ff0000;">'/../data/pluginLoaderCache.php'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/file_exists"><span style="color: #000066;">file_exists</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$classFileIncCache</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">include_once</span> <span style="color: #0000ff;">$classFileIncCache</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$config</span>-&gt;<span style="color: #006600;">enablePluginLoaderCache</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Loader_PluginLoader::<span style="color: #006600;">setIncludeFileCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$classFileIncCache</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <div class="example-contents"><p>
+                Diese Technik erlaubt es die Änderungen in der Konfigurationsdatei zu belassen und
+                nicht im Code.
+            </p></div>
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.loader.autoloader-resource.html">Ressource Autoloader</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.loader.html">Zend_Loader</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.locale.html">Zend_Locale</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.loader.html">Zend_Loader</a></li>
+  <li><a href="zend.loader.load.html">Dynamisches Laden von Dateien und Klassen</a></li>
+  <li><a href="zend.loader.autoloader.html">Der Autoloader</a></li>
+  <li><a href="zend.loader.autoloader-resource.html">Ressource Autoloader</a></li>
+  <li class="active"><a href="zend.loader.pluginloader.html">Plugins laden</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

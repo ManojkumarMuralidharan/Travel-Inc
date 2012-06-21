@@ -1,0 +1,418 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>HTTP 認証アダプタ - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.auth.adapter.digest.html">ダイジェスト認証</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.auth.html">Zend_Auth</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.auth.adapter.ldap.html">LDAP 認証</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.auth.adapter.http" class="section"><div class="info"><h1 class="title">HTTP 認証アダプタ</h1></div>
+
+    
+
+    <div class="section" id="zend.auth.adapter.http.introduction" name="zend.auth.adapter.http.introduction"><div class="info"><h1 class="title">導入</h1></div>
+
+        
+
+        <p class="para">
+            <span class="classname">Zend_Auth_Adapter_Http</span> は、
+            <a href="http://tools.ietf.org/html/rfc2617" class="link external">&raquo; RFC-2617</a> や
+            <a href="http://en.wikipedia.org/wiki/Basic_authentication_scheme" class="link external">&raquo; ベーシック</a>、
+            <a href="http://en.wikipedia.org/wiki/Digest_access_authentication" class="link external">&raquo; ダイジェスト</a>
+            <acronym class="acronym">HTTP</acronym> 認証にほぼ準拠した実装を提供します。ダイジェスト認証とは
+            <acronym class="acronym">HTTP</acronym> 認証方式のひとつで、パスワードを平文でネットワークに送信する必要がないという点で
+            ベーシック認証より優れています。
+        </p>
+
+        <p class="para">
+            <em class="emphasis">主な機能</em>
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    ベーシック認証およびダイジェスト認証の両方のサポート
+                </p>
+            </li>
+            <li class="listitem">
+                <p class="para">
+                    サポートしているすべてのスキームを試みるので
+                    クライアントは、サポートする任意のスキームで応答可能
+                </p>
+            </li>
+            <li class="listitem">
+                <p class="para">
+                    プロキシ認証のサポート
+                </p>
+            </li>
+            <li class="listitem">
+                <p class="para">
+                    テキストファイルを用いた認証のサポート、
+                    あるいはデータベースなどのその他のソースによる認証用インターフェイスの提供
+                </p>
+            </li>
+        </ul>
+
+        <p class="para">
+            <acronym class="acronym">RFC-2617</acronym> の機能のうち、以下についてはまだ実装されていません。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    nonce 値を追いかけることによる &quot;stale&quot; のサポート、
+                    および再試行攻撃への防御
+                </p>
+            </li>
+            <li class="listitem">
+                <p class="para">
+                    整合性チェックを含む認証 &quot;auth-int&quot;
+                </p>
+            </li>
+            <li class="listitem">
+                <p class="para">
+                    Authentication-Info <acronym class="acronym">HTTP</acronym> ヘッダ
+                </p>
+            </li>
+        </ul>
+
+    </div>
+
+    <div class="section" id="zend.auth.adapter.design_overview" name="zend.auth.adapter.design_overview"><div class="info"><h1 class="title">設計の概要</h1></div>
+
+        
+
+        <p class="para">
+            このアダプタはふたつのサブコンポーネントで構成されています。
+            ひとつは <acronym class="acronym">HTTP</acronym> 認証クラス自身、そしてもうひとつはいわゆる &quot;リゾルバ&quot; です。
+            <acronym class="acronym">HTTP</acronym> 認証クラスは、ベーシック認証およびダイジェスト認証を扱うロジックをカプセル化します。
+            このクラスは、リゾルバを使用してなんらかの保存データ (デフォルトはテキストファイル)
+            からクライアントの ID を探します。認証データが &quot;解決&quot;
+            されると、クライアントから送信された値に基づいて認証が成功したかどうかを判断します。
+        </p>
+
+    </div>
+
+    <div class="section" id="zend.auth.adapter.configuration_options" name="zend.auth.adapter.configuration_options"><div class="info"><h1 class="title">設定オプション</h1></div>
+
+        
+
+        <p class="para">
+            <span class="classname">Zend_Auth_Adapter_Http</span> クラスのコンストラクタには、
+            設定配列を渡す必要があります。使用可能なオプションはいくつかあり、
+            その中には必須のものもあります。
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>設定オプション</b></caption></div>
+            
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>オプション名</th>
+                        <th>必須かどうか</th>
+                        <th>説明</th>
+                    </tr>
+
+                </thead>
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">accept_schemes</span></em></td>
+                        <td align="left">Yes</td>
+                        <td align="left">
+                            そのアダプタがクライアントからどの認証スキームを受け取るのかを設定します。
+                            <em class="emphasis">&#039;basic&#039;</em> や <em class="emphasis">&#039;digest&#039;</em>
+                            を含む空白区切りの文字列でなければなりません。
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">realm</span></em></td>
+                        <td align="left">Yes</td>
+                        <td align="left">
+                            認証レルムを設定します。ユーザ名は、指定したレルム内で一意でなければなりません。
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">digest_domains</span></em></td>
+                        <td align="left">
+                            <span class="property">accept_schemes</span> が <em class="emphasis">digest</em> を含む場合は Yes
+                        </td>
+                        <td align="left">
+                            空白区切りの <acronym class="acronym">URI</acronym> のリストで、
+                            同じ認証情報が有効となる場所を指定します。
+                            <acronym class="acronym">URI</acronym> は同一サーバ上でなくてもかまいません。
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">nonce_timeout</span></em></td>
+                        <td align="left">
+                            <span class="property">accept_schemes</span> が <em class="emphasis">digest</em> を含む場合は Yes
+                        </td>
+                        <td align="left">
+                            nonce の有効期限を秒数で指定します。以下の注意を参照ください。
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">proxy_auth</span></em></td>
+                        <td align="left">No</td>
+                        <td align="left">
+                            デフォルトでは無効です。有効にすると、
+                            元のサーバの認証のかわりにプロキシで認証を行います。
+                        </td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                現在の <span class="property">nonce_timeout</span> の実装には、いくつかの副作用があります。
+                この設定は、指定した nonce の有効期限、
+                つまり事実上はクライアントの認証情報の有効期限を指定するためのものです。
+                現在は、これを (たとえば) 3600 に設定すると、
+                一時間ごとに新しい認証をクライアントに要求するようアダプタに設定します。
+                これは将来のリリースで nonce の追跡と stale のサポートを実装した時点で解決する予定です。
+            <br />
+        </p></blockquote>
+
+    </div>
+
+    <div class="section" id="zend.auth.adapter.http.resolvers" name="zend.auth.adapter.http.resolvers"><div class="info"><h1 class="title">リゾルバ</h1></div>
+
+        
+
+        <p class="para">
+            リゾルバの仕事は、ユーザ名とレルムを受け取って何らかの証明を返すことです。
+            ベーシック認証では、ユーザのパスワードを Base64 でエンコードしたものを受け取ります。
+            ダイジェスト認証では、ユーザ名、レルムおよびパスワード
+            (をコロンでつなげたもの) のハッシュを受け取ります。
+            現在サポートしているハッシュアルゴリズムは <acronym class="acronym">MD5</acronym> のみです。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Auth_Adapter_Http</span>
+            <span class="classname">Zend_Auth_Adapter_Http_Resolver_Interface</span>
+            を実装したオブジェクトを使用しています。
+            このアダプタにはテキストファイル用のリゾルバクラスが含まれていますが、
+            リゾルバインターフェイスを実装することで、
+            その他のリゾルバも簡単に作成できます。
+        </p>
+
+        <div class="section" id="zend.auth.adapter.http.resolvers.file" name="zend.auth.adapter.http.resolvers.file"><div class="info"><h1 class="title">File リゾルバ</h1></div>
+
+            
+
+            <p class="para">
+                ファイルリゾルバは、非常にシンプルなクラスです。
+                ファイル名を指定するプロパティを保持しており、
+                コンストラクタでこれを指定できます。
+                 <span class="methodname">resolve()</span> メソッドはテキストファイルを走査し、
+                ユーザ名とレルムにマッチする行を探します。テキストファイルのフォーマットは
+                Apache の htpasswd ファイルと似た形式で
+            </p>
+
+            <div class="programlisting txt"><div class="txtcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;username&gt;:&lt;realm&gt;:&lt;credentials&gt;\n</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                のようになります。個々の行は
+                ユーザ名、レルムおよび認証情報の三つのフィールドで構成されており、
+                それらがコロンで区切られています。リゾルバは認証情報フィールドの内容を理解することはできません。
+                取得した値をそのまま呼び出し元に返します。したがって、
+                同じ形式でベーシック認証およびダイジェスト認証の両方に対応できます。
+                ベーシック認証では、このフィールドは平文テキストで書く必要があります。
+                ダイジェスト認証では、これは先ほど説明したような <acronym class="acronym">MD5</acronym> ハッシュとなります。
+            </p>
+
+            <p class="para">
+                ファイルリゾルバを作成する方法は次の二通りで、どちらも同じくらい簡単です。まずは
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$path</span>&nbsp; &nbsp; &nbsp;= <span style="color: #ff0000;">'files/passwd.txt'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$resolver</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Http_Resolver_File<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$path</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                もうひとつは
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$path</span>&nbsp; &nbsp; &nbsp;= <span style="color: #ff0000;">'files/passwd.txt'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$resolver</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Http_Resolver_File<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$resolver</span>-&gt;<span style="color: #006600;">setFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$path</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                指定したパスが空だったり読み込みできなかったりした場合は、
+                例外をスローします。
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="section" id="zend.auth.adapter.http.basic_usage" name="zend.auth.adapter.http.basic_usage"><div class="info"><h1 class="title">基本的な使用法</h1></div>
+
+        
+
+        <p class="para">
+            まず、必須設定項目を含む配列を作成します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$config</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'accept_schemes'</span> =&gt; <span style="color: #ff0000;">'basic digest'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'realm'</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =&gt; <span style="color: #ff0000;">'My Web Site'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'digest_domains'</span> =&gt; <span style="color: #ff0000;">'/members_only /my_account'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'nonce_timeout'</span>&nbsp; =&gt; <span style="color: #cc66cc;">3600</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            この配列は、アダプタに対してベーシック認証およびダイジェスト認証の両方を受け付けるように指定します。
+            また、<var class="filename">/members_only</var> および <var class="filename">/my_account</var>
+            の配下では認証済みアクセスが必要となるようにします。
+            realm の値は、通常はブラウザのパスワードダイアログボックスに表示されます。
+            <span class="property">nonce_timeout</span> は、もちろん、先ほど説明したとおりの振る舞いをします。
+        </p>
+
+        <p class="para">
+            次に、<span class="classname">Zend_Auth_Adapter_Http</span> オブジェクトを作成します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">require_once</span> <span style="color: #ff0000;">'Zend/Auth/Adapter/Http.php'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Http<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$config</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            ベーシック認証およびダイジェスト認証の両方をサポートしているので、
+            ふたつのリゾルバオブジェクトを作成する必要があります。
+            これは、単にふたつの異なるクラスを作成するだけの簡単なことです。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$basicResolver</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Http_Resolver_File<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$basicResolver</span>-&gt;<span style="color: #006600;">setFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'files/basicPasswd.txt'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$digestResolver</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Http_Resolver_File<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$digestResolver</span>-&gt;<span style="color: #006600;">setFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'files/digestPasswd.txt'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span>-&gt;<span style="color: #006600;">setBasicResolver</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$basicResolver</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span>-&gt;<span style="color: #006600;">setDigestResolver</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$digestResolver</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            最後に、認証を行います。このアダプタは、
+            リクエストオブジェクトおよびレスポンスオブジェクトの両方を参照する必要があります。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/assert"><span style="color: #000066;">assert</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$request</span> instanceof Zend_Controller_Request_Http<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/assert"><span style="color: #000066;">assert</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$response</span> instanceof Zend_Controller_Response_Http<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span>-&gt;<span style="color: #006600;">setRequest</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$request</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span>-&gt;<span style="color: #006600;">setResponse</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$response</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$result</span> = <span style="color: #0000ff;">$adapter</span>-&gt;<span style="color: #006600;">authenticate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<span style="color: #0000ff;">$result</span>-&gt;<span style="color: #006600;">isValid</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// ユーザ名/パスワードが間違っている、あるいはパスワード入力をキャンセルした</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+    </div>
+
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.auth.adapter.digest.html">ダイジェスト認証</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.auth.html">Zend_Auth</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.auth.adapter.ldap.html">LDAP 認証</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.auth.html">Zend_Auth</a></li>
+  <li><a href="zend.auth.introduction.html">導入</a></li>
+  <li><a href="zend.auth.adapter.dbtable.html">データベースのテーブルでの認証</a></li>
+  <li><a href="zend.auth.adapter.digest.html">ダイジェスト認証</a></li>
+  <li class="active"><a href="zend.auth.adapter.http.html">HTTP 認証アダプタ</a></li>
+  <li><a href="zend.auth.adapter.ldap.html">LDAP 認証</a></li>
+  <li><a href="zend.auth.adapter.openid.html">Open ID 認証</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

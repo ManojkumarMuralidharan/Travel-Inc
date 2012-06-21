@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend Framework 1.5 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="migration.16.html">Zend Framework 1.6</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="migration.html">Zend Framework Migration Notes</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="migration.10.html">Zend Framework 1.0</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="migration.15" class="section"><div class="info"><h1 class="title">Zend Framework 1.5</h1></div>
+    
+
+    <p class="para">
+        Wenn man von einem älteren Release auf Zend Framework 1.5 oder höher hochrüstet sollte
+        man die folgenden Migrations Hinweise beachten.
+    </p>
+
+    <div class="section" id="migration.15.zend.controller" name="migration.15.zend.controller"><div class="info"><h1 class="title">Zend_Controller</h1></div>
+        
+
+        <p class="para">
+            Obwohl die meisten grundsätzlichen Funktionalitäten die gleichen bleiben und alle
+            dokumentierten Funktionalitäten die gleichen bleiben gibt es doch ein spezielles
+            <em class="emphasis">undokumentiertes</em> &quot;Feature&quot; das geändert wurde.
+        </p>
+
+        <p class="para">
+            Wenn <acronym class="acronym">URL</acronym>s geschrieben werden besteht der dokumentierte Weg darin die
+            Aktionsnamen camelCased mit einem Trennzeichen zu schreiben; diese sind normalerweise
+            &#039;.&#039; oder &#039;-&#039;, können aber im Dispatcher konfiguriert werden. Der Dispatcher ändert den
+            Aktionsnamen intern auf Kleinschreibung und verwendet diese Trennzeichen um die
+            Aktionsmethode wieder zu bauen indem er sie camelCase schreibt. Trotzdem, weil
+            <acronym class="acronym">PHP</acronym> Funktionen nicht unabhängig von der Schreibweise sind,
+            <em class="emphasis">könnte</em> man <acronym class="acronym">URL</acronym>s mit camelCase schreiben und der
+            Dispatcher würde diese auf den gleichen Platz auflösen. Zum Beispiel, &#039;camel-cased&#039;
+            würde durch den Dispatcher zu &#039;camelCasedAction&#039; werden; trotzdem, durch den Fall der
+            unabhängigen Schreibweise in <acronym class="acronym">PHP</acronym>, würden beide die selbe Methode
+            ausführen.
+        </p>
+
+        <p class="para">
+            Das führt zu Problemen mit dem ViewRenderer wenn View Skripte aufgelöst werden. Der
+            kanonische, dokumentierte Weg besteht darin das alle Trennzeichen zu Bindestrichen
+            umgewandelt und die Wörter kleingeschrieben werden. Das erzeugt eine semantische
+            Bindung zwischen Aktionen und View Skripten, und die Normalisierung stellt sicher
+            das die Skripte gefunden werden. Trotzdem, wenn die Aktion &#039;camelCased&#039; aufgerufen und
+            aufgelöst wird, ist das Trennzeichen nicht mehr vorhanden, und der ViewRenderer
+            versucht einen anderen Ort aufzulösen -- <var class="filename">camelcased.phtml</var> statt
+            <var class="filename">camel-cased.phtml</var>.
+        </p>
+
+        <p class="para">
+            Einige Entwickler hängen an diesem &quot;Feature&quot;, welches nie angedacht war. Verschiedene
+            Änderungen im 1.5.0 Baum, führen dazu das der ViewRenderer diese Pfade nicht länger
+            auflöst; die semantische Bindung wird nun erzwungen. Ale erstes, erzwingt der
+            Dispatcher nun die Groß-/Kleinschreibung in Aktionsnamen. Das bedeutet dass das
+            hinleiten zu eigenen Aktionen über die URL durch Verwendung von camelCase nicht länger
+            auf die gleiche Methode aufgelöst wird wie mit Trennzeichen (z.B. &#039;camel-casing&#039;).
+            Das führt dazu das der ViewRenderer jetzt nur mehr zeichen-getrennte Aktionen
+            honoriert wenn er View Skripte auflöst.
+        </p>
+
+        <p class="para">
+            Wenn man findet das man auf dieses &quot;Feature&quot; nicht verzichten kann gibt es mehrere
+            Optionen:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    Beste Option: Die View Skripte umbenennen. Vorteile: zukünftige Kompatibilität.
+                    Nachteile: Wenn man viele View Skripte hat die auf dem vorigen aufbauen führt
+                    das, unerwarteter Weise, zu vielen Umbenennungen die durchgeführt werden müssen.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Zweitbeste Option: Der ViewRenderer delegiert nun die Auflösung von View
+                    Skripten zu <span class="classname">Zend_Filter_Inflector</span>; man kann die Regeln
+                    des Inflectors ändern damit er nicht länger die Wörter der Aktion mit einem
+                    Bindestrich trennt:
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$viewRenderer</span> =</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Controller_Action_HelperBroker::<span style="color: #006600;">getStaticHelper</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'viewRenderer'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$inflector</span> = <span style="color: #0000ff;">$viewRenderer</span>-&gt;<span style="color: #006600;">getInflector</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$inflector</span>-&gt;<span style="color: #006600;">setFilterRule</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">':action'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_PregReplace<span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'#[^a-z0-9'</span> . <a href="http://www.php.net/preg_quote"><span style="color: #000066;">preg_quote</span></a><span style="color: #66cc66;">&#40;</span>DIRECTORY_SEPARATOR, <span style="color: #ff0000;">'#'</span><span style="color: #66cc66;">&#41;</span> . <span style="color: #ff0000;">']+#i'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">''</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'StringToLower'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+                <p class="para">
+                    Der obige Code ändert den Inflector so, das er Wörter nicht länger mit einem
+                    Bindestrich trennt; Es kann auch gewünscht sein den &#039;StringToLower&#039; Filter zu
+                    entfernen man die aktuellen View Skripte camelCased benannt haben
+                    <em class="emphasis">will</em>.
+                </p>
+
+                <p class="para">
+                    Wenn die Umbenennung der View Skripte zu aufwendig oder Zeitintensiv ist, dann
+                    ist das die beste Option wenn man die Zeit hierfür findet.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Die am wenigsten zu empfehlende Option: Man kann den Dispatcher dazu zwingen
+                    camelCase Aktionsnamen mit einem neuen Front Controller Flag
+                    <span class="property">useCaseSensitiveActions</span> zu bearbeiten:
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'useCaseSensitiveActions'</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+                <p class="para">
+                    Das erlaubt es camelCase in der URL zu verwenden uns es trotzdem auf die
+                    gleiche Aktion aufzulösen wie wenn Trennzeichen verwendet worden wären. Das
+                    bedeutet dass das Originale Problem trotzdem durchschlägt; es kann notwendig
+                    sein die zweite Option von oben zusätzlich zu verwenden um sicherzustellen
+                    das die Dinge in allen Variationen funktionieren.
+                </p>
+
+                <p class="para">
+                    Man sollte auch beachten das die Verwendung dieses Flags eine Notiz auslöst,
+                    das dessen Verwendung nicht mehr durchgeführt werden sollte.
+                </p>
+            </li>
+        </ul>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="migration.16.html">Zend Framework 1.6</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="migration.html">Zend Framework Migration Notes</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="migration.10.html">Zend Framework 1.0</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="migration.html">Zend Framework Migration Notes</a></li>
+  <li><a href="migration.110.html">Zend Framework 1.10</a></li>
+  <li><a href="migration.19.html">Zend Framework 1.9</a></li>
+  <li><a href="migration.18.html">Zend Framework 1.8</a></li>
+  <li><a href="migration.17.html">Zend Framework 1.7</a></li>
+  <li><a href="migration.16.html">Zend Framework 1.6</a></li>
+  <li class="active"><a href="migration.15.html">Zend Framework 1.5</a></li>
+  <li><a href="migration.10.html">Zend Framework 1.0</a></li>
+  <li><a href="migration.09.html">Zend Framework 0.9</a></li>
+  <li><a href="migration.08.html">Zend Framework 0.8</a></li>
+  <li><a href="migration.06.html">Zend Framework 0.6</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

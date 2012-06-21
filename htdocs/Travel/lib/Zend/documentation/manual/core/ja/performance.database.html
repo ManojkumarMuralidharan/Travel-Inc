@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Dbパフォーマンス - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="performance.classloading.html">クラスの読み込み</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="performance.html">Zend Framework Performance Guide</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="performance.localization.html">国際化(i18n)とローカライズ(l10n)</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="performance.database" class="section"><div class="info"><h1 class="title">Zend_Dbパフォーマンス</h1></div>
+    
+
+    <p class="para">
+        <span class="classname">Zend_Db</span>はデータベースを抽象化するレイヤーで、
+        <acronym class="acronym">SQL</acronym>操作のための共通<acronym class="acronym">API</acronym>を提供する意図があります。
+        <span class="classname">Zend_Db_Table</span>はテーブルデータのゲートウェイで、
+        テーブルレベルでの抽象的な共通のデータベース操作を提供する意図があります。
+        それらの抽象的な性質とそれらの操作を行なうために隠れて行なうマジックのせいで、
+        しばしばパフォーマンスのオーバーヘッドをもたらします。
+    </p>
+
+    <div class="section" id="performance.database.tableMetadata" name="performance.database.tableMetadata"><div class="info"><h1 class="title">テーブルのメタデータを取得する際にZend_Db_Tableによってもたらされる
+        オーバーヘッドをどのようにしたら減らせますか？</h1></div>
+        
+
+        <p class="para">
+            できる限り使い方を簡単に保つために、
+            また、開発最中にスキーマの変更を絶えずサポートするためにも、
+            <span class="classname">Zend_Db_Table</span>はあるマジックを隠れて行ないます:
+            使い始める時にテーブルのスキーマを読み込んでオブジェクトのメンバに保存します。
+            この操作は一般的に高くつき、データベースを気にかけません。
+            それは製品のボトルネックに寄与します。
+        </p>
+
+        <p class="para">
+            幸運なことにその状況を改善する技術があります。
+        </p>
+
+        <div class="section" id="performance.database.tableMetadata.cache" name="performance.database.tableMetadata.cache"><div class="info"><h1 class="title">メタデータキャッシュの利用</h1></div>
+            
+
+            <p class="para">
+                <span class="classname">Zend_Db_Table</span>ではテーブルのメタデータをキャッシュする
+                ために<span class="classname">Zend_Cache</span>を任意で利用できます。
+                これはデータベース自身からメタデータを読み込むよりも、
+                一般的に早くアクセスでき、高くつきません。
+            </p>
+
+            <p class="para">
+                <a href="zend.db.table.html#zend.db.table.metadata.caching" class="link"><span class="classname">Zend_Db_Table</span>
+                のドキュメントにメタデータをキャッシュすることについて情報があります。</a>
+            </p>
+        </div>
+
+        <div class="section" id="performance.database.tableMetadata.hardcoding" name="performance.database.tableMetadata.hardcoding"><div class="info"><h1 class="title">テーブル定義でメタデータをハードコーディングする</h1></div>
+            
+
+            <p class="para">
+                1.7.0では、<span class="classname">Zend_Db_Table</span>は<a href="zend.db.table.html#zend.db.table.metadata.caching.hardcoding" class="link">テーブルの定義でメタデータをハードコーディングすることをサポート</a>
+                することもします。
+                これは高度な使用例であり、テーブルのスキーマが変更されそうにないと知っているか、
+                または定義を最新状態に保ち続けられる時のみ利用されるべきでしょう。
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="performance.database.select" name="performance.database.select"><div class="info"><h1 class="title">
+            Zend_Db_Selectで生成されたSQLがインデックスにヒットしません。
+            どのようにしたらより良く出来ますか？
+        </h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Db_Select</span>は比較的その仕事が得意です。
+            ただし、結合や副選択を必要とする複雑なクエリを実行するなら、
+            しばしばかなりの素人になりえます。
+        </p>
+
+        <div class="section" id="performance.database.select.writeyourown" name="performance.database.select.writeyourown"><div class="info"><h1 class="title">自分で最適化したSQLを書く</h1></div>
+            
+
+            <p class="para">
+                現実的な唯一の答えは自分で<acronym class="acronym">SQL</acronym>を書くことです;
+                自分で用意できるなら、<span class="classname">Zend_Db</span>で必ず
+                <span class="classname">Zend_Db_Select</span>を使わずに、<acronym class="acronym">SQL</acronym>のselect文を調整する
+                ことがもっとも完璧に筋の通った道です。
+            </p>
+
+            <p class="para">
+                <b><tt>EXPLAIN</tt></b> をクエリに対して実行して、
+                最もパフォーマンスのあるインデックスを本当に当てるまで、
+                さまざまな取り組みをテストしてください。
+                それからクラスのプロパティーや定数として<acronym class="acronym">SQL</acronym>をハードコーディングしてください。
+            </p>
+
+            <p class="para">
+                もし<acronym class="acronym">SQL</acronym>が変数の引数を必要とする場合、
+                <acronym class="acronym">SQL</acronym>にプレースホルダーを用意してください。
+                そして、<acronym class="acronym">SQL</acronym>に値を挿入するために  <span class="methodname">vsprintf()</span>
+                と  <span class="methodname">array_map()</span> の組み合わせを利用してください。
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $adapter はDBアダプターです。Zend_Db_Tableでは、</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $this-&gt;getAdapter() を使ってそれを参照します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$sql</span> = <a href="http://www.php.net/vsprintf"><span style="color: #000066;">vsprintf</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; self::<span style="color: #006600;">SELECT_FOO</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array_map"><span style="color: #000066;">array_map</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$adapter</span>, <span style="color: #ff0000;">'quoteInto'</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #0000ff;">$values</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="performance.classloading.html">クラスの読み込み</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="performance.html">Zend Framework Performance Guide</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="performance.localization.html">国際化(i18n)とローカライズ(l10n)</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="performance.html">Zend Framework Performance Guide</a></li>
+  <li><a href="performance.introduction.html">導入</a></li>
+  <li><a href="performance.classloading.html">クラスの読み込み</a></li>
+  <li class="active"><a href="performance.database.html">Zend_Dbパフォーマンス</a></li>
+  <li><a href="performance.localization.html">国際化(i18n)とローカライズ(l10n)</a></li>
+  <li><a href="performance.view.html">ビューのレンダリング</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

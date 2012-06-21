@@ -1,0 +1,994 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Picasa Web Alben verwenden - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.gdata.gbase.html">Google Base verwenden</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.gdata.html">Zend_Gdata</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.gdata.youtube.html">Verwenden der YouTube Daten API</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.gdata.photos" class="section"><div class="info"><h1 class="title">Picasa Web Alben verwenden</h1></div>
+    
+
+    <p class="para">
+        Picasa Web Alben ist ein Service der es Benutzer erlaubt Alben von Ihren eigenen Bildern zu
+        verwalten, und die Alben und Bilder von anderen anzusehen. Die <acronym class="acronym">API</acronym> bietet
+        ein programmtechnisches Interface für diesen Service, der es Benutzer erlaubt hinzuzufügen,
+        zu aktualisieren, und von Ihren Alben zu löschen, genauso wie die Möglichkeit Tags und
+        Kommentare auf Fotos zu gestatten.
+    </p>
+
+    <p class="para">
+        Der Zugriff auf öffentliche Alben und Photos ist nicht durch einen Zugang beschränkt.
+        Trotzdem muß ein Benutzer angemeldet sein für einen nicht-nur-lesenden Zugriff.
+    </p>
+
+    <p class="para">
+        Für weitere Informationen über die <acronym class="acronym">API</acronym>, inklusive Anleitungen für das
+        Aktivieren des <acronym class="acronym">API</acronym> Zugriffs, sollte in die <a href="http://code.google.com/apis/picasaweb/overview.html" class="link external">&raquo; Picasa Web Alben Daten
+            <acronym class="acronym">API</acronym> Übersicht</a> gesehen werden.
+    </p>
+
+    <blockquote><p><b class="note">Note</b>: <span class="info"><b>Authentifizierung</b><br /></span>
+        
+
+        
+            Die <acronym class="acronym">API</acronym> bietet Authentifizierung über AuthSub (vorgeschlagen) und
+            ClientAuth. <acronym class="acronym">HTTP</acronym> Verbindungen müssen für einen Lesezugriff
+            authentifiziert sein, aber nicht-authentifizierte Verbindungen haben nur-lesenden
+            Zugriff.
+        <br />
+    </p></blockquote>
+
+    <div class="section" id="zend.gdata.photos.connecting" name="zend.gdata.photos.connecting"><div class="info"><h1 class="title">Zum Service verbinden</h1></div>
+        
+
+        <p class="para">
+            Die Picasa Web Album <acronym class="acronym">API</acronym> basiert, wie alle GData
+            <acronym class="acronym">API</acronym>s, auf dem Atom Publishing Protokoll (APP), einem
+            <acronym class="acronym">XML</acronym> basierenden Format für gemanagte web-basierende Ressourcen. Der
+            Verkehr zwischen Client und den Servers tritt über <acronym class="acronym">HTTP</acronym> auf, und
+            erlaubt sowohl authentifizierte als auch nicht authentifizierte Verbindungen.
+        </p>
+
+        <p class="para">
+            Bevor irgendeine Transaktion stattfinden kann muß diese Verbindung hergestellt werden.
+            Die Erstellung einer Verbindung zum Picasa Servern beinhaltet zwei Schritte:
+            Erstellung eines <acronym class="acronym">HTTP</acronym> Clients und Binden einer
+            <span class="classname">Zend_Gdata_Photos</span> Instanz an diesen Client.
+        </p>
+
+        <div class="section" id="zend.gdata.photos.connecting.authentication" name="zend.gdata.photos.connecting.authentication"><div class="info"><h1 class="title">Authentifikation</h1></div>
+            
+
+            <p class="para">
+                Die Google Picasa <acronym class="acronym">API</acronym> erlaubt erlaubt den Zugriff sowohl auf
+                öffentliche als auch auf private Kalender Feeds. Öffentliche Feeds benötigen keine
+                Authentifizierung sind aber nur-lesend und bieten eine reduzierte Funktionalität.
+                Private Feeds bieten die kompletteste Funktionalität benötigen aber eine
+                authentifizierte Verbindung zum Picasa Server. Es gibt drei Authentifizierungs
+                Schemata die von Google Picasa unterstützt werden:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        <b class="firstterm">ClientAuth</b> bietet direkte Benutzername/Passwort
+                        Authentifizierung zu den Picasa Servern. Da dieses Schema erfordert das
+                        Benutzer die Anwendung mit Ihrem Passwort versorgen, ist diese
+                        Authentifizierung nur zu empfehlen wenn andere Authentifizierungs Schemas
+                        nicht anwendbar sind.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <b class="firstterm">AuthSub</b> erlaubt die Authentifizierung zu den Picasa
+                        Servern über einen Google Proxy Server. Das bietet den gleichen Level von
+                        Bequemlichkeit wie ClientAuth aber ohne die Sicherheits Risiken, was es zu
+                        einer idealen Wahl für Web basierende Anwendungen macht.
+                    </p>
+                </li>
+            </ul>
+
+            <p class="para">
+                Die <span class="classname">Zend_Gdata</span> Bibliothek bietet Unterstützung für beide
+                Authentifizierungs Schemas. Der Rest dieses Kapitels nimmt an das die vorhandenen
+                Authentifizierungs Schemas geläufig sind und wie eine korrekte Authentifizierte
+                Verbindung erstellt wird. Für weitere Details kann in die <a href="zend.gdata.introduction.html#zend.gdata.introduction.authentication" class="link">Authentifizierungs
+                    Sektion</a> dieses Handbuches, oder in die <a href="http://code.google.com/apis/gdata/auth.html" class="link external">&raquo; Authentifizierungs Übersicht
+                    im Google Data <acronym class="acronym">API</acronym> Entwickler Guide</a> gesehen werden.
+            </p>
+        </div>
+
+        <div class="section" id="zend.gdata.photos.connecting.service" name="zend.gdata.photos.connecting.service"><div class="info"><h1 class="title">Erstellen einer Service Instanz</h1></div>
+            
+
+            <p class="para">
+                Um mit den Servern zu interagieren, bietet diese Bibliothek die
+                <span class="classname">Zend_Gdata_Photos</span> Service Klasse. Diese Klasse bietet ein
+                übliches Interface zu den Google Data und Atom Publishing Protocol Modellen und
+                assistiert in der Behandlung der Anfragen zum und von den Kalender Servern.
+            </p>
+
+            <p class="para">
+                Sobald ein Authentifizierung Schema ausgewählt wurde, besteht der nächste Schritt
+                darin eine Instanz von <span class="classname">Zend_Gdata_Photos</span> zu erstellen. Der
+                Klassen Konstruktor nimmt eine Instanz von <span class="classname">Zend_Http_Client</span>
+                als einzelnes Argument. Das bietet ein Interface für AuthSub und ClientAuth
+                Authentifizierungen, da beide von Ihnen die Erstellung eines speziellen
+                authentifizierten <acronym class="acronym">HTTP</acronym> Clients benötigen. Wenn keine Argumente
+                angegeben werden, wird automatisch eine unauthentifizierte Instanz von
+                <span class="classname">Zend_Http_Client</span> erstellt.
+            </p>
+
+            <p class="para">
+                Das folgende Beispiel zeigt wie man eine Service Klasse erstellt und dabei die
+                ClientAuth Authentifizierung verwendet:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Parameter für die ClientAuth Authentifizierung</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$user</span> = <span style="color: #ff0000;">&quot;sample.user@gmail.com&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$pass</span> = <span style="color: #ff0000;">&quot;pa$$w0rd&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erstellt einen authentifizierten HTTP Client</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erstellt eine Instanz des Kalender Services</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Eine Service Instanz die AuthSub verwendet, kann ähnlich erstellt werden, aber durch
+                eine etwas längere Schreibweise:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/session_start"><span style="color: #000066;">session_start</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Gibt die komplette URL der aktuellen Seite zurück, basierend auf den env Variablen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> *</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Verwendete Env Variablen:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * $_SERVER['HTTPS'] = (on|off|)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * $_SERVER['HTTP_HOST'] = Wert des Hosts: header</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * $_SERVER['SERVER_PORT'] = Port Nummer (nur verwendet wenn nicht http/80,https/443)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * $_SERVER['REQUEST_URI'] = Die URI nach der Methode der HTTP Anfrage</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> *</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @return string Current URL</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">function</span> getCurrentUrl<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/global"><span style="color: #000066;">global</span></a> <span style="color: #0000ff;">$_SERVER</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* php_self filtern um Sicherheits Lücken zu vermeiden.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$php_request_uri</span> = <a href="http://www.php.net/htmlentities"><span style="color: #000066;">htmlentities</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/substr"><span style="color: #000066;">substr</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'REQUEST_URI'</span><span style="color: #66cc66;">&#93;</span>, <span style="color: #cc66cc;">0</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/strcspn"><span style="color: #000066;">strcspn</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'REQUEST_URI'</span><span style="color: #66cc66;">&#93;</span>, <span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span><span style="color: #000099; font-weight: bold;">\r</span>&quot;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>, ENT_QUOTES<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'HTTPS'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> &amp;&amp; <a href="http://www.php.net/strtolower"><span style="color: #000066;">strtolower</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'HTTPS'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> == <span style="color: #ff0000;">'on'</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$protocol</span> = <span style="color: #ff0000;">'https://'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$protocol</span> = <span style="color: #ff0000;">'http://'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$host</span> = <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'HTTP_HOST'</span><span style="color: #66cc66;">&#93;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'SERVER_PORT'</span><span style="color: #66cc66;">&#93;</span> != <span style="color: #ff0000;">''</span> &amp;&amp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$protocol</span> == <span style="color: #ff0000;">'http://'</span> &amp;&amp; <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'SERVER_PORT'</span><span style="color: #66cc66;">&#93;</span> != <span style="color: #ff0000;">'80'</span><span style="color: #66cc66;">&#41;</span> ||</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$protocol</span> == <span style="color: #ff0000;">'https://'</span> &amp;&amp; <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'SERVER_PORT'</span><span style="color: #66cc66;">&#93;</span> != <span style="color: #ff0000;">'443'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$port</span> = <span style="color: #ff0000;">':'</span> . <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'SERVER_PORT'</span><span style="color: #66cc66;">&#93;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$port</span> = <span style="color: #ff0000;">''</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$protocol</span> . <span style="color: #0000ff;">$host</span> . <span style="color: #0000ff;">$port</span> . <span style="color: #0000ff;">$php_request_uri</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Gibt die AuthSub URL zurück welche der Benutzer besuchen muß um Anfrage</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * dieser Anwendung zu authentifizieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> *</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Verwendet getCurrentUrl() um die nächste URL zu erhalten zu welcher der</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Benutzer weitergeleitet wird nachdem er</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * sich erfolgreich beim Google Service authentifiziert hat.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> *</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @return string AuthSub URL</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">function</span> getAuthSubUrl<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$next</span> = getCurrentUrl<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$scope</span> = <span style="color: #ff0000;">'http://picasaweb.google.com/data'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$secure</span> = <span style="color: #000000; font-weight: bold;">false</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$session</span> = <span style="color: #000000; font-weight: bold;">true</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">return</span> Zend_Gdata_AuthSub::<span style="color: #006600;">getAuthSubTokenUri</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$next</span>, <span style="color: #0000ff;">$scope</span>, <span style="color: #0000ff;">$secure</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$session</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Gibt ein HTTP Client Objekt mit den richtigen Headern für die Kommunikation</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * with Google zurück wobei</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * AuthSub Authentifizierung verwendet wird</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> *</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Verwendet $_SESSION['sessionToken'] um das AuthSub Session Token zu</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * speichern nachdem es erhalten wurde.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Das einmal verwendbare Token das in der URL bei der Umleitung angeboten wird</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * nachdem der Benutzer auf</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Google erfolgreich authentifiziert wurde, wird von der $_GET['token']</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Variable empfangen.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> *</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @return Zend_Http_Client</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">function</span> getAuthSubHttpClient<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/global"><span style="color: #000066;">global</span></a> <span style="color: #0000ff;">$_SESSION</span>, <span style="color: #0000ff;">$_GET</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'sessionToken'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> &amp;&amp; <a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'sessionToken'</span><span style="color: #66cc66;">&#93;</span> =</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Gdata_AuthSub::<span style="color: #006600;">getAuthSubSessionToken</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$client</span> = Zend_Gdata_AuthSub::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'sessionToken'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$client</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Erstellt eine neue Instant des Services und leitet den Benutzer zum AuthSub</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Server um wenn das notwendig ist.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span>getAuthSubHttpClient<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Zuletzt kann ein nicht authentifizierter Server für die Verwendung mit öffentlichen
+                Feeds erstellt werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erstellt eine Instanz des Services und verwendet einen nicht authentifizierten HTTP Client</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+
+    <div class="section" id="zend.gdata.photos.queries" name="zend.gdata.photos.queries"><div class="info"><h1 class="title">Verstehen und Erstellen von Abfragen</h1></div>
+        
+
+        <p class="para">
+            Die primäre Methode um Daten vom Service anzufragen ist die Erstellung einer Abfrage.
+            Es gibt Abfrage Klassen für jede der folgenden Typen:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">User</b> wird verwendet um den Benutzer zu spezifizieren
+                    dessen Daten gesucht werden, und wird als EMail Adresse spezifiziert. Wenn kein
+                    Benutzer angegeben wurde, wird stattdessen &quot;default&quot; verwendet um den aktuellen
+                    authentifizierten Benutzer zu bezeichnen (wenn er authentifiziert wurde).
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">Album</b> wird verwendet um das Album zu spezifizieren das
+                    gesucht werden soll, und wird entweder als ID oder als Name des Albums
+                    spezifiziert.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">Photo</b> wird verwendet um das Photo zu spezifizieren das
+                    gesucht werden soll, und wird als ID spezifiziert.
+                </p>
+            </li>
+        </ul>
+
+        <p class="para">Eine neue <span class="classname">UserQuery</span> kann wie folgt erstellt werden:</p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_UserQuery<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Für jede Abfrage kann eine Anzahl an Parameter, welche die Suche limitieren, abgefragt,
+            oder mit get(Parameter) und set(Parameter) spezifiziert werden. Diese sind wie folgt:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">Projection</b> setzt das Format der im Feed zurückgegebenen
+                    Daten entweder &quot;api&quot; oder &quot;base&quot;. Normal wird &quot;api&quot; gewählt. &quot;api&quot; ist auch der
+                    Standardwert.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">Type</b> setzt den Typ der Elemente die zurückgegeben werden,
+                    entweder &quot;feed&quot; oder &quot;entry&quot;. Der Standardwert ist &quot;feed&quot;.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">Access</b> setzt die Sichtbarkeit von Teilen die
+                    zurückgegeben werden, mit &quot;all&quot;, &quot;public&quot;, oder &quot;private&quot;. Der Standardwert ist
+                    &quot;all&quot;. Nicht-öffentliche Elemente werden nur zurückgegeben wenn die Abfrage
+                    durch authentifizierte Benutzer gesucht wird.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">Tag</b> setzt einen Tag Filter für zurückgegebenen Teile.
+                    Wenn ein Tag gesetzt ist werden nur Teile mit so einem Tag im Wert
+                    zurückgegeben.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">Kind</b> setzt die Art von Elementen die zurückgegeben wird.
+                    Wenn eine Art spezifiziert wird, werden nur Einträge zurückgegeben die auf
+                    diesen Wert passen.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">ImgMax</b> setzt das Maximum der Bildgröße für zurückgegebene
+                    Einträge. Nur Bildeinträge die kleiner als dieser Wert sind werden
+                    zurückgegeben.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">Thumbsize</b> setzt die Vorschaugröße von Einträgen die
+                    zurückgegeben werden. Jeder empfangene Eintrag wird eine Vorschaugröße haben die
+                    diesem Wert entspricht.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">User</b> setzt den Benutzer nach dessen Daten gesucht werden
+                    soll. Der Standardwert ist &quot;default&quot;.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">AlbumId</b> setzt die ID des Albums nachdem gesucht wird.
+                    Dieses Element ist nur für Album und Photo Abfragen gültig. Im Fall von Photo
+                    Abfragen spezifiziert dieser Wert das Album das die angefragten Photos enthält.
+                    Die Album ID schließt sich gegenseitig mit dem Album Namen aus. Das Setzen des
+                    einen Entfernt den anderen.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">AlbumName</b> setzt den Namen des Albums nachdem gesucht
+                    wird. Dieses Element ist nur für Album und Photo Abfragen gültig. Im Fall von
+                    Photo Abfragen spezifiziert dieser Wert das Album das die angefragten Photos
+                    enthält. Der Album Name schließt sich gegenseitig mit der Album ID aus. Das
+                    Setzen des einen Entfernt den anderen.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <b class="firstterm">PhotoId</b> setzt die ID des Photos nachdem gesucht wird.
+                    Dieses Element ist nur für Photo Abfragen gültig.
+                </p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="zend.gdata.photos.retrieval" name="zend.gdata.photos.retrieval"><div class="info"><h1 class="title">Feeds und Einträge erhalten</h1></div>
+        
+
+        <p class="para">
+            Das Service besitzt Funktionen um einen Feed oder individuelle Einträge für Benutzer,
+            Alben, und individuelle Photos zu erhalten.
+        </p>
+
+        <div class="section" id="zend.gdata.photos.user_retrieval" name="zend.gdata.photos.user_retrieval"><div class="info"><h1 class="title">Einen Benutzer erhalten</h1></div>
+            
+
+            <p class="para">
+                Dieser Service unterstützt das Erhalten eines Benutzer Feeds und Listen von Benutzer
+                Inhalten. Wenn der abgefragte Benutzer auch der authentifizierter Benutzer ist,
+                werden auch Einträge die als &quot;<em class="emphasis">hidden</em>&quot; markiert sind,
+                zurückgegeben.
+            </p>
+
+            <p class="para">
+                Auf den Benutzer Feed kann durch die Übergabe eines Benutzernamens an die
+                 <span class="methodname">getUserFeed()</span> Methode zugegriffen werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$userFeed</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getUserFeed</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_Exception <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Fehler: &quot;</span> . <span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Oder, der auf den Feed kann zugegriffen werden indem zuerst eine Abfrage erstellt
+                wird:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_UserQuery<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$userFeed</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getUserFeed</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">null</span>, <span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_Exception <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Fehler: &quot;</span> . <span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Die Erstellung einer Abfrage bietet auch die Möglichkeit ein Benutzer Eintrags
+                Objekt abzufragen:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_UserQuery<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setType</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;entry&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$userEntry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getUserEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_Exception <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Fehler: &quot;</span> . <span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.album_retrieval" name="zend.gdata.photos.album_retrieval"><div class="info"><h1 class="title">Ein Album erhalten</h1></div>
+            
+
+            <p class="para">
+                Der Service unterstützt auch das erhalten eines Album Feeds und von Listen des
+                Inhalts von Alben.
+            </p>
+
+            <p class="para">
+                Auf einen Album Feed wird durch die Erstellung eines Abfrage Objekts zugegriffen und
+                dessen Übergabe an  <span class="methodname">getAlbumFeed()</span>:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_AlbumQuery<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$albumFeed</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getAlbumFeed</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_Exception <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Fehler: &quot;</span> . <span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Alternativ kann dem Abfrage Objekt ein Album Name mit
+                 <span class="methodname">setAlbumName()</span> angegeben werden. Das Setzen des Album
+                Namens schließt sich gegenseitig mit der Album ID aus und das Setzen des einen
+                entfernt den anderen Wert.
+            </p>
+
+            <p class="para">
+                Die Erstellung einer Abfragen bietet auch die Möglichkeit ein Album Eintrags Objekt
+                abzufragen:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_AlbumQuery<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setType</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;entry&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$albumEntry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getAlbumEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_Exception <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Fehler: &quot;</span> . <span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.photo_retrieval" name="zend.gdata.photos.photo_retrieval"><div class="info"><h1 class="title">Ein Photo erhalten</h1></div>
+            
+
+            <p class="para">
+                Der Service unterstützt auch das erhalten eines Photo Feeds und von Listen von
+                zugeordneten Kommentaren und Tags.
+            </p>
+
+            <p class="para">
+                Auf einen Photo Feed wird durch die Erstellung eines Abfrage Objekts zugegriffen und
+                dessen Übergabe an  <span class="methodname">getPhotoFeed()</span>:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_PhotoQuery<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setPhotoId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;100&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$photoFeed</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getPhotoFeed</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_Exception <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Fehler: &quot;</span> . <span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Die Erstellung einer Abfragen bietet auch die Möglichkeit ein Photo Eintrags Objekt
+                abzufragen:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_PhotoQuery<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setPhotoId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;100&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setType</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;entry&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$photoEntry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getPhotoEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_Exception <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Fehler: &quot;</span> . <span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.comment_retrieval" name="zend.gdata.photos.comment_retrieval"><div class="info"><h1 class="title">Ein Kommentar erhalten</h1></div>
+            
+
+            <p class="para">
+                Der Service unterstützt den Erhalt von Kommentaren von einem Feed eines anderen
+                Typs. Durch das Setzen der Abfrage das eine Art von &quot;Kommentar&quot; zurückgegeben wird,
+                kann eine Feed Anfrage mit einem speziellen Benutzer, Album oder Photo assoziierte
+                Kommentare zurückgeben.
+            </p>
+
+            <p class="para">
+                Die Durchführung von Aktionen auf jedem der Kommentare eines gegebenen Photos kann
+                die folgt vollendet werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_PhotoQuery<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setPhotoId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;100&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setKind</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;comment&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$photoFeed</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getPhotoFeed</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$photoFeed</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$entry</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span> instanceof Zend_Gdata_Photos_CommentEntry<span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Mach irgendwas mit dem Kommentar</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_Exception <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Fehler: &quot;</span> . <span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.tag_retrieval" name="zend.gdata.photos.tag_retrieval"><div class="info"><h1 class="title">Ein Tag erhalten</h1></div>
+            
+
+            <p class="para">
+                Der Service unterstützt den Erhalt von Tags von einem Feed eines anderen Typs. Durch
+                das Setzen der Abfrage das eine Art von &quot;Tag&quot; zurückgegeben wird, kann eine Feed
+                Anfrage mit einem speziellen Photo assoziierte Tags zurückgeben.
+            </p>
+
+            <p class="para">
+                Das Ausführen einer Aktrion auf jedem Tag an gegebenen Photos kann wie folgt
+                durchgeführt werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_PhotoQuery<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setPhotoId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;100&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setKind</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;tag&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$photoFeed</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getPhotoFeed</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$photoFeed</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$entry</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span> instanceof Zend_Gdata_Photos_TagEntry<span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Mach irgendwas mit dem Tag</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_Exception <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Fehler: &quot;</span> . <span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+    </div>
+
+    <div class="section" id="zend.gdata.photos.creation" name="zend.gdata.photos.creation"><div class="info"><h1 class="title">Einträge erstellen</h1></div>
+        
+
+        <p class="para">
+            Der Service hat Funktionen für die Erstellung von Alben, Photos, Kommentaren und Tags.
+        </p>
+
+        <div class="section" id="zend.gdata.photos.album_creation" name="zend.gdata.photos.album_creation"><div class="info"><h1 class="title">Ein Album erstellen</h1></div>
+            
+
+            <p class="para">
+                Der Service unterstützt die Erstellung eines neues Albums für authentifizierte
+                Benutzer:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_AlbumEntry<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">setTitle</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newTitle</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;test album&quot;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">insertAlbumEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.photo_creation" name="zend.gdata.photos.photo_creation"><div class="info"><h1 class="title">Ein Photo erstellen</h1></div>
+            
+
+            <p class="para">
+                Der Service unterstützt die Erstellung eines neuen Photos für authentifizierte
+                Benutzer:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $photo ist der Name der Datei die durch ein HTML Formular hochgeladen wurde</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$fd</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newMediaFileSource</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$photo</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">&quot;tmp_name&quot;</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$fd</span>-&gt;<span style="color: #006600;">setContentType</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$photo</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">&quot;type&quot;</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_PhotoEntry<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">setMediaSource</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$fd</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">setTitle</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newTitle</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$photo</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">&quot;name&quot;</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$albumQuery</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_AlbumQuery;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$albumQuery</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$albumQuery</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$albumEntry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getAlbumEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$albumQuery</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">insertPhotoEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span>, <span style="color: #0000ff;">$albumEntry</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.comment_creation" name="zend.gdata.photos.comment_creation"><div class="info"><h1 class="title">Erstellen eines Kommentars</h1></div>
+            
+            <p class="para">Das Service unterstützt die Erstellung von neuen Kommentaren für ein Photo:</p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_CommentEntry<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">setTitle</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newTitle</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;comment&quot;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">setContent</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newContent</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;comment&quot;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_PhotoQuery;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setPhotoId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;100&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setType</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'entry'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoEntry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getPhotoEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$photoQuery</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">insertCommentEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span>, <span style="color: #0000ff;">$photoEntry</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.tag_creation" name="zend.gdata.photos.tag_creation"><div class="info"><h1 class="title">Erstellen eines Tags</h1></div>
+            
+            <p class="para">Das Service unterstützt die Erstellung von neuen Tags für ein Photo:</p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_TagEntry<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">setTitle</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newTitle</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;tag&quot;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_PhotoQuery;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setPhotoId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;100&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setType</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'entry'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoEntry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getPhotoEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$photoQuery</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">insertTagEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span>, <span style="color: #0000ff;">$photoEntry</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+    </div>
+
+    <div class="section" id="zend.gdata.photos.deletion" name="zend.gdata.photos.deletion"><div class="info"><h1 class="title">Einträge löschen</h1></div>
+        
+        <p class="para">Der Service hat Funktionen um Alben, Photos, Kommentare und Tags zu löschen.</p>
+
+        <div class="section" id="zend.gdata.photos.album_deletion" name="zend.gdata.photos.album_deletion"><div class="info"><h1 class="title">Ein Album löschen</h1></div>
+            
+
+            <p class="para">
+                Der Service unterstützt das Löschen von Alben für authentifizierte Benutzer:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$albumQuery</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_AlbumQuery;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$albumQuery</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$albumQuery</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$albumQuery</span>-&gt;<span style="color: #006600;">setType</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'entry'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getAlbumEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$albumQuery</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">deleteAlbumEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.photo_deletion" name="zend.gdata.photos.photo_deletion"><div class="info"><h1 class="title">Löschen eines Photos</h1></div>
+            
+
+            <p class="para">
+                Der Service unterstützt das Löschen von Photos für authentifizierte Benutzer:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_PhotoQuery;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setPhotoId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;100&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setType</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'entry'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getPhotoEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$photoQuery</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">deletePhotoEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.comment_deletion" name="zend.gdata.photos.comment_deletion"><div class="info"><h1 class="title">Ein Kommentar löschen</h1></div>
+            
+
+            <p class="para">
+                Der Service unterstützt das Löschen von Kommentaren für authentifizierte Benutzer:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_PhotoQuery;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setPhotoId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;100&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setType</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'entry'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$path</span> = <span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">getQueryUrl</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> . <span style="color: #ff0000;">'/commentid/'</span> . <span style="color: #ff0000;">&quot;1000&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getCommentEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$path</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">deleteCommentEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.tag_deletion" name="zend.gdata.photos.tag_deletion"><div class="info"><h1 class="title">Ein Tag löschen</h1></div>
+            
+
+            <p class="para">
+                Das Service unterstützt das Löschen eines Tags für authentifizierte Benutzer:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Photos::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_PhotoQuery;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setUser</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;sample.user&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setAlbumId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;1&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setPhotoId</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;100&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">setKind</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;tag&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #0000ff;">$photoQuery</span>-&gt;<span style="color: #006600;">getQueryUrl</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$photoFeed</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getPhotoFeed</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$photoFeed</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$entry</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span> instanceof Zend_Gdata_Photos_TagEntry<span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">getContent</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> == <span style="color: #0000ff;">$tagContent</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$tagEntry</span> = <span style="color: #0000ff;">$entry</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">deleteTagEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$tagEntry</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.photos.optimistic_concurrenty" name="zend.gdata.photos.optimistic_concurrenty"><div class="info"><h1 class="title">Optimistische Gleichzeitigkeit (Notizen für das Löschen)</h1></div>
+            
+
+            <p class="para">
+                GData Feeds, inklusive denen des Picasa Web Album Services, implementieren
+                optimistische Gleichzeitigkeit, ein Versionsverwaltungs System das vermeidet das
+                Benutzer irrtümlich Änderungen überschreiben. Wenn ein Eintrag durch die Service
+                Klasse gelöscht wird, wenn der Eintrag geändert wurde seit er zuletzt geholt wurde,
+                wird eine Ausnahme geworfen, solange das nicht explizit anders gesetzt wurde (in
+                diesem Fall wird die Löschung auf dem aktualisierten Eintrag durchgeführt).
+            </p>
+
+            <p class="para">
+                Ein Beispiel davon wie die Versionierung wärend einer Löschung handzuhaben ist wird
+                durch  <span class="methodname">deleteAlbumEntry()</span> gezeigt:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $album ist ein albumEntry der gelöscht werden soll</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">delete</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$album</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_HttpException <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span>-&gt;<span style="color: #006600;">getStatus</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> === <span style="color: #cc66cc;">409</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$entry</span> =</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Photos_AlbumEntry<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">getBody</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">delete</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">getLink</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'edit'</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">href</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; throw <span style="color: #0000ff;">$e</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.gdata.gbase.html">Google Base verwenden</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.gdata.html">Zend_Gdata</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.gdata.youtube.html">Verwenden der YouTube Daten API</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.gdata.html">Zend_Gdata</a></li>
+  <li><a href="zend.gdata.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.gdata.authsub.html">Authentifizierung mit AuthSub</a></li>
+  <li><a href="zend.gdata.books.html">Die Buchsuche Daten API verwenden</a></li>
+  <li><a href="zend.gdata.clientlogin.html">Authentifizieren mit ClientLogin</a></li>
+  <li><a href="zend.gdata.calendar.html">Google Kalender verwenden</a></li>
+  <li><a href="zend.gdata.docs.html">Verwenden der Google Dokumente Listen Daten API</a></li>
+  <li><a href="zend.gdata.health.html">Verwenden von Google Health</a></li>
+  <li><a href="zend.gdata.spreadsheets.html">Google Tabellenkalkulation verwenden</a></li>
+  <li><a href="zend.gdata.gapps.html">Google Apps Provisionierung verwenden</a></li>
+  <li><a href="zend.gdata.gbase.html">Google Base verwenden</a></li>
+  <li class="active"><a href="zend.gdata.photos.html">Picasa Web Alben verwenden</a></li>
+  <li><a href="zend.gdata.youtube.html">Verwenden der YouTube Daten API</a></li>
+  <li><a href="zend.gdata.exception.html">Gdata Ausnahmen auffangen</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

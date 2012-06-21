@@ -1,0 +1,323 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Основы Zend_Controller - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.controller.quickstart.html">Zend_Controller - Быстрый старт</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.controller.html">Zend_Controller</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.controller.front.html">Фронт-контроллер</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.controller.basics" class="section"><div class="info"><h1 class="title">Основы Zend_Controller</h1></div>
+    
+
+    <p class="para">
+        Система <span class="classname">Zend_Controller</span> спроектирована быть легковесной,
+        модульной и расширяемой. Ее минимализм допускает гибкость и некоторую
+        свободу в использовании, при этом она достаточно структурирована, чтобы
+        системы, построенные с использованием <span class="classname">Zend_Controller</span>,
+        использовали некоторые общие соглашения и сходное размещение кода.
+    </p>
+
+    <p class="para">
+        Следующая диаграмма отображает рабочий процесс системы, далее подробно
+        описывается их взаимодействие:
+    </p>
+
+    <p class="para">
+        <div class="inlinemediaobject"><div class="imageobject"><a href="images/d481d625821a97b9a5eb2cec99dca50e-zend.controller.basics.png"><img src="images/d481d625821a97b9a5eb2cec99dca50e-zend.controller.basics.png" alt="zend.controller.basics.png" width="450" height="525" /></a></div></div>
+    </p>
+
+    <p class="para">
+        Рабочий процесс <span class="classname">Zend_Controller</span> осуществляется несколькими
+        компонентами. Несмотря на то, что для использования этой системы нет
+        необходимости в совершенном понимании внутренней работы всех этих
+        компонент, полезно иметь практическое представление об этом процессе.
+    </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    Фронт-контроллер (<span class="classname">Zend_Controller_Front</span>)
+                    управляет всем рабочим процессом системы
+                    <span class="classname">Zend_Controller</span>. Это одна из интерпретаций
+                    паттерна FrontController. <span class="classname">Zend_Controller_Front</span>
+                    обрабатывает все запросы, полученные сервером, и в конечном
+                    счете отвечает за делегацию запросов контроллерам действий
+                    (<span class="classname">Zend_Controller_Action</span>).
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <span class="classname">Zend_Controller_Request_Abstract</span> (часто
+                    называется <code class="code">объектом запроса</code>) представляет
+                    переменные запроса и предоставляет методы для установки и
+                    получения имен контроллера, действия и любых параметров
+                    запроса. Кроме того, он отслеживает, было ли обработано
+                    содержащееся в нем действие диспетчером
+                    <span class="classname">Zend_Controller_Dispatcher</span>.
+                    Расширения абстрактного объекта запроса могут
+                    использоваться для инкапсуляции всех переменных
+                    запроса, позволяя роутерам извлекать информацию
+                    из переменных запроса для того, чтобы устанавливать имена
+                    контроллера и действия.
+                </p>
+
+                <p class="para">
+                    По умолчанию используется
+                    <span class="classname">Zend_Controller_Request_Http</span>. Он
+                    предоставляет доступ ко всем переменным HTTP-запроса.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <span class="classname">Zend_Controller_Router_Interface</span>
+                    используется для описания маршрутизаторов.
+                    Маршрутизация — это процесс исследования переменных запроса
+                    для определения того, какой контроллер и какое действие в
+                    этом контроллере должны получить этот запрос. Эти
+                    контроллер, действие и опциональные параметры
+                    устанавливаются в объекте запроса для обработки диспетчером
+                    <span class="classname">Zend_Controller_Dispatcher_Standard</span>.
+                    Маршрутизация производится только один раз: когда вначале
+                    получен запрос и до того, как первый контроллер примет
+                    управление.
+                </p>
+
+                <p class="para">
+                    Используемый по умолчанию маршрутизатор
+                    <span class="classname">Zend_Controller_Router_Rewrite</span> принимает
+                    конечную точку URI в том виде, в котором она определена в
+                    <span class="classname">Zend_Controller_Request_Http</span>, и разлагает ее на
+                    контроллер, действие и параметры, основываясь на пути в URL.
+                    Например, URL
+                    <code class="code">http://localhost/foo/bar/key/value</code>
+                    будет расшифрован следующим образом: контроллер
+                    <code class="code">foo</code>, действие <code class="code">bar</code> и параметр
+                    <code class="code">key</code> со значением <code class="code">value</code>.
+                </p>
+
+                <p class="para">
+                    <span class="classname">Zend_Controller_Router_Rewrite</span> может также
+                    использоваться для сопоставления с произвольными путями,
+                    за более подробной информацией см. <a href="zend.controller.router.html" class="link">документацию по Rewrite
+                    Router</a>
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <span class="classname">Zend_Controller_Dispatcher_Interface</span>
+                    используется для описания диспетчеров.
+                    Диспетчеризация — это процесс извлечения контроллера и
+                    действия из объекта запроса, нахождения соответствующих
+                    файла/класса контроллера и метода действия в
+                    классе контроллера. Ситуации, когда соответствующие
+                    контроллер или действие не найдены, решаются
+                    определением контроллеров и действий по умолчанию.
+                </p>
+
+                <p class="para">
+                    В действии процесс диспетчеризации состоит из
+                    инстанцирования класса контроллера и вызова метода действия
+                    в этом классе. В отличие от маршрутизации, которая
+                    производится только один раз, диспетчеризация производится
+                    циклически. Если флаг диспетчеризации объекта запроса
+                    сбрасывается, то цикл будет повторяться, при этом вызывается
+                    действие, которое будет установлено на данный момент в
+                    объекте запроса. Если итерация цикла завершится с
+                    установленным флагом диспетчеризации (значение
+                    <b><tt>TRUE</tt></b>) в объекте запроса, то процесс
+                    диспетчеризации завершается.
+                </p>
+
+                <p class="para">
+                    По умолчанию используется диспетчер
+                    <span class="classname">Zend_Controller_Dispatcher_Standard</span>.
+                    Он определяет контроллеры как классы с именами,
+                    завершающимися словом Controller, и в которых все слова
+                    начинаются со сточной буквы (MixedCase), методы действий —
+                    как методы с именами, завершающимися словом Action, и в
+                    которых все слова, кроме первого, начинаются со строчной
+                    буквы (camelCase):
+                    <code class="code">SomeFooController::barAction</code>.
+                    В этом случае на контроллер нужно ссылаться как на
+                    <code class="code">somefoo</code>, а на действие как на
+                    <code class="code">bar</code>.
+                </p>
+
+                <blockquote><p><b class="note">Note</b>: <span class="info"><b>Соглашения по именованию</b><br /></span>
+                    
+
+                    
+                        Общеизвестно, что в случае ручного набора адресов
+                        удобство и поддержка чувствительности регистра
+                        несовместимы в принципе, поэтому Zend Framework приводит
+                        пути в URL к нижнему регистру. Само собой, это влияет на
+                        то, как вы именуете свои контроллеры и действия... или
+                        ссылаетесь на них в URL.
+                    <br />
+
+                    
+                        Если вы хотите иметь классы контроллеров или методы
+                        действий с именами, состоящими из нескольких слов,
+                        разделенных в стиле MixedCase или camelCase, то нужно
+                        разделить эти слова в URL с помощью &#039;-&#039; или &#039;.&#039; (можно
+                        указать другой символ-разделитель).
+                    <br />
+
+                    
+                        Например, если вы собираетесь использовать действие
+                        <code class="code">FooBarController::bazBatAction()</code>, то должны
+                        ссылаться на него в URL как на
+                        <code class="code">/foo-bar/baz-bat</code> или
+                        <code class="code">/foo.bar/baz.bat</code>.
+                    <br />
+                </p></blockquote>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <span class="classname">Zend_Controller_Action</span> — базовая
+                    составляющая контроллера действий. Каждый контроллер
+                    является отдельным классом, расширяющим
+                    <span class="classname">Zend_Controller_Action</span>, и этот класс
+                    должен содержать один или более методов действий.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <span class="classname">Zend_Controller_Response_Abstract</span>
+                    определяет базовый класс ответа, используемый для
+                    сбора и возвращения ответов из контроллеров действий.
+                    Он собирает как тело ответа, так и заголовки.
+                </p>
+
+                <p class="para">
+                    По умолчанию используется класс
+                    <span class="classname">Zend_Controller_Response_Http</span>, который
+                    подходит для использования в среде HTTP.
+                </p>
+            </li>
+        </ul>
+
+    <p class="para">
+        Рабочий процесс <span class="classname">Zend_Controller</span> относительно простой.
+        Запрос получается объектом <span class="classname">Zend_Controller_Front</span>,
+        который в свою очередь вызывает
+        <span class="classname">Zend_Controller_Router_Rewrite</span> для определения того, какой
+        контроллер (и какое действие в этом контроллере) следует использовать.
+        <span class="classname">Zend_Controller_Router_Rewrite</span>
+        анализирует URI для установки имени контроллера и имени действия в
+        запросе. Затем <span class="classname">Zend_Controller_Front</span> входит в цикл
+        диспетчеризации. Он вызывает
+        <span class="classname">Zend_Controller_Dispatcher_Standard</span>, передавая ему
+        запрос для запуска контроллера и действия, определенных в запросе
+        (или тех, которые используются по умолчанию). После того, как
+        контроллер завершит работу, управление возвращается
+        <span class="classname">Zend_Controller_Front</span>. Если предыдущий контроллер
+        переустановкой статуса диспетчеризации в запросе
+        указал, что должен быть запущен другой контроллер, то цикл
+        продолжается и выполняется запуск другого контроллера. В противном
+        случае процесс завершается.
+    </p>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.controller.quickstart.html">Zend_Controller - Быстрый старт</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.controller.html">Zend_Controller</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.controller.front.html">Фронт-контроллер</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.controller.html">Zend_Controller</a></li>
+  <li><a href="zend.controller.quickstart.html">Zend_Controller - Быстрый старт</a></li>
+  <li class="active"><a href="zend.controller.basics.html">Основы Zend_Controller</a></li>
+  <li><a href="zend.controller.front.html">Фронт-контроллер</a></li>
+  <li><a href="zend.controller.request.html">Объект запроса</a></li>
+  <li><a href="zend.controller.router.html">Стандартный маршрутизатор</a></li>
+  <li><a href="zend.controller.dispatcher.html">Диспетчер</a></li>
+  <li><a href="zend.controller.action.html">Контроллеры действий</a></li>
+  <li><a href="zend.controller.actionhelpers.html">Помощники действий</a></li>
+  <li><a href="zend.controller.response.html">Объект ответа</a></li>
+  <li><a href="zend.controller.plugins.html">Плагины</a></li>
+  <li><a href="zend.controller.modular.html">Использование модульной структуры директорий</a></li>
+  <li><a href="zend.controller.exceptions.html">Исключения</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

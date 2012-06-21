@@ -1,0 +1,318 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Advanced usage - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.paginator.configuration.html">Konfiguration</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.paginator.html">Zend_Paginator</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.pdf.html">Zend_Pdf</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.paginator.advanced" class="section"><div class="info"><h1 class="title">Advanced usage</h1></div>
+    
+
+    <div class="section" id="zend.paginator.advanced.adapters" name="zend.paginator.advanced.adapters"><div class="info"><h1 class="title">Eigene Adapter für Quelldaten</h1></div>
+        
+
+        <p class="para">
+            An irgendeinem Punkt kann es passieren das man auf einen Datentyp stößt der nicht von
+            den mitgelieferten Adaptern abgedeckt wird. In diesem Fall muß man seinen eigenen
+            schreiben.
+        </p>
+
+        <p class="para">
+            Um das zu tun, muß man <span class="classname">Zend_Paginator_Adapter_Interface</span>
+            implementieren. Es gibt zwei Methoden die hierfür benötigt werden:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">count()</p></li>
+            <li class="listitem"><p class="para">getItems($offset, $itemCountPerPage)</p></li>
+        </ul>
+
+        <p class="para">
+            Zusätzlich kann es gewünscht sein einen Konstruktor zu implementieren der die
+            Datenquelle als Parameter entgegennimmt und als geschützte oder private Eigenschaft
+            abspeichert. Wie man das realisieren will liegt komplett in Eigenverantwortung.
+        </p>
+
+        <p class="para">
+            Wenn man jemals schon das SPL Interface <a href="http://www.php.net/~helly/php/ext/spl/interfaceCountable.html" class="link external">&raquo; Countable</a>
+            verwendet hat, wird man mit  <span class="methodname">count()</span> umgehen können.
+            <span class="classname">Zend_Paginator</span> verwendet es als totale Anzahl an Elementen in der
+            Datensammlung. Zusätzlich bietet die <span class="classname">Zend_Paginator</span> Instanz eine
+             <span class="methodname">countAllItems()</span> Methode die auf die
+             <span class="methodname">count()</span> Methode des Adapters weiterleitet.
+        </p>
+
+        <p class="para">
+            Die  <span class="methodname">getItems()</span> Methode ist nur etwas komplizierter. Hierfür,
+            wird der Adapter mit einem Offset und der Anzahl an Einträgen die pro Seite dargestellt
+            werden sollen, gefüttert. Man muß den entsprechenden Bereich an Daten zurückgeben. Für
+            ein Array wurde das wie folgt funktionieren:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">return</span> <a href="http://www.php.net/array_slice"><span style="color: #000066;">array_slice</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$this</span>-&gt;_array, <span style="color: #0000ff;">$offset</span>, <span style="color: #0000ff;">$itemCountPerPage</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Man sollte einen Blick auf die mitgelieferten Adapter werfen (alle welche
+            <span class="classname">Zend_Paginator_Adapter_Interface</span> implementieren) um eine Idee zu
+            bekommen wie man das selbst implementieren könnte.
+        </p>
+    </div>
+
+    <div class="section" id="zend.paginator.advanced.scrolling-styles" name="zend.paginator.advanced.scrolling-styles"><div class="info"><h1 class="title">Eigene Scrolling Stile</h1></div>
+        
+
+        <p class="para">
+            Das Erstellen von eigenen Scrolling Stilen erfordert das man
+            <span class="classname">Zend_Paginator_ScrollingStyle_Interface</span> implementiert, welche
+            eine einzelne Methode,  <span class="methodname">getPages()</span>, definiert. Speziell,
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getPages<span style="color: #66cc66;">&#40;</span>Zend_Paginator <span style="color: #0000ff;">$paginator</span>, <span style="color: #0000ff;">$pageRange</span> = <span style="color: #000000; font-weight: bold;">null</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Diese Methode sollten eine untere und obere Grenze für die Seitenzahl innerhalb der
+            sogenannten &quot;lokalen&quot; Seiten berechnen (das sind Seiten nahe der aktuellen Seite).
+        </p>
+
+        <p class="para">
+            Solange es keinen anderen Scrolling Stil erweitert (siehe zum Beispiel
+            <span class="classname">Zend_Paginator_ScrollingStyle_Elastic</span>, wird der eigene Scrolling
+            Stil üblicherweise mit etwas ähnlichem sie der folgenden Codezeile enden:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getPagesInRange</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$lowerBound</span>, <span style="color: #0000ff;">$upperBound</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Es ist nichts speziellen an diesem Aufruf; es ist mehr eine übliche Methode um die
+            Gültigkeit der unteren und oberen Grenze zu prüfen und ein Array des Bereichs an den
+            Paginator zurückzugeben.
+        </p>
+
+        <p class="para">
+            Wenn man bereit ist den neuen Scrolling Stil zu benutzen, muß man
+            <span class="classname">Zend_Paginator</span> bekanntgeben in welchem Verzeichnis er nachschauen
+            muß. Um das zu tun muß das folgende ausgeführt werden:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$prefix</span> = <span style="color: #ff0000;">'My_Paginator_ScrollingStyle'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$path</span>&nbsp; &nbsp;= <span style="color: #ff0000;">'My/Paginator/ScrollingStyle/'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">addScrollingStylePrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$prefix</span>, <span style="color: #0000ff;">$path</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.paginator.advanced.caching" name="zend.paginator.advanced.caching"><div class="info"><h1 class="title">Caching features</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Paginator</span> kann gesagt werden das es die Daten die Ihm
+            bereits übergeben wurden, cachen soll, um zu verhindern das der Adapter sie jedes mal
+            wenn Sie verwendet werden holen muß. Um dem Paginator zu sagen das die Daten des
+            Adapters automatisch gecacht werden, muß der-  <span class="methodname">setCache()</span>
+            Methode nur eine <span class="classname">Zend_Cache_Core</span> Instanz übergeben werden.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span> = Zend_Paginator::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$someData</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$fO</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'lifetime'</span> =&gt; <span style="color: #cc66cc;">3600</span>, <span style="color: #ff0000;">'automatic_serialization'</span> =&gt; <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$bO</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'cache_dir'</span>=&gt;<span style="color: #ff0000;">'/tmp'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span> = Zend_cache::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Core'</span>, <span style="color: #ff0000;">'File'</span>, <span style="color: #0000ff;">$fO</span>, <span style="color: #0000ff;">$bO</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">setCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cache</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Sobald <span class="classname">Zend_Paginator</span> eine <span class="classname">Zend_Cache_Core</span>
+            Instanz erhalten hat, werden Daten gecacht. Manchmal will man Daten nicht cachen selbst
+            wenn man bereits eine Cacheinstanz übergeben hat. Man sollte dann hierfür
+             <span class="methodname">setCacheEnable()</span> verwenden.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span> = Zend_Paginator::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$someData</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $cache ist eine Zend_Cache_Core Instanz</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">setCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cache</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// ... später im Skript</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">setCacheEnable</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">false</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Der Cache ist nun ausgeschaltet</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Wenn ein Cache gesetzt ist, werden Daten automatisch in Ihm gespeichert und von Ihm
+            herausgeholt. Es kann nützlich sein den Cache manuell zu entleeren. Das kann durch den
+            Aufruf von  <span class="methodname">clearPageItemCache($pageNumber)</span> getan werden. Wenn
+            kein Parameter übergeben wird, wird der komplette Cache entleert. Optional kann ein
+            Parameter übergeben werden der die Seitenanzahl repräsentiert die den Cache löschen :
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span> = Zend_Paginator::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$someData</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">setCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cache</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$items</span> = <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getCurrentItems</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Seite 1 ist nun in Cache</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$page3Items</span> = <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getItemsByPage</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">3</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Seite 3 ist nun in Cache</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Den Cache für die Ergebnisse der Seite 3 löschen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">clearPageItemCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">3</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Alle Cachedaten löschen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">clearPageItemCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Das Ändern das Anzahl der Teile pro Seite wird den kompletten Cache leeren, das er
+            ungültig geworden wäre :
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span> = Zend_Paginator::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$someData</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">setCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cache</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Einige Teile holen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$items</span> = <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getCurrentItems</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Alle Cachedaten werden ausgegeben :</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">setItemCountPerPage</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">2</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Es ist auch möglich zu sehen welche Daten im Cache sind und direkt nach Ihnen zu fragen.
+            Hierfür kann  <span class="methodname">getPageItemCache()</span> verwendet werden:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span> = Zend_Paginator::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$someData</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">setItemCountPerPage</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">3</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">setCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cache</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Einige Teile holen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$items</span> = <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getCurrentItems</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$otherItems</span> = <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getItemsPerPage</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">4</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Die gecachten Teile als zwei-dimensionales Array sehen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/var_dump"><span style="color: #000066;">var_dump</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getPageItemCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.paginator.advanced.aggregator" name="zend.paginator.advanced.aggregator"><div class="info"><h1 class="title">Zend_Paginator_AdapterAggregate Interface</h1></div>
+        
+
+        <p class="para">
+            Abhängig von der Anwendung kann es gewünscht sein Objekte zu Seiten zu verarbeiten,
+            dessen interne Datenstruktur identisch zu existierenden Adaptern ist, aber bei denen
+            man nicht will das die eigene Kapselung gebrochen wird um Zugriff auf diese Daten
+            zu erlauben. In anderen Fällen könnte ein Objekt in einer &quot;hat einen Adapter&quot; Relation
+            stehen, statt in einer &quot;ist ein Adapter&quot; Relation die
+            <span class="classname">Zend_Paginator_Adapter_Abstract</span> promotet. Für diese Fälle kann
+            man das <span class="classname">Zend_Paginator_AdapterAggregate</span> Interface verwenden das
+            sich so verhält wie das <span class="classname">IteratorAggregate</span> Interface der SPL
+            Erweiterung von <acronym class="acronym">PHP</acronym>.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">interface</span> Zend_Paginator_AdapterAggregate</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* Return a fully configured Paginator Adapter from this method.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return Zend_Paginator_Adapter_Abstract</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getPaginatorAdapter<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Das Interface ist sehr klein und erwartet nur das eine Instanz von
+            <span class="classname">Zend_Paginator_Adapter_Abstract</span> zurückgegeben wird. Eine
+            Aggregate Instanz des Adapters wird dann von beiden erkannt, sowohl
+             <span class="methodname">Zend_Paginator::factory()</span> als auch dem Constructor von
+            <span class="classname">Zend_Paginator</span> und entsprechend behandelt.
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.paginator.configuration.html">Konfiguration</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.paginator.html">Zend_Paginator</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.pdf.html">Zend_Pdf</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.paginator.html">Zend_Paginator</a></li>
+  <li><a href="zend.paginator.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.paginator.usage.html">Verwendung</a></li>
+  <li><a href="zend.paginator.configuration.html">Konfiguration</a></li>
+  <li class="active"><a href="zend.paginator.advanced.html">Advanced usage</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

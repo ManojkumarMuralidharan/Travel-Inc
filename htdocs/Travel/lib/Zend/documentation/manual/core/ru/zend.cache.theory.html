@@ -1,0 +1,244 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Теория кэширования - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.cache.introduction.html">Введение</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.cache.html">Zend_Cache</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.cache.frontends.html">Фронтэнды Zend_Cache</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.cache.theory" class="section"><div class="info"><h1 class="title">Теория кэширования</h1></div>
+    
+    <p class="para">
+        Есть три ключевых понятия в <span class="classname">Zend_Cache</span>. Первое — уникальный
+        идентификатор (строка), который служит для идентификации записей кэша.
+        Второе — это директива <em class="emphasis">&#039;lifetime&#039;</em>, которую вы могли видеть
+        в предыдущих примерах; она определяет, в течение какого времени
+        кэшируемый ресурс считается &quot;свежим&quot;. Третье понятие — условное
+        исполнение, используемое для того, чтобы части вашего кода могли быть
+        пропущены целиком, этим повышается производительность. Основной метод
+        фронтэнда (например,  <span class="methodname">Zend_Cache_Core::get()</span>) всегда
+        спроектирован так, чтобы возвращать <b><tt>FALSE</tt></b> при промахе кэша,
+        если это имеет смысл для данного фронэнда. Это дает конечным
+        пользователям возможность включать части кода, которые нужно
+        кэшировать (и затем пропускать) в операторы <em class="emphasis">if(){ ... }</em>,
+        где условием является сам метод <span class="classname">Zend_Cache</span>. Но в конце
+        этих блоков вы должны сохранять то, что было сгенерировано (например,
+        методом  <span class="methodname">Zend_Cache_Core::save()</span>).
+    </p>
+    <blockquote><p><b class="note">Note</b>: 
+        Для некоторых фронтэндов включение условного исполнения в
+        код не нужно, так как вся логика уже реализована в них
+        (например, <em class="emphasis">Function</em>).
+    <br /></p></blockquote>
+    <blockquote><p><b class="note">Note</b>: 
+        &quot;Попадание в кэш&quot; — термин для определения того состояния, когда запись
+        кэша найдена, является корректной и &quot;свежей&quot; (другими словами, для
+        которой не закончился срок действия). Иначе имеет место &quot;промах кэша&quot;.
+        Когда происходит &quot;промах кэша&quot;, вы должны сгенерировать свои данные,
+        которые помещаются в кэш. С другой стороны, если есть &quot;попадание&quot;,
+        то бэкэнд автоматически извлечет запись из кэша.
+    <br /></p></blockquote>
+    <div class="section" id="zend.cache.factory" name="zend.cache.factory"><div class="info"><h1 class="title">Фабричный метод Zend_Cache</h1></div>
+        
+        <p class="para">
+            Корректным способом создания рабочего экземпляра
+            фронтэнда <span class="classname">Zend_Cache</span> является код показанный в
+            следующем примере:
+        </p>
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Выбираем бэкэнд (например, 'File' или 'Sqlite'...)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$backendName</span> = <span style="color: #ff0000;">'[...]'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Выбираем фронтэнд (например, 'Core', 'Output', 'Page'...)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$frontendName</span> = <span style="color: #ff0000;">'[...]'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Устанавливаем массив опций для выбранного фронтэнда</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$frontendOptions</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#91;</span>...<span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Устанавливаем массив опций для выбранного бэкэнда</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$backendOptions</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#91;</span>...<span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Создаем экземпляр</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// (два последних аргумента являются необязательными)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span> = Zend_Cache::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$frontendName</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$backendName</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$frontendOptions</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$backendOptions</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        <p class="para">
+            В последующих примерах мы предполагаем, что переменная
+            <var class="varname">$cache</var> содержит инстанцированный, как показано в
+            примере, фронтэнд, и что вы понимаете, как передавать параметры
+            выбранному вами бэкэнду.
+        </p>
+        <blockquote><p><b class="note">Note</b>: 
+            Всегда используйте  <span class="methodname">Zend_Cache::factory()</span> для получения
+            экземпляров фронтэнда. Непосредственно созданные экземпляры
+            фронтэндов и бэкэндов будут работать не так, как ожидается.
+        <br /></p></blockquote>
+    </div>
+
+    <div class="section" id="zend.cache.tags" name="zend.cache.tags"><div class="info"><h1 class="title">Добавление тегов к записям</h1></div>
+        
+        <p class="para">
+            Теги являются средством категоризации записей кэша. Когда вы
+            производите сохранение в кэш методом  <span class="methodname">save()</span>, то можете
+            установить массив тегов к данной записи. После этого вы можете
+            удалить все записи кэша, помеченные данным тегом (тегами).
+        </p>
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">save</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$huge_data</span>, <span style="color: #ff0000;">'myUniqueID'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tagA'</span>, <span style="color: #ff0000;">'tagB'</span>, <span style="color: #ff0000;">'tagC'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                Метод  <span class="methodname">save()</span> принимает также необязательный
+                четвертый параметр: <var class="varname">$specificLifetime</var>. Если он не
+                равен <b><tt>FALSE</tt></b>, то устанавливается время жизни
+                текущей записи кэша.
+            <br />
+        </p></blockquote>
+    </div>
+    <div class="section" id="zend.cache.clean" name="zend.cache.clean"><div class="info"><h1 class="title">Очистка кэша</h1></div>
+        
+        <p class="para">
+            Для того, чтобы удалить или сделать недействительной запись с
+            определенным идентификатором, вы можете использовать метод
+             <span class="methodname">remove()</span>:
+        </p>
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">remove</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'idToRemove'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        <p class="para">
+            Для того, чтобы одновременно удалить или сделать
+            недействительными несколько записей кэша, вы можете использовать
+            метод  <span class="methodname">clean()</span>. Например, чтобы удалить все записи кэша:
+        </p>
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// удаление всех записей</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">clean</span><span style="color: #66cc66;">&#40;</span>Zend_Cache::<span style="color: #006600;">CLEANING_MODE_ALL</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// удаление только устаревших записей</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">clean</span><span style="color: #66cc66;">&#40;</span>Zend_Cache::<span style="color: #006600;">CLEANING_MODE_OLD</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        <p class="para">
+            Если вы хотите удалить записи кэша, помеченные тегами &#039;tagA&#039; и &#039;tagC&#039;:
+        </p>
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">clean</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Cache::<span style="color: #006600;">CLEANING_MODE_MATCHING_TAG</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tagA'</span>, <span style="color: #ff0000;">'tagC'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        <p class="para">
+            Если вы хотите удалить записи кэша, не помеченные тегами &#039;tagA&#039; и &#039;tagC&#039;:
+            If you want to remove cache entries not matching the tags &#039;tagA&#039; or &#039;tagC&#039;:
+        </p>
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">clean</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Cache::<span style="color: #006600;">CLEANING_MODE_NOT_MATCHING_TAG</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tagA'</span>, <span style="color: #ff0000;">'tagC'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        <p class="para">
+            Если вы хотите удалить записи кэша, помеченные тегами &#039;tagA&#039; или &#039;tagC&#039;:
+        </p>
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">clean</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Cache::<span style="color: #006600;">CLEANING_MODE_MATCHING_ANY_TAG</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tagA'</span>, <span style="color: #ff0000;">'tagC'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        <p class="para">
+            Доступные режимы очищения: <b><tt>CLEANING_MODE_ALL</tt></b> (удалить
+            все), <b><tt>CLEANING_MODE_OLD</tt></b> (удалить устаревшие),
+            <b><tt>CLEANING_MODE_MATCHING_TAG</tt></b> (удалить помеченные тегом)
+            и <b><tt>CLEANING_MODE_NOT_MATCHING_TAG</tt></b> (удалить не помеченные
+            тегом). Последние два, как ясно из названия, передаются вместе с
+            массивом тегов.
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.cache.introduction.html">Введение</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.cache.html">Zend_Cache</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.cache.frontends.html">Фронтэнды Zend_Cache</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.cache.html">Zend_Cache</a></li>
+  <li><a href="zend.cache.introduction.html">Введение</a></li>
+  <li class="active"><a href="zend.cache.theory.html">Теория кэширования</a></li>
+  <li><a href="zend.cache.frontends.html">Фронтэнды Zend_Cache</a></li>
+  <li><a href="zend.cache.backends.html">Бэкэнды Zend_Cache</a></li>
+  <li><a href="zend.cache.cache.manager.html">The Cache Manager</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

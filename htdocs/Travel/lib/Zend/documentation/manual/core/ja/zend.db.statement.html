@@ -1,0 +1,447 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Db_Statement(日本語) - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.db.adapter.html">Zend_Db_Adapter(日本語)</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.db.html">Zend_Db</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.db.profiler.html">Zend_Db_Profiler(日本語)</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.db.statement" class="section"><div class="info"><h1 class="title">Zend_Db_Statement(日本語)</h1></div>
+
+    
+
+    <p class="para">
+        <a href="zend.db.adapter.html" class="xref">Zend_Db_Adapter(日本語)</a> で説明した
+         <span class="methodname">fetchAll()</span> や  <span class="methodname">insert()</span>
+        のような便利なメソッド以外にも、
+        ステートメントオブジェクトを使用することで、
+        より柔軟にクエリの実効や結果の取得ができるようになります。
+        ここでは、ステートメントオブジェクトを取得してそのメソッドを使用する方法を説明します。
+    </p>
+
+    <p class="para">
+        <span class="classname">Zend_Db_Statement</span> は、
+        <a href="http://www.php.net/pdo" class="link external">&raquo; PHP Data Objects</a>
+        拡張モジュールの PDOStatement オブジェクトをもとにしたものです。
+    </p>
+
+    <div class="section" id="zend.db.statement.creating" name="zend.db.statement.creating"><div class="info"><h1 class="title">ステートメントの作成</h1></div>
+
+        
+
+        <p class="para">
+            通常は、ステートメントオブジェクトはデータベースアダプタクラスの
+             <span class="methodname">query()</span> メソッドの返り値として取得します。
+            このメソッドは、任意の <acronym class="acronym">SQL</acronym> 文を実行できます。
+            最初の引数には <acronym class="acronym">SQL</acronym> 文を指定し、
+            オプションの二番目の引数には <acronym class="acronym">SQL</acronym> 文中のプレースホルダを置き換える
+            バインド変数の配列を指定します。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #1 query() による SQL ステートメントオブジェクトの作成</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'SELECT * FROM bugs WHERE reported_by = ? AND bug_status = ?'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'goofy'</span>, <span style="color: #ff0000;">'FIXED'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            ステートメントオブジェクトは、準備された <acronym class="acronym">SQL</acronym> 文に対して
+            変数の値をバインドして一度実行したものに対応します。
+            そのステートメントが SELECT クエリあるいは何らかの結果セットを返すものであった場合は、
+            すでに結果を取得する準備ができています。
+        </p>
+
+        <p class="para">
+            ステートメントオブジェクトをコンストラクタから作成することもできますが、
+            あまり一般的ではありません。このオブジェクトを作成するための
+            ファクトリメソッドはないので、特定のステートメントクラスを読み込んで
+            そのコンストラクタをコールすることになります。
+            コンストラクタの最初の引数にはアダプタオブジェクトを指定し、
+            二番目の引数には <acronym class="acronym">SQL</acronym> 文を文字列で指定します。
+            このステートメントは、準備されただけでまだ実行されていない状態となります。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #2 SQL ステートメントのコンストラクタの使用</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$sql</span> = <span style="color: #ff0000;">'SELECT * FROM bugs WHERE reported_by = ? AND bug_status = ?'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Db_Statement_Mysqli<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$db</span>, <span style="color: #0000ff;">$sql</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+    </div>
+
+    <div class="section" id="zend.db.statement.executing" name="zend.db.statement.executing"><div class="info"><h1 class="title">ステートメントの実行</h1></div>
+
+        
+
+        <p class="para">
+            ステートメントをコンストラクタから作成した場合や、
+            一度実行したステートメントをもう一度実行したい場合などは、
+            ステートメントオブジェクトを自分で実行する必要があります。
+            その場合は、ステートメントオブジェクトの  <span class="methodname">execute()</span>
+            メソッドを使用します。このメソッドに渡す引数は、
+            ステートメント中のプレースホルダにバインドする変数の値の配列となります。
+        </p>
+
+        <p class="para">
+            <em class="emphasis">位置指定によるパラメータ</em>、
+            つまりクエスチョンマーク (<em class="emphasis">?</em>) でパラメータを指定している場合は、
+            バインドする値は通常の配列で渡します。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #3 位置指定パラメータによるステートメントの実行</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$sql</span> = <span style="color: #ff0000;">'SELECT * FROM bugs WHERE reported_by = ? AND bug_status = ?'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Db_Statement_Mysqli<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$db</span>, <span style="color: #0000ff;">$sql</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">execute</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'goofy'</span>, <span style="color: #ff0000;">'FIXED'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            <em class="emphasis">名前つきパラメータ</em>、
+            つまり先頭にコロン (<em class="emphasis">:</em>) をつけた識別子で
+            パラメータを指定している場合は、バインドする値を連想配列で渡します。
+            配列のキーが、パラメータの名前に対応します。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #4 名前つきパラメータによるステートメントの実行</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$sql</span> = <span style="color: #ff0000;">'SELECT * FROM bugs WHERE '</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'reported_by = :reporter AND bug_status = :status'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Db_Statement_Mysqli<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$db</span>, <span style="color: #0000ff;">$sql</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">execute</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">':reporter'</span> =&gt; <span style="color: #ff0000;">'goofy'</span>, <span style="color: #ff0000;">':status'</span> =&gt; <span style="color: #ff0000;">'FIXED'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            <acronym class="acronym">PDO</acronym> のステートメントは位置指定パラメータと名前つきパラメータの両方をサポートしています。
+            しかし、ひとつの <acronym class="acronym">SQL</acronym> の中で両方を使用することはできません。
+            <span class="classname">Zend_Db_Statement</span> クラスの中には <acronym class="acronym">PDO</acronym> を使用していないものもありますが、
+            それらの中にはいずれか一種類の形式のパラメータしかサポートしないものもあるかもしれません。
+        </p>
+
+    </div>
+
+    <div class="section" id="zend.db.statement.fetching" name="zend.db.statement.fetching"><div class="info"><h1 class="title">SELECT 文からの結果の取得</h1></div>
+
+        
+
+        <p class="para">
+            ステートメントオブジェクトのメソッドをコールすることで、
+            <acronym class="acronym">SQL</acronym> 文の結果セットから行を取得できます。
+            SELECT、SHOW、DESCRIBE そして EXPLAIN
+            などのステートメントが結果セットを返します。
+            INSERT、UPDATE そして DELETE などのステートメントは結果セットを返しません。
+            後者のような <acronym class="acronym">SQL</acronym> 文も <span class="classname">Zend_Db_Statement</span> で実行できますが、
+            その結果から行を取得するメソッドをコールすることはできません。
+        </p>
+
+        <div class="section" id="zend.db.statement.fetching.fetch" name="zend.db.statement.fetching.fetch"><div class="info"><h1 class="title">結果セットからの単一の行の取得</h1></div>
+
+            
+
+            <p class="para">
+                結果セットから単一の行を取得するには、ステートメントオブジェクトの
+                 <span class="methodname">fetch()</span> メソッドを使用します。
+                このメソッドの三つの引数は、いずれも省略可能です。
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        最初の引数は
+                        <em class="emphasis">取得形式</em>
+                        を指定します。これは、返り値の構造を決めるものです。
+                        ここで指定できる値と対応する返り値については
+                        <a href="zend.db.adapter.html#zend.db.adapter.select.fetch-mode" class="xref">フェッチモードの変更</a>
+                        を参照ください。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                        二番目の引数で指定するのは、
+                        <em class="emphasis">カーソルの種類</em>
+                        です。デフォルトは Zend_Db::FETCH_ORI_NEXT
+                        で、 <span class="methodname">fetch()</span> をコールするたびに
+                        <acronym class="acronym">RDBMS</acronym> が返す順で次の行を返すというものです。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                        三番目の引数で指定するのは
+                        <em class="emphasis">オフセット</em> です。
+                        カーソルの種類が Zend_Db::FETCH_ORI_ABS の場合、
+                        これは結果セットの中の何行目を返すのかを表します。
+                        カーソルの種類が Zend_Db::FETCH_ORI_REL の場合、
+                        これは直前に  <span class="methodname">fetch()</span>
+                        をコールした際の位置からの相対位置を表します。
+                    </p>
+                </li>
+            </ul>
+
+            <p class="para">
+                すでに結果セットのすべての行が取得済みである場合は
+                 <span class="methodname">fetch()</span> は <b><tt>FALSE</tt></b> を返します。
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #5 ループ内での fetch() の使用</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'SELECT * FROM bugs'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">while</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$row</span> = <span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">fetch</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$row</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'bug_description'</span><span style="color: #66cc66;">&#93;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+            </div>
+
+            <p class="para">
+                <a href="http://www.php.net/PDOStatement-fetch" class="link external">&raquo; PDOStatement::fetch()</a>
+                のマニュアルも参照ください。
+            </p>
+
+        </div>
+
+        <div class="section" id="zend.db.statement.fetching.fetchall" name="zend.db.statement.fetching.fetchall"><div class="info"><h1 class="title">結果セット全体の取得</h1></div>
+
+            
+
+            <p class="para">
+                結果セットのすべての行を一度に取得するには、
+                 <span class="methodname">fetchAll()</span> メソッドを使用します。
+                これは、ループ内で  <span class="methodname">fetch()</span>
+                メソッドを繰り返し使用してすべての行を配列に格納するのと同じことです。
+                 <span class="methodname">fetchAll()</span> メソッドにはふたつの引数を指定できます。
+                最初の引数は、先ほど説明したのと同じ取得形式です。
+                二番目の引数は、返すカラム番号を指定します。これは最初の引数が
+                Zend_Db::FETCH_COLUMN である場合に使用します。
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #6 fetchAll() の使用法</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'SELECT * FROM bugs'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$rows</span> = <span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">fetchAll</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$rows</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'bug_description'</span><span style="color: #66cc66;">&#93;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            <p class="para">
+                <a href="http://www.php.net/PDOStatement-fetchAll" class="link external">&raquo; PDOStatement::fetchAll()</a>
+                のマニュアルも参照ください。
+            </p>
+
+        </div>
+
+        <div class="section" id="zend.db.statement.fetching.fetch-mode" name="zend.db.statement.fetching.fetch-mode"><div class="info"><h1 class="title">取得形式の変更</h1></div>
+
+            
+
+            <p class="para">
+                デフォルトでは、ステートメントオブジェクトが結果セットの行を返す形式は連想配列で、
+                カラム名とそのカラムの値を関連付けたものとなります。
+                結果を別の形式で返すように指定する方法は、アダプタクラスの場合と同じです。
+                ステートメントオブジェクトの  <span class="methodname">setFetchMode()</span>
+                メソッドで、取得形式を指定します。指定できる値は、<span class="classname">Zend_Db</span> クラスの定数
+                FETCH_ASSOC、FETCH_NUM、FETCH_BOTH、FETCH_COLUMN そして FETCH_OBJ です。
+                これらについての詳細は
+                <a href="zend.db.adapter.html#zend.db.adapter.select.fetch-mode" class="xref">フェッチモードの変更</a> を参照ください。
+                これを指定すると、それ以降の  <span class="methodname">fetch()</span> メソッドや
+                 <span class="methodname">fetchAll()</span> メソッドでその形式を使用するようになります。
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #7 取得形式の設定</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'SELECT * FROM bugs'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">setFetchMode</span><span style="color: #66cc66;">&#40;</span>Zend_Db::<span style="color: #006600;">FETCH_NUM</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$rows</span> = <span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">fetchAll</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$rows</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            <p class="para">
+                <a href="http://www.php.net/PDOStatement-setFetchMode" class="link external">&raquo; PDOStatement::setFetchMode()</a>
+                のマニュアルも参照ください。
+            </p>
+
+        </div>
+
+        <div class="section" id="zend.db.statement.fetching.fetchcolumn" name="zend.db.statement.fetching.fetchcolumn"><div class="info"><h1 class="title">結果セットからの単一のカラムの取得</h1></div>
+
+            
+
+            <p class="para">
+                結果セットの次の行から単一のカラムの値を取得するには
+                 <span class="methodname">fetchColumn()</span> を使用します。
+                取得するカラムの位置を表すインデックスを引数で指定します。
+                省略した場合のデフォルトは 0 となります。このメソッドは、
+                スカラー値を返します。もし結果セットのすべての行が既に取得済みである場合は
+                <b><tt>FALSE</tt></b> を返します。
+            </p>
+
+            <p class="para">
+                このメソッドの動作は、アダプタクラスの
+                 <span class="methodname">fetchCol()</span> メソッドとは異なることに注意しましょう。
+                ステートメントクラスの  <span class="methodname">fetchColumn()</span> メソッドは、
+                単一の行の単一の値を返します。アダプタの
+                 <span class="methodname">fetchCol()</span> メソッドは、値の配列を返します。
+                これは、結果セットのすべての行の、最初のカラムの値をまとめたものです。
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #8 fetchColumn() の使用法</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'SELECT bug_id, bug_description, bug_status FROM bugs'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$bug_status</span> = <span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">fetchColumn</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">2</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            <p class="para">
+                <a href="http://www.php.net/PDOStatement-fetchColumn" class="link external">&raquo; PDOStatement::fetchColumn()</a>
+                のマニュアルも参照ください。
+            </p>
+
+        </div>
+
+        <div class="section" id="zend.db.statement.fetching.fetchobject" name="zend.db.statement.fetching.fetchobject"><div class="info"><h1 class="title">オブジェクト形式での行の取得</h1></div>
+
+            
+
+            <p class="para">
+                結果セットの行をオブジェクトとして取得するには
+                 <span class="methodname">fetchObject()</span> を使用します。このメソッドの引数は二つで、
+                いずれも省略可能です。最初の引数には、返り値のオブジェクトのクラス名を指定します。
+                デフォルトは &#039;stdClass&#039; です。二番目の引数には配列を指定します。
+                これは、最初の引数で指定したクラスのコンストラクタに渡す引数となります。
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #9 fetchObject() の使用法</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'SELECT bug_id, bug_description, bug_status FROM bugs'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$obj</span> = <span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">fetchObject</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$obj</span>-&gt;<span style="color: #006600;">bug_description</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            <p class="para">
+                <a href="http://www.php.net/PDOStatement-fetchObject" class="link external">&raquo; PDOStatement::fetchObject()</a>
+                のマニュアルも参照ください。
+            </p>
+
+        </div>
+
+    </div>
+
+    
+
+    
+
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.db.adapter.html">Zend_Db_Adapter(日本語)</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.db.html">Zend_Db</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.db.profiler.html">Zend_Db_Profiler(日本語)</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.db.html">Zend_Db</a></li>
+  <li><a href="zend.db.adapter.html">Zend_Db_Adapter(日本語)</a></li>
+  <li class="active"><a href="zend.db.statement.html">Zend_Db_Statement(日本語)</a></li>
+  <li><a href="zend.db.profiler.html">Zend_Db_Profiler(日本語)</a></li>
+  <li><a href="zend.db.select.html">Zend_Db_Select(日本語)</a></li>
+  <li><a href="zend.db.table.html">Zend_Db_Table(日本語)</a></li>
+  <li><a href="zend.db.table.row.html">Zend_Db_Table_Row(日本語)</a></li>
+  <li><a href="zend.db.table.rowset.html">Zend_Db_Table_Rowset(日本語)</a></li>
+  <li><a href="zend.db.table.relationships.html">導入</a></li>
+  <li><a href="zend.db.table.definition.html">Zend_Db_Table_Definition(日本語)</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

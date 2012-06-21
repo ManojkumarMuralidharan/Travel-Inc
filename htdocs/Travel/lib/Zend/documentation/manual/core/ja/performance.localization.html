@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>国際化(i18n)とローカライズ(l10n) - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="performance.database.html">Zend_Dbパフォーマンス</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="performance.html">Zend Framework Performance Guide</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="performance.view.html">ビューのレンダリング</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="performance.localization" class="section"><div class="info"><h1 class="title">国際化(i18n)とローカライズ(l10n)</h1></div>
+    
+
+    <p class="para">
+        サイトを国際化したり、ローカライズしたりすることはあなたの観客を増やし、
+        訪問者すべてが彼らの必要とする情報を入手できることを確実にするすばらしい方法です。
+        しかしながら、しばしばパフォーマンス上のペナルティーをもたらします。
+        下記はあなたが国際化とローカライズのオーバーヘッドを減らすために利用できる戦略のいくつかです。
+    </p>
+
+    <div class="section" id="performance.localization.translationadapter" name="performance.localization.translationadapter"><div class="info"><h1 class="title">どの翻訳アダプタを使うべきですか？</h1></div>
+        
+
+        <p class="para">
+            翻訳アダプタのすべてが同じことを引き起こすとは限りません。
+            あるものは他にない特色を持ち、またあるものは他より良く機能を果たします。
+            さらに、ビジネス上の必要性によって、
+            特定のアダプタを使わなければならないことがあるかもしれません。
+            しかしながら、もしあなたに好みがあるなら、どのアダプタがもっとも速いでしょうか？
+        </p>
+
+        <div class="section" id="performance.localization.translationadapter.fastest" name="performance.localization.translationadapter.fastest"><div class="info"><h1 class="title">最速にするためにXML以外の翻訳アダプタを使う</h1></div>
+            
+
+            <p class="para">
+                Zend Frameworkはさまざまな翻訳アダプタとともに出荷されています。
+                それらのうち丸々半分はメモリやパフォーマンスのオーバーヘッドを招く<acronym class="acronym">XML</acronym>形式を利用します。
+                幸運なことに、もっとより速くパース可能な他の形式を利用するアダプタがいくつかあります。
+                速度の順でもっとも速いものから遅いものまで見て行きましょう:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para">
+                    <em class="emphasis">配列</em>: これは定義上、もっとも高速です。
+                    includeの直後に、
+                    ネィティブな<acronym class="acronym">PHP</acronym>形式にパースされるためです。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <em class="emphasis"><acronym class="acronym">CSV</acronym></em>: <acronym class="acronym">CSV</acronym>ファイルをパースするために
+                     <span class="methodname">fgetcsv()</span> を使い、
+                    それをネィティブな<acronym class="acronym">PHP</acronym>形式に変換します。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <em class="emphasis"><acronym class="acronym">INI</acronym></em>: <acronym class="acronym">INI</acronym>ファイルをパースするために
+                     <span class="methodname">parse_ini_file()</span> を使い、
+                    それをネィティブな<acronym class="acronym">PHP</acronym>形式に変換します。
+                    このアダプタと<acronym class="acronym">CSV</acronym>アダプタは性能面で概ね等価です。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <em class="emphasis">Gettext</em>: Zend Frameworkのgettextアダプタはgettextエクステンションを
+                    使い<em class="emphasis">ません</em>。
+                    それはスレッドセーフではなく、サーバでひとつのロケールだけしか指定できないからです。
+                    その結果、gettextエクステンションを直接利用するよりも遅くなりますが、
+                    gettext形式はバイナリなので、<acronym class="acronym">XML</acronym>をパースするよりは高速です。
+                </p></li>
+            </ul>
+
+            <p class="para">
+                もしあなたの目的のひとつが高い性能なら、上記のアダプタのうちの
+                ひとつを利用することを提案します。
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="performance.localization.cache" name="performance.localization.cache"><div class="info"><h1 class="title">どのようにしたら翻訳やローカライズをもっと速くできますか？</h1></div>
+        
+
+        <p class="para">
+            もしかするとビジネス上の理由であなたは<acronym class="acronym">XML</acronym>ベースの翻訳アダプタに制限されているかもしれません。
+            あるいは恐らくあなたはさらに速くしたいかもしれません。
+            あるいはひょっとするとローカライズ作業を早めたいかもしれません。
+            それにはどうしたら良いでしょう？
+        </p>
+
+        <div class="section" id="performance.localization.cache.usage" name="performance.localization.cache.usage"><div class="info"><h1 class="title">翻訳およびローカライズのキャッシュを使う</h1></div>
+            
+
+            <p class="para">
+                <span class="classname">Zend_Translate</span>と<span class="classname">Zend_Locale</span>の両方とも
+                パフォーマンスに大きな影響を与えることができるキャッシュ機能が実装されています。
+                どちらの場合も、主なボトルネックは一般的にファイルの読み込みで、
+                実際のルックアップ処理ではありません;
+                キャッシュを利用することにより、翻訳および（または）ローカライズファイルを読み込む必要をなくします。
+            </p>
+
+            <p class="para">
+                文字列の翻訳およびローカライズのキャッシュについて下記を参考に出来ます。:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        <a href="zend.translate.adapter.html#zend.translate.adapter.caching" class="link"><span class="classname">Zend_Translate</span>
+                            アダプタキャッシング</a>
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <a href="zend.locale.introduction.html#zend.locale.cache" class="link"><span class="classname">Zend_Locale</span>
+                            キャッシング</a>
+                    </p>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="performance.database.html">Zend_Dbパフォーマンス</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="performance.html">Zend Framework Performance Guide</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="performance.view.html">ビューのレンダリング</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="performance.html">Zend Framework Performance Guide</a></li>
+  <li><a href="performance.introduction.html">導入</a></li>
+  <li><a href="performance.classloading.html">クラスの読み込み</a></li>
+  <li><a href="performance.database.html">Zend_Dbパフォーマンス</a></li>
+  <li class="active"><a href="performance.localization.html">国際化(i18n)とローカライズ(l10n)</a></li>
+  <li><a href="performance.view.html">ビューのレンダリング</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

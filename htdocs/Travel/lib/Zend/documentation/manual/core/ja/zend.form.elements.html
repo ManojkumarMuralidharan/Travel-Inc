@@ -1,0 +1,1539 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Form_Element を用いたフォーム要素の作成 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.form.quickstart.html">Zend_Form クイックスタート</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.form.html">Zend_Form</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.form.forms.html">Zend_Form によるフォームの作成</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.form.elements" class="section"><div class="info"><h1 class="title">Zend_Form_Element を用いたフォーム要素の作成</h1></div>
+    
+
+    <p class="para">
+        フォームは、いくつかの要素から構成されています。
+        これらの要素は、<acronym class="acronym">HTML</acronym> フォームの入力項目に対応します。
+        <span class="classname">Zend_Form_Element</span> は個々のフォーム要素をカプセル化し、
+        以下の機能を提供します。
+    </p>
+
+    <ul class="itemizedlist">
+        <li class="listitem">
+            <p class="para">
+                バリデーション (入力されたデータが妥当か?)
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para">検証エラーのコードやメッセージの取得</p></li>
+            </ul>
+        </li>
+
+        <li class="listitem"><p class="para">
+            フィルタリング (出力用のエスケープや検証前後の正規化をどうするか?)
+        </p></li>
+
+        <li class="listitem"><p class="para">
+            レンダリング (要素をどのように表示するか?)
+        </p></li>
+
+        <li class="listitem"><p class="para">
+            メタデータおよび属性 (その要素についての詳細な情報は?)
+        </p></li>
+    </ul>
+
+    <p class="para">
+        基底クラスである <span class="classname">Zend_Form_Element</span> は、
+        ほとんどの場合にうまく利用できるデフォルトを定義しています。
+        しかし、よく使われる特別な要素については
+        それを継承したクラスを作成するほうがいいでしょう。
+        さらに、Zend Framework には数多くの標準 <acronym class="acronym">XHTML</acronym> 要素が同梱されています。
+        <a href="zend.form.standardElements.html" class="link">標準の要素についての章</a>
+        を参照ください。
+    </p>
+
+    <div class="section" id="zend.form.elements.loaders" name="zend.form.elements.loaders"><div class="info"><h1 class="title">プラグインローダー</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Form_Element</span> は、<a href="zend.loader.pluginloader.html" class="link">Zend_Loader_PluginLoader</a>
+            を使用しており、バリデータやフィルタ、デコレータの場所を指定できます。
+            それぞれに独自のプラグインローダーが関連付けられており、
+            アクセサを使用して個別に取得したり変更したりできます。
+        </p>
+
+        <p class="para">
+            プラグインローダーのメソッドで使用できるローダーの型は
+            &#039;validate&#039;、&#039;filter&#039; と &#039;decorator&#039; です。
+            この型名は大文字小文字を区別しません。
+        </p>
+
+        <p class="para">
+            プラグインローダーを使用するためのメソッドを以下にまとめます。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                <code class="code">setPluginLoader($loader, $type)</code>:
+                <code class="code">$loader</code> はプラグインローダーオブジェクト、
+                <code class="code">$type</code> は上であげた型名のいずれかを指定します。
+                これは、指定した型に対応するプラグインローダーを新しく設定します。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">getPluginLoader($type)</code>:
+                <code class="code">$type</code> に対応するプラグインローダーを取得します。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">addPrefixPath($prefix, $path, $type = null)</code>:
+                プレフィックスとパスの関連を、
+                <code class="code">$type</code> で指定したローダーに追加します。
+                <code class="code">$type</code> が <b><tt>NULL</tt></b> の場合は、すべてのローダーにパスを追加します。
+                その際には、それぞれプレフィックスに
+                &quot;_Validate&quot;、&quot;_Filter&quot; そして &quot;_Decorator&quot; を追加し、
+                パスには &quot;Validate/&quot;、&quot;Filter/&quot; そして
+                &quot;Decorator/&quot; を追加します。
+                追加するフォーム要素クラス群をすべて共通の階層に配置する場合は、
+                このメソッドでベースプレフィックスを設定すると便利です。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">addPrefixPaths(array $spec)</code>:
+                複数のパスを、ひとつあるいは複数のプラグインローダーに追加します。
+                配列の各要素は、キー &#039;path&#039;、&#039;prefix&#039; および
+                &#039;type&#039; を含む配列とします。
+            </p></li>
+        </ul>
+
+        <p class="para">
+            独自のバリデータやフィルタ、デコレータを作成すると、
+            複数のフォームで機能を共有したり独自の機能をカプセル化したりすることが簡単になります。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #1 独自のラベル</b></p></div>
+            
+
+            <div class="example-contents"><p>
+                プラグインの使用例としてよくあるのは、
+                既存の標準クラス群のかわりとして使用することです。
+                たとえば、&#039;Label&#039; デコレータの実装を変更し、
+                最後に常にコロンを追加するようにしたくなったとしましょう。
+                そんな場合は、独自の &#039;Label&#039; デコレータを
+                クラスプレフィックスつきで作成し、
+                それをプレフィックスパスに追加します。
+            </p></div>
+
+            <div class="example-contents"><p>
+                では、独自の Label デコレータを作ってみましょう。
+                ここではクラスプレフィックスを &quot;My_Decorator&quot; とします。
+                このクラスは、&quot;My/Decorator/Label.php&quot; というファイルで定義されることになります。
+            </p></div>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> My_Decorator_Label <span style="color: #000000; font-weight: bold;">extends</span> Zend_Form_Decorator_Abstract</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; protected <span style="color: #0000ff;">$_placement</span> = <span style="color: #ff0000;">'PREPEND'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> render<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$content</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">null</span> === <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$element</span> = <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">getElement</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$content</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<a href="http://www.php.net/method_exists"><span style="color: #000066;">method_exists</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$element</span>, <span style="color: #ff0000;">'getLabel'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$content</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$label</span> = <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">getLabel</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> . <span style="color: #ff0000;">':'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">null</span> === <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$view</span> = <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">getView</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">renderLabel</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$content</span>, <span style="color: #0000ff;">$label</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$label</span> = <span style="color: #0000ff;">$view</span>-&gt;<span style="color: #006600;">formLabel</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">getName</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #0000ff;">$label</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">renderLabel</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$content</span>, <span style="color: #0000ff;">$label</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> renderLabel<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$content</span>, <span style="color: #0000ff;">$label</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$placement</span> = <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">getPlacement</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$separator</span> = <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">getSeparator</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">switch</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$placement</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">case</span> <span style="color: #ff0000;">'APPEND'</span>:</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$content</span> . <span style="color: #0000ff;">$separator</span> . <span style="color: #0000ff;">$label</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">case</span> <span style="color: #ff0000;">'PREPEND'</span>:</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">default</span>:</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$label</span> . <span style="color: #0000ff;">$separator</span> . <span style="color: #0000ff;">$content</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <div class="example-contents"><p>
+                では、デコレータを探す際にこのプラグインパスを考慮するように
+                要素に指定してみましょう。
+            </p></div>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'My_Decorator'</span>, <span style="color: #ff0000;">'My/Decorator/'</span>, <span style="color: #ff0000;">'decorator'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <div class="example-contents"><p>
+                あるいは、フォームレベルでこれを設定してしまうべ、
+                すべてのデコレータがこのパスを考慮するようになります。
+            </p></div>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$form</span>-&gt;<span style="color: #006600;">addElementPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'My_Decorator'</span>, <span style="color: #ff0000;">'My/Decorator/'</span>, <span style="color: #ff0000;">'decorator'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <div class="example-contents"><p>
+                このパスにデコレータを追加すれば
+                &#039;My/Decorator/&#039; にあるデコレータがまず最初に見つけられることになります。
+                つまり、&#039;Label&#039; デコレータが必要となる場面ではそのかわりに
+                &#039;My_Decorator_Label&#039; が使われることになるわけです。
+            </p></div>
+        </div>
+    </div>
+
+    <div class="section" id="zend.form.elements.filters" name="zend.form.elements.filters"><div class="info"><h1 class="title">フィルタ</h1></div>
+        
+
+        <p class="para">
+            バリデーションの前に、入力の正規化を行えると便利です。
+            あるいはそれが必要となることもあるでしょう。
+            たとえば、<acronym class="acronym">HTML</acronym> タグを除去した後の内容を検証したりといった場合です。
+            あるいは、入力の前後に含まれるスペースを取り除いてから検証を行わないと
+            StringLength バリデータが正しい判断をできないなどという場合もあります。
+            これらの操作は
+            <span class="classname">Zend_Filter</span> が行います。
+            <span class="classname">Zend_Form_Element</span> はフィルタチェインをサポートしているので、
+            複数のフィルタを順に適用できます。
+            フィルタリングは、バリデーションの際や要素の値を <code class="code">getValue()</code>
+            で取得する際に行われます。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$filtered</span> = <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">getValue</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            フィルタをチェインに追加する方法は、次のふたつです。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                フィルタのインスタンスを渡す
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                フィルタの名前 (短い名前、あるいは完全なクラス名)
+                を渡す
+            </p></li>
+        </ul>
+
+        <p class="para">
+            では、例を見てみましょう。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// フィルタのインスタンス</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addFilter</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Alnum<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 完全なクラス名</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addFilter</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Zend_Filter_Alnum'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 短い形式のフィルタ名</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addFilter</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Alnum'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addFilter</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'alnum'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            短い形式の名前とは、通常はフィルタ名からプレフィックスを除いた部分のことです。
+            デフォルトでは、&#039;Zend_Filter_&#039; を除いた部分を表します。
+            また、最初の文字は大文字でも小文字でもかまいません。
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>独自のフィルタクラスの使用</b><br /></span>
+            
+
+            
+                自作のフィルタクラスを使う場合は、
+                <code class="code">addPrefixPath()</code> を用いてそれを
+                <span class="classname">Zend_Form_Element</span> に教えます。
+                たとえば、&#039;My_Filter&#039; プレフィックス配下のフィルタを使う場合は
+                <span class="classname">Zend_Form_Element</span> に次のように通知します。
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'My_Filter'</span>, <span style="color: #ff0000;">'My/Filter/'</span>, <span style="color: #ff0000;">'filter'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            
+                (3 番目の引数が、このアクションを行う際のプラグインローダーであったことを思い出しましょう)
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            フィルタリング前の値がほしい場合は
+            <code class="code">getUnfilteredValue()</code> メソッドを使用します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$unfiltered</span> = <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">getUnfilteredValue</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            フィルタについての詳細な情報は <a href="zend.filter.introduction.html" class="link">Zend_Filter
+                のドキュメント</a> を参照ください。
+        </p>
+
+        <p class="para">
+            フィルタ関係のメソッドを以下にまとめます。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                <code class="code">addFilter($nameOfFilter, array $options = null)</code>
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">addFilters(array $filters)</code>
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">setFilters(array $filters)</code> (すべてのフィルタを上書きします)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">getFilter($name)</code> (指定した名前のフィルタオブジェクトを取得します)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">getFilters()</code> (すべてのフィルタを取得します)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">removeFilter($name)</code> (指定した名前のフィルタを削除します)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">clearFilters()</code> (すべてのフィルタを削除します)
+            </p></li>
+        </ul>
+    </div>
+
+    <div class="section" id="zend.form.elements.validators" name="zend.form.elements.validators"><div class="info"><h1 class="title">バリデータ</h1></div>
+        
+
+        <p class="para">
+            セキュリティ界で有名なお言葉 &quot;入力はフィルタリングせよ。
+            出力はエスケープせよ。&quot; に賛同する人なら、フォームの入力を検証
+            (&quot;入力のフィルタリング&quot;) したくなるでしょう。
+            <span class="classname">Zend_Form</span> では、各要素が個別にバリデータチェインを保持しています。
+            これは <span class="classname">Zend_Validate_*</span> のバリデータでできています。
+        </p>
+
+        <p class="para">
+            バリデータをチェインに追加する方法は、次のふたつです。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                バリデータのインスタンスを渡す
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                短いフィルタ名を渡す
+            </p></li>
+        </ul>
+
+        <p class="para">
+            では、例を見てみましょう。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// バリデータのインスタンス</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_Alnum<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 短い形式の名前</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Alnum'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'alnum'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            短い形式の名前とは、通常はバリデータ名からプレフィックスを除いた部分のことです。
+            デフォルトでは、バリデータ名から &#039;Zend_Validate_&#039; を除いた部分を表します。
+            また、最初の文字は大文字でも小文字でもかまいません。
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>独自のバリデータクラスの使用</b><br /></span>
+            
+
+            
+                自作のバリデータクラスを使う場合は、
+                <code class="code">addPrefixPath()</code> を用いてそれを
+                <span class="classname">Zend_Form_Element</span> に教えます。
+                たとえば、&#039;My_Validator&#039; プレフィックス配下のバリデータを使う場合は
+                <span class="classname">Zend_Form_Element</span> に次のように通知します。
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'My_Validator'</span>, <span style="color: #ff0000;">'My/Validator/'</span>, <span style="color: #ff0000;">'validate'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            
+                (3 番目の引数が、このアクションを行う際のプラグインローダーであったことを思い出しましょう)
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            どれかひとつのバリデーションに失敗したときに
+            それ以降のバリデータを実行しないようにさせるには、2 番目のパラメータに
+            <b><tt>TRUE</tt></b> を渡します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'alnum'</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            バリデータの名前を指定して追加する場合で
+            そのバリデータクラスのコンストラクタが引数を受け付ける場合は、
+            <code class="code">addValidator()</code> の 3 番目のパラメータに配列形式で指定します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'StringLength'</span>, <span style="color: #000000; font-weight: bold;">false</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">6</span>, <span style="color: #cc66cc;">20</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            この方式で引数を渡す場合は、コンストラクタで定義されているとおりの順で指定する必要があります。
+            上の例では、<span class="classname">Zend_Validate_StringLenth</span>
+            クラスのインスタンスを作成する際にパラメータ
+            <code class="code">$min</code> と <code class="code">$max</code> を指定しています。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validator</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_StringLength<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">6</span>, <span style="color: #cc66cc;">20</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>独自のバリデートエラーメッセージの指定</b><br /></span>
+            
+
+            
+                バリデータのエラーメッセージをカスタマイズしたいこともあるでしょう。
+                その場合は、 <span class="methodname">Zend_Form_Element::addValidator()</span> の引数
+                <code class="code">$options</code> で、キー &#039;messages&#039; にメッセージテンプレートを指定します。
+                これは キー/値 のペアの配列となります。
+                これを使用するには、そのバリデータのさまざまな検証エラーに対応する
+                エラーコードを知っておく必要があります。
+            <br />
+
+            
+                もっとよいやりかたは、<span class="classname">Zend_Translate_Adapter</span>
+                をフォームで使用することでしょう。エラーコードは、
+                デフォルトのエラーデコレータが自動的にアダプタに渡します。
+                そこで、バリデータのエラーコードに対応する翻訳文字列を設定すればいいのです。
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            複数のバリデータを一度に設定するには
+            <code class="code">addValidators()</code> を使用します。
+            このメソッドには、配列の配列を渡します。
+            各配列の要素は 1 から 3 となり、これが
+            <code class="code">addValidator()</code> に渡されます。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addValidators</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'NotEmpty'</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'alnum'</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'stringLength'</span>, <span style="color: #000000; font-weight: bold;">false</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">6</span>, <span style="color: #cc66cc;">20</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            もうすこし詳しくはっきりと書きたい場合は、キー
+            &#039;validator&#039;、&#039;breakChainOnFailure&#039; そして &#039;options&#039;
+            を持つ配列を使用することもできます。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addValidators</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'validator'</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;=&gt; <span style="color: #ff0000;">'NotEmpty'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'breakChainOnFailure'</span> =&gt; <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'validator'</span> =&gt; <span style="color: #ff0000;">'alnum'</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'validator'</span> =&gt; <span style="color: #ff0000;">'stringLength'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'options'</span>&nbsp; &nbsp;=&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">6</span>, <span style="color: #cc66cc;">20</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            この使用法は、設定ファイルを用いてバリデータを設定する場合に便利です。
+        </p>
+
+        <div class="programlisting ini"><div class="inicode"><div class="ini" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">element.validators.notempty.<span style="color: #000099;">validator </span>= <span style="color: #933;">&quot;NotEmpty&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">element.validators.notempty.<span style="color: #000099;">breakChainOnFailure </span>=<span style="color: #660066;"> true</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">element.validators.alnum.<span style="color: #000099;">validator </span>= <span style="color: #933;">&quot;Alnum&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">element.validators.strlen.<span style="color: #000099;">validator </span>= <span style="color: #933;">&quot;StringLength&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">element.validators.strlen.options.<span style="color: #000099;">min </span>=<span style="color: #660066;"> <span style="">6</span></span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">element.validators.strlen.options.<span style="color: #000099;">max </span>=<span style="color: #660066;"> <span style="">20</span></span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            それが必要か否かにかかわらず、すべての項目がキーを持つことに注意しましょう。
+            これは、設定ファイルを使用する場合の制限事項となります。
+            しかし、これにより、その引数がどういう意味なのかをきちんと明示できるようになります。
+            バリデータのオプションは、正しい順で指定しなければならないことに注意しましょう。
+        </p>
+
+        <p class="para">
+            要素を検証するには、その値を
+            <code class="code">isValid()</code> に渡します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">isValid</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$value</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// 有効</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// 無効</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>フィルタリング後の値の検証</b><br /></span>
+            
+
+            
+                 <span class="methodname">Zend_Form_Element::isValid()</span> は、
+                フィルタチェインを通した後の値を検証します。
+                詳細は <a href="zend.form.elements.html#zend.form.elements.filters" class="link">フィルタの説明
+                </a> を参照ください。
+            <br />
+        </p></blockquote>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>バリデーションコンテキスト</b><br /></span>
+            
+
+            
+                 <span class="methodname">Zend_Form_Element::isValid()</span> は、
+                追加の引数 <code class="code">$context</code> をサポートしています。
+                 <span class="methodname">Zend_Form::isValid()</span> は、
+                フォームをバリデートする際にデータの配列を
+                <code class="code">$context</code> に渡します。一方、
+                 <span class="methodname">Zend_Form_Element::isValid()</span>
+                はそれを個々のバリデータに渡します。
+                つまり、他の要素に渡された内容を使用するバリデータも作成できるということです。
+                たとえば、パスワードの確認用の入力欄を持つ登録フォームを考えてみましょう。
+                この場合、「パスワード」欄と「パスワード (確認)」
+                欄の内容が一致するかどうかを確認することになります。
+                このようなバリデータは、次のように書きます。
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> My_Validate_PasswordConfirmation <span style="color: #000000; font-weight: bold;">extends</span> Zend_Validate_Abstract</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; const NOT_MATCH = <span style="color: #ff0000;">'notMatch'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; protected <span style="color: #0000ff;">$_messageTemplates</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; self::<span style="color: #006600;">NOT_MATCH</span> =&gt; <span style="color: #ff0000;">'パスワード (確認) の内容がパスワードと一致しません'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> isValid<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$value</span>, <span style="color: #0000ff;">$context</span> = <span style="color: #000000; font-weight: bold;">null</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$value</span> = <span style="color: #66cc66;">&#40;</span>string<span style="color: #66cc66;">&#41;</span> <span style="color: #0000ff;">$value</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;_setValue<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$value</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/is_array"><span style="color: #000066;">is_array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$context</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$context</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'password_confirm'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &amp;&amp; <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$value</span> == <span style="color: #0000ff;">$context</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'password_confirm'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #000000; font-weight: bold;">true</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">elseif</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/is_string"><span style="color: #000066;">is_string</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$context</span><span style="color: #66cc66;">&#41;</span> &amp;&amp; <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$value</span> == <span style="color: #0000ff;">$context</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #000000; font-weight: bold;">true</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;_error<span style="color: #66cc66;">&#40;</span>self::<span style="color: #006600;">NOT_MATCH</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #000000; font-weight: bold;">false</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </p></blockquote>
+
+        <p class="para">
+            バリデータは、順番どおりに処理されます。
+            すべてのバリデータが実行されますが、
+            <var class="varname">$breakChainOnFailure</var> が true
+            の場合はどれかひとつのバリデータが検証に失敗した時点で処理を終了します。
+            バリデータは、適切な順で指定するようにしましょう。
+        </p>
+
+        <p class="para">
+            検証に失敗したときは、バリデータチェインから
+            エラーコードとメッセージを取得できます。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$errors</span>&nbsp; &nbsp;= <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">getErrors</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$messages</span> = <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">getMessages</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            (注意: 返されるエラーメッセージは連想配列形式で、
+            エラーコードとエラーメッセージのペアとなります)
+        </p>
+
+        <p class="para">
+            バリデータに加えて、ある要素が必須である場合は
+             <span class="methodname">setRequired($flag)</span> を使用できます。
+            デフォルトではこのフラグは <b><tt>FALSE</tt></b> です。
+            
+            In combination with
+             <span class="methodname">setAllowEmpty($flag)</span> (<b><tt>TRUE</tt></b>
+            by default) and  <span class="methodname">setAutoInsertNotEmptyValidator($flag)</span>
+            (<b><tt>TRUE</tt></b> by default), the behavior of your validator chain
+            can be modified in a number of ways:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    Using the defaults, validating an Element without passing a value, or
+                    passing an empty string for it, skips all validators and validates to
+                    <b><tt>TRUE</tt></b>.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">setAllowEmpty(false)</span> leaving the two other
+                    mentioned flags untouched, will validate against the validator chain
+                    you defined for this Element, regardless of the value passed
+                    to  <span class="methodname">isValid()</span>.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">setRequired(true)</span> leaving the two other
+                    mentioned flags untouched, will add a &#039;NotEmpty&#039; validator
+                    on top of the validator chain (if none was already set)), with the
+                     <var class="varname">$breakChainOnFailure</var> flag set.
+                    これにより、必須フラグがその意味どおりに動作するようになります。
+                    入力が渡されなかった場合は検証がその時点で失敗し、
+                    結果をユーザに返します。それ以降のバリデータは実行されません。
+                    値が空である時点で無効な内容であることが確定しているからです。
+                </p>
+
+                <p class="para">
+                    この振る舞いが気に入らない場合は、
+                    <code class="code">setAutoInsertNotEmptyValidator($flag)</code>
+                    に <b><tt>FALSE</tt></b> を渡せばこの機能を無効にできます。
+                    この場合、 <code class="code">isValid()</code>
+                    がバリデータチェインに勝手に
+                    &#039;NotEmpty&#039; バリデータを追加することはなくなります。
+                </p>
+            </li>
+        </ul>
+
+        <p class="para">
+            バリデータについての詳細な情報は <a href="zend.validate.introduction.html" class="link">Zend_Validate
+                のドキュメント</a> を参照ください。
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Zend_Form_Elements の汎用バリデータとしての使用法</b><br /></span>
+            
+
+            
+                <span class="classname">Zend_Form_Element</span> は
+                <span class="classname">Zend_Validate_Interface</span> を実装しています。
+                つまり、フォーム以外のバリデータチェインでも
+                フォーム要素を使用できるということです。
+            <br />
+        </p></blockquote>
+
+        
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>When is an element detected as empty?</b><br /></span>
+            
+
+            
+                As mentioned the &#039;NotEmpty&#039; validator is used to detect if an element is empty
+                or not. But <span class="classname">Zend_Validate_NotEmpty</span> does, per default, not
+                work like <acronym class="acronym">PHP</acronym>&#039;s method  <span class="methodname">empty()</span>.
+            <br />
+
+            
+                This means when an element contains an integer <em class="emphasis">0</em> or an string
+                <em class="emphasis">&#039;0&#039;</em> then the element will be seen as not empty. If you want to
+                have a different behaviour you must create your own instance of
+                <span class="classname">Zend_Validate_NotEmpty</span>. There you can define the behaviour of
+                this validator. See <a href="zend.validate.set.notempty" class="link external">&raquo; Zend_Validate_NotEmpty</a> for details.
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            検証関係のメソッドを以下にまとめます。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                    <code class="code">setRequired($flag)</code> および
+                    <code class="code">isRequired()</code> は、&#039;required&#039; フラグの状態を設定あるいは取得します。
+                    これを <b><tt>TRUE</tt></b> に設定すると、
+                    <span class="classname">Zend_Form</span> が処理したデータにその要素が必須であるものとします。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                    <code class="code">setAllowEmpty($flag)</code> および
+                    <code class="code">getAllowEmpty()</code> は、オプション要素
+                    (required フラグが <b><tt>FALSE</tt></b> に設定されている要素)
+                    の挙動を変更します。&#039;allow empty&#039; フラグが <b><tt>TRUE</tt></b> の場合、
+                    値が未入力のときはバリデータチェインに渡しません。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                    <code class="code">setAutoInsertNotEmptyValidator($flag)</code> は、
+                    その要素が必須項目であるときに
+                    &#039;NotEmpty&#039; バリデータをバリデータチェインの先頭に追加するかどうかを指定します。
+                    デフォルトでは、このフラグは <b><tt>TRUE</tt></b> です。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                 <span class="methodname">addValidator($nameOrValidator, $breakChainOnFailure = false, array $options = null)</span>
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                 <span class="methodname">addValidators(array $validators)</span>
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                 <span class="methodname">setValidators(array $validators)</span> (すべてのバリデータを上書きします)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                 <span class="methodname">getValidator($name)</span> (指定した名前のバリデータオブジェクトを取得します)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                 <span class="methodname">getValidators()</span> (すべてのバリデータを取得します)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                 <span class="methodname">removeValidator($name)</span> (指定した名前のバリデータを削除します)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                 <span class="methodname">clearValidators()</span> (すべてのバリデータを削除します)
+            </p></li>
+        </ul>
+
+        <div class="section" id="zend.form.elements.validators.errors" name="zend.form.elements.validators.errors"><div class="info"><h1 class="title">独自のエラーメッセージ</h1></div>
+            
+
+            <p class="para">
+                時には、要素にアタッチされたバリデータが生成するエラーメッセージではなく
+                独自のエラーメッセージを指定したくなることもあるでしょう。
+                さらに、時には自分自身でフォームを無効だとマークしたいこともあるでしょう。
+                1.6.0 以降、次のメソッドでこの機能を使用できるようになりました。
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para">
+                    <code class="code">addErrorMessage($message)</code>:
+                    フォームの検証エラーの際に表示するエラーメッセージを追加します。
+                    複数回コールすると、新しいメッセージはスタックに追加されます。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">addErrorMessages(array $messages)</code>:
+                    フォームの検証エラーの際に表示する複数のエラーメッセージを追加します。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">setErrorMessages(array $messages)</code>:
+                    フォームの検証エラーの際に表示する複数のエラーメッセージを追加します。
+                    それまでに設定されていたすべてのメッセージを上書きします。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">getErrorMessages()</code>:
+                    定義済みのカスタムエラーメッセージの一覧を取得します。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">clearErrorMessages()</code>:
+                    定義済みのカスタムエラーメッセージをすべて削除します。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">markAsError()</code>:
+                    検証に失敗したものとしてフォームにマークします。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">hasErrors()</code>:
+                    要素が、検証失敗か無効とマークのいずれかの状態になっているかどうかを取得します。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">addError($message)</code>:
+                    エラーメッセージをカスタムエラーメッセージスタックに追加し、
+                    要素を無効とマークします。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">addErrors(array $messages)</code>:
+                    複数のエラーメッセージをカスタムエラーメッセージスタックに追加し、
+                    要素を無効とマークします。
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">setErrors(array $messages)</code>:
+                    指定したメッセージでカスタムエラーメッセージスタックを上書きし、
+                    要素を無効とマークします。
+                </p></li>
+            </ul>
+
+            <p class="para">
+                この方式で設定したすべてのエラーは翻訳されることになります。
+                さらに、プレースホルダ &quot;%value%&quot; を使用して要素の値を表すこともできます。
+                エラーメッセージを取得する際に、この部分が現在の要素の値に置き換えられます。
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="zend.form.elements.decorators" name="zend.form.elements.decorators"><div class="info"><h1 class="title">デコレータ</h1></div>
+        
+
+        <p class="para">
+            多くのウェブ開発者にとって、<acronym class="acronym">XHTML</acronym>
+            のフォームを作成することは悩みの種です。
+            フォームの要素ひとつひとつに対して
+            ラベルなどのマークアップが必要ですし、
+            ユーザの使いやすさを考慮して検証エラーメッセージも表示させなければなりません。
+            要素の数が増えれば増えるほど、この作業量は無視できなくなります。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Form_Element</span> は、この問題を解決するために
+            &quot;デコレータ&quot; を使用します。デコレータは、
+            要素にアクセスしてその中身をレンダリングするためのメソッドを持つクラスです。
+            デコレータの動作原理については、<a href="zend.form.decorators.html" class="link">Zend_Form_Decorator</a>
+            のセクションを参照ください。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Form_Element</span> がデフォルトで使用するデコレータは次のとおりです。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                <em class="emphasis">ViewHelper</em>: 要素のレンダリング用のビューヘルパーを指定します。
+                要素の &#039;helper&#039; 属性を使用して、どのヘルパーを使用するのかを指定します。
+                デフォルトで <span class="classname">Zend_Form_Element</span> は
+                &#039;formText&#039; ビューヘルパーを使用しますが、
+                サブクラスで別のヘルパーを指定することもできます。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">Errors</em>:
+                <span class="classname">Zend_View_Helper_FormErrors</span>
+                を用いて要素の後にエラーメッセージを追加します。
+                エラーが発生していない場合は何も行いません。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">Description</em>: 要素の後に説明を追加します。
+                説明が存在しない場合は何も追加されません。デフォルトでは、
+                クラス &#039;description&#039; を指定した &lt;p&gt; タグでレンダリングされます。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">HtmlTag</em>:
+                ラベルや要素、そしてエラーメッセージを <acronym class="acronym">HTML</acronym> の
+                &lt;dd&gt; タグで囲みます。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">Label</em>:
+                <span class="classname">Zend_View_Helper_FormLabel</span>
+                を用いて要素の前にラベルを追加し、それを
+                &lt;dt&gt; タグで囲みます。
+                ラベルが存在しない場合は、用語定義タグのみをレンダリングします。
+            </p></li>
+        </ul>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>読み込み不要なデフォルトのデコレータ</b><br /></span>
+            
+
+            
+                デフォルトのデコレータは、
+                オブジェクトの初期化時に読み込まれるようになっています。
+                この機能を無効にするには、コンストラクタでオプション
+                &#039;disableLoadDefaultDecorators&#039; を指定します。
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Form_Element<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'disableLoadDefaultDecorators'</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            
+                このオプションは、他のオプションと混用することもできます。
+                その場合はオプションの配列や <span class="classname">Zend_Config</span>
+                オブジェクトを使用します。
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            デコレータの実行順序は登録された順によって決まります。
+            つまり、最初に登録したデコレータから順に実行することになります。
+            したがって、デコレータを登録するときにはその順番に気をつけなければなりません。
+            あるいは、placement オプションを明示的に指定して順序を決めることもできます。
+            例として、デフォルトのデコレータを登録するコードを示します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">addDecorators</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'ViewHelper'</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Errors'</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Description'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tag'</span> =&gt; <span style="color: #ff0000;">'p'</span>, <span style="color: #ff0000;">'class'</span> =&gt; <span style="color: #ff0000;">'description'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'HtmlTag'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tag'</span> =&gt; <span style="color: #ff0000;">'dd'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Label'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tag'</span> =&gt; <span style="color: #ff0000;">'dt'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            最初のコンテンツを作成するのは &#039;ViewHelper&#039;
+            デコレータで、これはフォーム要素そのものを作成します。
+            次に &#039;Errors&#039; デコレータがその要素のエラーメッセージを取得し、
+            もしエラーが発生していた場合はそれをビューヘルパー
+            &#039;FormErrors&#039; に渡してレンダリングさせます。
+            説明が存在する場合は、&#039;Description&#039; デコレータがクラス &#039;description&#039;
+            の段落を追加します。ここには、そのコンテンツの内容を説明するテキストが書き込まれます。
+            その次のデコレータである &#039;HtmlTag&#039; は、要素とエラーと説明文を
+            <acronym class="acronym">HTML</acronym> の &lt;dd&gt; タグで囲みます。最後に、&#039;label&#039;
+            が要素のラベルを取得します。それをビューヘルパー &#039;FormLabel&#039;
+            に渡し、<acronym class="acronym">HTML</acronym> の &lt;dt&gt; で囲みます。
+            ラベルの内容は、デフォルトでコンテンツの前に付加されます。
+            出力結果は、基本的にはこのようになります。
+        </p>
+
+        <div class="programlisting html"><div class="htmlcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;dt&gt;&lt;label for=&quot;foo&quot; class=&quot;optional&quot;&gt;Foo&lt;/label&gt;&lt;/dt&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;dd&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &lt;input type=&quot;text&quot; name=&quot;foo&quot; id=&quot;foo&quot; value=&quot;123&quot; /&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &lt;ul class=&quot;errors&quot;&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &lt;li&gt;&quot;123&quot; is not an alphanumeric value&lt;/li&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &lt;/ul&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &lt;p class=&quot;description&quot;&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; This is some descriptive text regarding the element.</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &lt;/p&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;/dd&gt;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            デコレータについての詳細な情報は <a href="zend.form.decorators.html" class="link">Zend_Form_Decorator
+                のセクション</a> を参照ください。
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>同じ型の複数のデコレータの使用法</b><br /></span>
+            
+
+            
+                内部的には、<span class="classname">Zend_Form_Element</span>
+                はデコレータのクラス名をもとにしてデコレータを取得しています。
+                つまり、同じ型のデコレータを複数登録することはできないということです。
+                複数回登録すると、それまでに登録されていたデコレータを上書きします。
+            <br />
+
+            
+                これを回避するには、<em class="emphasis">エイリアス</em> を使用します。
+                デコレータやデコレータ名を <code class="code">addDecorator()</code>
+                の最初の引数として渡すのではなく、ひとつの要素からなる配列を渡します。
+                この配列には、デコレータオブジェクトあるいはデコレータ名を指すエイリアスを指定します。
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 'FooBar' へのエイリアス</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addDecorator</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'FooBar'</span> =&gt; <span style="color: #ff0000;">'HtmlTag'</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tag'</span> =&gt; <span style="color: #ff0000;">'div'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 後で、このように取得できます</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$decorator</span> = <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">getDecorator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'FooBar'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            
+                <code class="code">addDecorators()</code> メソッドおよび
+                <code class="code">setDecorators()</code> メソッドでは、
+                デコレータを表す配列を &#039;decorator&#039; オプションに渡す必要があります。
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// ふたつの 'HtmlTag' デコレータを使用するため、片方に 'FooBar' というエイリアスを指定します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addDecorators</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'HtmlTag'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tag'</span> =&gt; <span style="color: #ff0000;">'div'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'decorator'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'FooBar'</span> =&gt; <span style="color: #ff0000;">'HtmlTag'</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'options'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tag'</span> =&gt; <span style="color: #ff0000;">'dd'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 後で、このように取得できます</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$htmlTag</span> = <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">getDecorator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'HtmlTag'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$fooBar</span>&nbsp; = <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">getDecorator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'FooBar'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p></blockquote>
+
+        <p class="para">
+            デコレータ関連のメソッドを以下にまとめます。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                <code class="code">addDecorator($nameOrDecorator, array $options = null)</code>
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">addDecorators(array $decorators)</code>
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">setDecorators(array $decorators)</code> (すべてのデコレータを上書きします)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">getDecorator($name)</code> (指定した名前のデコレータオブジェクトを取得します)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">getDecorators()</code> (すべてのデコレータを取得します)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">removeDecorator($name)</code> (指定した名前のデコレータを削除します)
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <code class="code">clearDecorators()</code> (すべてのデコレータを削除します)
+            </p></li>
+        </ul>
+
+        <p class="para">
+            <span class="classname">Zend_Form_Element</span> は、
+            オーバーロードを使用して特定のデコレータをレンダリングすることもできます。
+            &#039;render&#039; で始まる名前のメソッドを <code class="code">__call()</code>
+            で捕捉し、メソッド名の残りの部分にもとづいてデコレータを探します。
+            見つかった場合は、そのデコレータ
+            <em class="emphasis">だけ</em> をレンダリングします。
+            引数を渡すと、それがデコレータの
+            <code class="code">render()</code> メソッドにコンテンツとして渡されます。次の例を参照ください。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// ViewHelper デコレータのみをレンダリングします</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">renderViewHelper</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// HtmlTag デコレータにコンテンツを渡してレンダリングします</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">renderHtmlTag</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;This is the html tag content&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            デコレータが存在しない場合は、例外が発生します。
+        </p>
+    </div>
+
+    <div class="section" id="zend.form.elements.metadata" name="zend.form.elements.metadata"><div class="info"><h1 class="title">メタデータおよび属性</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Form_Element</span> は、
+            要素の属性やメタデータを処理できます。
+            基本的な属性には次のようなものがあります。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                <em class="emphasis">name</em>:
+                要素名。
+                <code class="code">setName()</code> および <code class="code">getName()</code>
+                でアクセスします。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">label</em>:
+                要素のラベル。
+                <code class="code">setLabel()</code> および <code class="code">getLabel()</code>
+                でアクセスします。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">order</em>:
+                要素がフォーム内で登場する際のインデックス。
+                <code class="code">setOrder()</code> および
+                <code class="code">getOrder()</code> でアクセスします。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">value</em>:
+                現在の要素の値。
+                <code class="code">setValue()</code> および <code class="code">getValue()</code>
+                でアクセスします。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">description</em>: 要素の説明。
+                ツールチップや javascript のコンテキストヒントで用いられるもので、
+                その要素の使用目的などを説明します。
+                <code class="code">setDescription()</code> および <code class="code">getDescription()</code>
+                でアクセスします。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">required</em>:
+                バリデーション時にその要素を必須とみなすかどうか。
+                <code class="code">setRequired()</code> および <code class="code">getRequired()</code>
+                でアクセスします。このフラグはデフォルトでは <b><tt>FALSE</tt></b> です。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">allowEmpty</em>:
+                必須でない (オプションの) 要素が未入力のときに検証を行うかどうか。
+                このフラグが <b><tt>TRUE</tt></b> で required フラグが <b><tt>FALSE</tt></b> の場合は、
+                値が未入力ならバリデータチェインにその要素を渡さず、
+                検証に成功したものとみなします。
+                <code class="code">setAllowEmpty()</code> および <code class="code">getAllowEmpty()</code>
+                でアクセスします。このフラグはデフォルトでは <b><tt>TRUE</tt></b> です。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">autoInsertNotEmptyValidator</em>:
+                要素が必須であるときに &#039;NotEmpty&#039; バリデータを追加するかどうかを表すフラグ。
+                デフォルトではこのフラグは <b><tt>TRUE</tt></b> です。フラグを設定するには
+                <code class="code">setAutoInsertNotEmptyValidator($flag)</code>、
+                値を調べるには <code class="code">autoInsertNotEmptyValidator()</code> を使用します。
+            </p></li>
+        </ul>
+
+        <p class="para">
+            フォームの要素の中にはメタデータを要するものもあります。たとえば
+            <acronym class="acronym">XHTML</acronym> のフォーム要素では、class や id といった属性を指定することになるでしょう。
+            これは、次のメソッドで行います。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                <em class="emphasis">setAttrib($name, $value)</em>: 属性を追加します。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">setAttribs(array $attribs)</em>:
+                addAttribs() と似ていますが、すべて上書きします。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">getAttrib($name)</em>:
+                特定の属性の値を取得します。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">getAttribs()</em>:
+                すべての属性を キー/値 のペアで取得します。
+            </p></li>
+        </ul>
+
+        <p class="para">
+            しかし、たいていの場合はもっとシンプルにオブジェクトのプロパティとしてアクセスすることになるでしょう。
+            <span class="classname">Zend_Form_Element</span> はオーバーロードを使用してこの機能を実現しています。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $element-&gt;setAttrib('class', 'text') と同じ意味です</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">class</span> = <span style="color: #ff0000;">'text;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #ff0000;"</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            デフォルトでは、すべての属性がビューヘルパーに渡され、
+            要素の描画時に使用します。これらの属性は、要素タグの
+            <acronym class="acronym">HTML</acronym> 属性として設定されます。
+        </p>
+    </div>
+
+    <div class="section" id="zend.form.elements.standard" name="zend.form.elements.standard"><div class="info"><h1 class="title">標準の要素</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Form</span> には、標準的な要素が同梱されています。詳細は
+            <a href="zend.form.standardElements.html" class="link">標準要素</a>
+            の章を参照ください。
+        </p>
+    </div>
+
+    <div class="section" id="zend.form.elements.methods" name="zend.form.elements.methods"><div class="info"><h1 class="title">Zend_Form_Element のメソッド</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Form_Element</span> には非常にたくさんのメソッドがあります。
+            以下に、それらのシグネチャを種類別に分けて簡単にまとめました。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">設定</p>
+                <ul class="itemizedlist">
+                    <li class="listitem"><p class="para"> <span class="methodname">setOptions(array $options)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setConfig(Zend_Config $config)</span></p></li>
+                </ul>
+            </li>
+
+            <li class="listitem"><p class="para">I18n</p>
+                <ul class="itemizedlist">
+                    <li class="listitem"><p class="para"> <span class="methodname">setTranslator(Zend_Translate_Adapter $translator = null)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getTranslator()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setDisableTranslator($flag)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">translatorIsDisabled()</span></p></li>
+                </ul>
+            </li>
+
+            <li class="listitem"><p class="para">プロパティ</p>
+                <ul class="itemizedlist">
+                    <li class="listitem"><p class="para"> <span class="methodname">setName($name)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getName()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setValue($value)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getValue()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getUnfilteredValue()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setLabel($label)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getLabel()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setDescription($description)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getDescription()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setOrder($order)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getOrder()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setRequired($flag)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getRequired()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setAllowEmpty($flag)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getAllowEmpty()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setAutoInsertNotEmptyValidator($flag)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">autoInsertNotEmptyValidator()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setIgnore($flag)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getIgnore()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getType()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setAttrib($name, $value)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setAttribs(array $attribs)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getAttrib($name)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getAttribs()</span></p></li>
+                </ul>
+            </li>
+
+            <li class="listitem"><p class="para">プラグインローダーとパス</p>
+                <ul class="itemizedlist">
+                    <li class="listitem"><p class="para"> <span class="methodname">setPluginLoader(Zend_Loader_PluginLoader_Interface $loader, $type)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getPluginLoader($type)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">addPrefixPath($prefix, $path, $type = null)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">addPrefixPaths(array $spec)</span></p></li>
+                </ul>
+            </li>
+
+            <li class="listitem"><p class="para">検証</p>
+                <ul class="itemizedlist">
+                    <li class="listitem"><p class="para"> <span class="methodname">addValidator($validator, $breakChainOnFailure = false, $options = array())</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">addValidators(array $validators)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setValidators(array $validators)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getValidator($name)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getValidators()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">removeValidator($name)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">clearValidators()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">isValid($value, $context = null)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getErrors()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getMessages()</span></p></li>
+                </ul>
+            </li>
+
+            <li class="listitem"><p class="para">フィルタ</p>
+                <ul class="itemizedlist">
+                    <li class="listitem"><p class="para"> <span class="methodname">addFilter($filter, $options = array())</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">addFilters(array $filters)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setFilters(array $filters)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getFilter($name)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getFilters()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">removeFilter($name)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">clearFilters()</span></p></li>
+                </ul>
+            </li>
+
+            <li class="listitem"><p class="para">レンダリング</p>
+                <ul class="itemizedlist">
+                    <li class="listitem"><p class="para"> <span class="methodname">setView(Zend_View_Interface $view = null)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getView()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">addDecorator($decorator, $options = null)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">addDecorators(array $decorators)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">setDecorators(array $decorators)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getDecorator($name)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">getDecorators()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">removeDecorator($name)</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">clearDecorators()</span></p></li>
+                    <li class="listitem"><p class="para"> <span class="methodname">render(Zend_View_Interface $view = null)</span></p></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="zend.form.elements.config" name="zend.form.elements.config"><div class="info"><h1 class="title">設定</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Form_Element</span> のコンストラクタには、配列あるいは
+            <span class="classname">Zend_Config</span> オブジェクトでオプションを指定できます。
+            また、 <span class="methodname">setOptions()</span> や
+             <span class="methodname">setConfig()</span> で設定を変更することもできます。
+            一般に、キーの名前は次のようになります。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                &#039;set&#039; + キーの名前のメソッドが <span class="classname">Zend_Form_Element</span>
+                にあれば、値をそのメソッドに渡します。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                それ以外の場合は、属性を使用して値を設定します。
+            </p></li>
+        </ul>
+
+        <p class="para">
+            このルールには、次のような例外があります。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                <span class="property">prefixPath</span> は
+                 <span class="methodname">addPrefixPaths()</span> に渡されます。
+            </p></li>
+
+            <li class="listitem">
+                <p class="para">
+                    以下のセッターはこの方式では設定できません。
+                </p>
+
+                <ul class="itemizedlist">
+                    <li class="listitem"><p class="para">
+                            <span class="property">setAttrib</span> (ただし、
+                            <span class="property">setAttribs</span> は
+                            <em class="emphasis">動作します</em>)
+                    </p></li>
+
+                    <li class="listitem"><p class="para"><span class="property">setConfig</span></p></li>
+
+                    <li class="listitem"><p class="para"><span class="property">setOptions</span></p></li>
+
+                    <li class="listitem"><p class="para"><span class="property">setPluginLoader</span></p></li>
+
+                    <li class="listitem"><p class="para"><span class="property">setTranslator</span></p></li>
+
+                    <li class="listitem"><p class="para"><span class="property">setView</span></p></li>
+                </ul>
+            </li>
+        </ul>
+
+        <p class="para">
+            例として、すべての型の設定データを渡すファイルを見てみましょう。
+        </p>
+
+        <div class="programlisting ini"><div class="inicode"><div class="ini" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000066; font-weight:bold;"><span style="">&#91;</span>element<span style="">&#93;</span></span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">name </span>= <span style="color: #933;">&quot;foo&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">value </span>= <span style="color: #933;">&quot;foobar&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">label </span>= <span style="color: #933;">&quot;Foo:&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">order </span>=<span style="color: #660066;"> <span style="">10</span></span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">required </span>=<span style="color: #660066;"> true</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">allowEmpty </span>=<span style="color: #660066;"> false</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">autoInsertNotEmptyValidator </span>=<span style="color: #660066;"> true</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">description </span>= <span style="color: #933;">&quot;Foo elements are for examples&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">ignore </span>=<span style="color: #660066;"> false</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">attribs.<span style="color: #000099;">id </span>= <span style="color: #933;">&quot;foo&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">attribs.<span style="color: #000099;">class </span>= <span style="color: #933;">&quot;element&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #666666; font-style: italic;">; sets 'onclick' attribute</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">onclick </span>= <span style="color: #933;">&quot;autoComplete(this, '/form/autocomplete/element')&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">prefixPaths.decorator.<span style="color: #000099;">prefix </span>= <span style="color: #933;">&quot;My_Decorator&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">prefixPaths.decorator.<span style="color: #000099;">path </span>= <span style="color: #933;">&quot;My/Decorator/&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000099;">disableTranslator </span>=<span style="color: #660066;"> <span style="">0</span></span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">validators.required.<span style="color: #000099;">validator </span>= <span style="color: #933;">&quot;NotEmpty&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">validators.required.<span style="color: #000099;">breakChainOnFailure </span>=<span style="color: #660066;"> true</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">validators.alpha.<span style="color: #000099;">validator </span>= <span style="color: #933;">&quot;alpha&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">validators.regex.<span style="color: #000099;">validator </span>= <span style="color: #933;">&quot;regex&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">validators.regex.options.<span style="color: #000099;">pattern </span>= <span style="color: #933;">&quot;/^[A-F].*/$&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">filters.ucase.<span style="color: #000099;">filter </span>= <span style="color: #933;">&quot;StringToUpper&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">decorators.element.<span style="color: #000099;">decorator </span>= <span style="color: #933;">&quot;ViewHelper&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">decorators.element.options.<span style="color: #000099;">helper </span>= <span style="color: #933;">&quot;FormText&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">decorators.label.<span style="color: #000099;">decorator </span>= <span style="color: #933;">&quot;Label&quot;</span></div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.form.elements.custom" name="zend.form.elements.custom"><div class="info"><h1 class="title">カスタム要素</h1></div>
+        
+
+        <p class="para">
+            独自の要素を作成するには <span class="classname">Zend_Form_Element</span>
+            クラスを継承したクラスを作成します。
+            独自の要素を作成することになるのは、たとえば次のような場合です。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                共通のバリデータやフィルタを持つ要素を作成する
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                独自のデコレータ機能を持つ要素を作成する
+            </p></li>
+        </ul>
+
+        <p class="para">
+            要素を継承する際に主に使用するメソッドは次の 2 つです。
+             <span class="methodname">init()</span> で独自の初期化ロジックをあなたの要素に追加し、
+             <span class="methodname">loadDefaultDecorators()</span>
+            でデフォルトのデコレータのリストをあなたの要素に設定します。,
+        </p>
+
+        <p class="para">
+            たとえば、あなたが作成するフォーム上のテキストボックスでは、すべて
+            <span class="classname">StringTrim</span> フィルタが必要で、
+            かつ正規表現による入力検証を行うことになるとしましょう。
+            ついでに、表示用に独自のデコレータ &#039;My_Decorator_TextItem&#039;
+            も使用するものとします。さらに、標準の属性
+            &#039;size&#039; や &#039;maxLength&#039;、そして &#039;class&#039; なども設定します。
+            このような要素は、次のように定義します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> My_Element_Text <span style="color: #000000; font-weight: bold;">extends</span> Zend_Form_Element</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> init<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'My_Decorator'</span>, <span style="color: #ff0000;">'My/Decorator/'</span>, <span style="color: #ff0000;">'decorator'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addFilters</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'StringTrim'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Regex'</span>, <span style="color: #000000; font-weight: bold;">false</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'/^[a-z0-9]{6,}$/i'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addDecorator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'TextItem'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setAttrib</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'size'</span>, <span style="color: #cc66cc;">30</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setAttrib</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'maxLength'</span>, <span style="color: #cc66cc;">45</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setAttrib</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'class'</span>, <span style="color: #ff0000;">'text'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            それから、フォームオブジェクトに対して
+            この要素のプレフィックスパスを登録した上で要素を作成します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$form</span>-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'My_Element'</span>, <span style="color: #ff0000;">'My/Element/'</span>, <span style="color: #ff0000;">'element'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addElement</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'text'</span>, <span style="color: #ff0000;">'foo'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            &#039;foo&#039; 要素はこれで <span class="classname">My_Element_Text</span>
+            型となりました。先ほど説明したような機能を持つテキストボックスです。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Form_Element</span> を継承したクラスでオーバーライドしたくなる
+            その他のメソッドとして、 <span class="methodname">loadDefaultDecorators()</span>
+            があります。このメソッドは、条件付きで
+            要素にデフォルトのデコレータセットを読み込みます。
+            継承したクラスで、このデコレータ群を置き換えることができます。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> My_Element_Text <span style="color: #000000; font-weight: bold;">extends</span> Zend_Form_Element</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> loadDefaultDecorators<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">addDecorator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'ViewHelper'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addDecorator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'DisplayError'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addDecorator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Label'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addDecorator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'HtmlTag'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tag'</span> =&gt; <span style="color: #ff0000;">'div'</span>, <span style="color: #ff0000;">'class'</span> =&gt; <span style="color: #ff0000;">'element'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            要素のカスタマイズにはさまざまな方法があります。
+            <span class="classname">Zend_Form_Element</span> の <acronym class="acronym">API</acronym> ドキュメントを熟読し、
+            どんな機能が使用できるのかを覚えていきましょう。
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.form.quickstart.html">Zend_Form クイックスタート</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.form.html">Zend_Form</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.form.forms.html">Zend_Form によるフォームの作成</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.form.html">Zend_Form</a></li>
+  <li><a href="zend.form.introduction.html">Zend_Form(日本語)</a></li>
+  <li><a href="zend.form.quickstart.html">Zend_Form クイックスタート</a></li>
+  <li class="active"><a href="zend.form.elements.html">Zend_Form_Element を用いたフォーム要素の作成</a></li>
+  <li><a href="zend.form.forms.html">Zend_Form によるフォームの作成</a></li>
+  <li><a href="zend.form.decorators.html">Zend_Form_Decorator による独自のフォームマークアップの作成</a></li>
+  <li><a href="zend.form.standardElements.html">Zend Framework に同梱されている標準のフォーム要素</a></li>
+  <li><a href="zend.form.standardDecorators.html">Zend Framework に同梱されている標準のデコレータ</a></li>
+  <li><a href="zend.form.i18n.html">Zend_Form の国際化</a></li>
+  <li><a href="zend.form.advanced.html">Zend_Form の高度な使用法</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

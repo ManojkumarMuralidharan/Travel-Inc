@@ -1,0 +1,602 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Google Base verwenden - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.gdata.gapps.html">Google Apps Provisionierung verwenden</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.gdata.html">Zend_Gdata</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.gdata.photos.html">Picasa Web Alben verwenden</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.gdata.gbase" class="section"><div class="info"><h1 class="title">Google Base verwenden</h1></div>
+    
+
+    <p class="para">
+        Die Google Base Daten <acronym class="acronym">API</acronym> wurde entwickelt um Entwicklern zwei Dinge zu
+        gestatten:
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">Google Base Daten abzufragen um Anwendungen und Mashups zu erstellen.</p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">Google Base Elemente einzugeben und programtechnisch handzuhaben.</p>
+            </li>
+        </ul>
+    </p>
+
+    <p class="para">
+        Es gibt zwei Feeds an Elementen: Feed Fetzen und benutzerdefinierte Feeds für Elemente. Der
+        Feed Fetzen enthält alle Google Base Daten und ist für jeden lesbar um Abfragen darauf
+        durchzuführen ohne der Notwendigkeit sich zu Authentifizieren. Der benutzerdefinierte Feed
+        für Elemente ist ein benutzer spezifisches Subset an Daten und nur ein Benutzer/Eigentümer
+        kann auf diesen Feed zugreifen um eigene Daten einzufügen, zu aktualisieren oder zu löschen.
+        Abfragen werden für beide Typen von Feeds auf dem selben Weg erstellt.
+    </p>
+
+    <p class="para">
+        Siehe <a href="http://code.google.com/apis/base/" class="link external">&raquo; http://code.google.com/apis/base</a> für
+        weitere Informationen über die Google Base <acronym class="acronym">API</acronym>.
+    </p>
+
+    <div class="section" id="zend.gdata.gbase.connect" name="zend.gdata.gbase.connect"><div class="info"><h1 class="title">Verbinden zum Base Service</h1></div>
+        
+
+        <p class="para">
+            Die Google Base <acronym class="acronym">API</acronym> basiert, wie alle GData <acronym class="acronym">API</acronym>s,
+            auf dem Atom Publishing Protokoll (APP), einem <acronym class="acronym">XML</acronym> basierenden Format
+            für gemanagte Web-basierende Ressourcen. Der Verkehr zwischen einem Client und den
+            Google Base Servern findet über <acronym class="acronym">HTTP</acronym> statt, und erlaubt sowohl
+            authentifizierte als auch nicht authentifizierte Verbindungen.
+        </p>
+
+        <p class="para">
+            Bevor irgendeine Transaktion stattfinden kann, muß diese Verbindung hergestellt werden.
+            Das Erstellen einer Verbindung zu den Base Server enthält zwei Schritte: Erstellen eines
+            <acronym class="acronym">HTTP</acronym> Clients und das Binden einer
+            <span class="classname">Zend_Gdata_Gbase</span> Serviceinstanz an diesen Client.
+        </p>
+
+        <div class="section" id="zend.gdata.gbase.connect.authentication" name="zend.gdata.gbase.connect.authentication"><div class="info"><h1 class="title">Authentifizierung</h1></div>
+            
+
+            <p class="para">
+                Die Google Base <acronym class="acronym">API</acronym> erlaubt Zugriff auf beide, sowohl öffentliche
+                als auch private Base Feeds. Öffentliche Feeds benötigen keine Authentifizierung,
+                sind aber nur lesbar und bieten nur reduzierte Funktionalität. Private Feeds bieten
+                die größte Funktionalität benötigen aber eine authentifizierte Verbindung zu den
+                Base Servern. Es gibt drei authentifizierung Schematas die von Google Base
+                unterstützt werden:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        <b class="firstterm">ClientAuth</b> bietet dirakte Benutzername/Passwort
+                        Authentifizierung zu den Base Servern. Da es dieses Schema notwendig macht
+                        das Benutzer die Anwendung mit Ihrem Passwort versorgen, ist diese
+                        Authentifizierung nur dann notwendig wenn andere Authentifizierung Schemata
+                        unzureichend sind.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <b class="firstterm">AuthSub</b> erlaubt die Authentifizierung zu den Base
+                        Servern über einen Google Proxy Server. Das bietet das gleiche Level an
+                        Bequemlichkeit wie ClientAuth, aber ohne die Sicherheitsrisiken was es zu
+                        einer idealen Wahl für Web-basierte Anwendungen macht.
+                    </p>
+                </li>
+            </ul>
+
+            <p class="para">
+                Die <span class="classname">Zend_Gdata</span> Bibliothek bietet Unterstützung für alle drei
+                Authentifizierungs Schemata. Im Rest dieses Kapitels wird angenommen das man mit den
+                Authentifizierungs Schemata umgehen kann und wie eine notwendige Authentifizierte
+                Verbindung erstellt wird. Für weitere Informationen kann in das Kapitel <a href="zend.gdata.introduction.html#zend.gdata.introduction.authentication" class="link">Authentifizierung</a> oder
+                die <a href="http://code.google.com/apis/gdata/auth.html" class="link external">&raquo; Übersicht der
+                    Authentifizierung im Entwickler Guide der Google Data
+                    <acronym class="acronym">API</acronym></a> gesehen werden.
+            </p>
+        </div>
+
+        <div class="section" id="zend.gdata.gbase.connect.service" name="zend.gdata.gbase.connect.service"><div class="info"><h1 class="title">Eine Service Instanz erstellen</h1></div>
+            
+
+            <p class="para">
+                Im mit Google Base zu interagieren, bietet diese Bibliothek die
+                <span class="classname">Zend_Gdata_Gbase</span> Service Klasse. Diese klasse bietet ein
+                standardmäßiges Interface zu Google Data und den Atom Publishing Protokoll Modellen
+                und unterstützt in der Durchführung von Anfragen von und zu den Base Servern.
+            </p>
+
+            <p class="para">
+                Sobald ein Authentifizierungs Schema ausgewählt wurde, besteht der nächste Schritt
+                darin eine Instanz von <span class="classname">Zend_Gdata_Gbase</span> zu erstellen. Diese
+                Klasse nimmt eine Instanz von <span class="classname">Zend_Http_Client</span> als einziges
+                Argument. Das bietet ein Interface für AuthSub und ClientAuth Authentifizierungen,
+                da beide einen speziellen authentifizierten <acronym class="acronym">HTTP</acronym> Client für die
+                Erstellung benötigen. Wenn keine Argumente angegeben wurden, wird automatisch eine
+                nicht authentifizierte Instanz von <span class="classname">Zend_Http_Client</span> erstellt.
+            </p>
+
+            <p class="para">
+                Das nachfolgende Beispiel zeigt wir eine Base Service Klasse erstellt wird indem die
+                ClientAuth Authentifizierung verwendet wird:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Parameter für die ClientAuth Authentifizierung</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = Zend_Gdata_Gbase::<span style="color: #006600;">AUTH_SERVICE_NAME</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$user</span> = <span style="color: #ff0000;">&quot;sample.user@gmail.com&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$pass</span> = <span style="color: #ff0000;">&quot;pa$$w0rd&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erstellt einen authentifizierten HTTP Client</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$user</span>, <span style="color: #0000ff;">$pass</span>, <span style="color: #0000ff;">$service</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erstellt eine Instanz des Base Services</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Gbase<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Ein Base Service der AuthSub verwendet kann ähnlich erstellt werden, durch einen
+                etwas längeren Code:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Empfängt die aktuelle URL so das der AuthSub Server weiß wohin er</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * umleiten soll nachdem die Authentifizierung des Benutzers vollständig ist.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">function</span> getCurrentUrl<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/global"><span style="color: #000066;">global</span></a> <span style="color: #0000ff;">$_SERVER</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Filtert php_self um Sicherheits Risiken zu vermeiden</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$php_request_uri</span> =</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/htmlentities"><span style="color: #000066;">htmlentities</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/substr"><span style="color: #000066;">substr</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'REQUEST_URI'</span><span style="color: #66cc66;">&#93;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #cc66cc;">0</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/strcspn"><span style="color: #000066;">strcspn</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'REQUEST_URI'</span><span style="color: #66cc66;">&#93;</span>, <span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span><span style="color: #000099; font-weight: bold;">\r</span>&quot;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;ENT_QUOTES<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'HTTPS'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> &amp;&amp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/strtolower"><span style="color: #000066;">strtolower</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'HTTPS'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> == <span style="color: #ff0000;">'on'</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$protocol</span> = <span style="color: #ff0000;">'https://'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$protocol</span> = <span style="color: #ff0000;">'http://'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$host</span> = <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'HTTP_HOST'</span><span style="color: #66cc66;">&#93;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'HTTP_PORT'</span><span style="color: #66cc66;">&#93;</span> != <span style="color: #ff0000;">''</span> &amp;&amp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$protocol</span> == <span style="color: #ff0000;">'http://'</span> &amp;&amp; <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'HTTP_PORT'</span><span style="color: #66cc66;">&#93;</span> != <span style="color: #ff0000;">'80'</span><span style="color: #66cc66;">&#41;</span> ||</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$protocol</span> == <span style="color: #ff0000;">'https://'</span> &amp;&amp; <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'HTTP_PORT'</span><span style="color: #66cc66;">&#93;</span> != <span style="color: #ff0000;">'443'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$port</span> = <span style="color: #ff0000;">':'</span> . <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'HTTP_PORT'</span><span style="color: #66cc66;">&#93;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$port</span> = <span style="color: #ff0000;">''</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$protocol</span> . <span style="color: #0000ff;">$host</span> . <span style="color: #0000ff;">$port</span> . <span style="color: #0000ff;">$php_request_uri</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Einen AuthSub authentifizierten HTTP Client erhalten, und den Benutzer zum</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * AuthSub Server umleiten um sich anzumelden wenn das notwendig ist.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">function</span> getAuthSubHttpClient<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/global"><span style="color: #000066;">global</span></a> <span style="color: #0000ff;">$_SESSION</span>, <span style="color: #0000ff;">$_GET</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Wenn es keine AuthSub Session gibt oder kein Einmal-Token auf uns wartet,</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// den Benutzer zum AuthSub Server umleiten um eine zu erhalten.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'sessionToken'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> &amp;&amp; !<a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Parameter für den AuthSub Server</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$next</span> = getCurrentUrl<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$scope</span> = <span style="color: #ff0000;">&quot;http://www.google.com/base/feeds/items/&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$secure</span> = <span style="color: #000000; font-weight: bold;">false</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$session</span> = <span style="color: #000000; font-weight: bold;">true</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Den Benutzer zum AuthSub Server umleiten um sich anzumelden</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$authSubUrl</span> = Zend_Gdata_AuthSub::<span style="color: #006600;">getAuthSubTokenUri</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$next</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$scope</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$secure</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$session</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/header"><span style="color: #000066;">header</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;HTTP/1.0 307 Temporary redirect&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/header"><span style="color: #000066;">header</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;Location: &quot;</span> . <span style="color: #0000ff;">$authSubUrl</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/exit"><span style="color: #000066;">exit</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Konvertiert einen AuthSub Einmal-Token in einen Session-Token wenn das notwendig ist</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'sessionToken'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> &amp;&amp; <a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'sessionToken'</span><span style="color: #66cc66;">&#93;</span> =</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Gdata_AuthSub::<span style="color: #006600;">getAuthSubSessionToken</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// An diesem Punkt sind wir durch AuthSub authentifiziert und können eine</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// authentifizierte Instanz des HTTP Clients erhalten</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Erstellt einen authentifizierten HTTP Client</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$client</span> = Zend_Gdata_AuthSub::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'sessionToken'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$client</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// -&gt; Script Ausführung beginnt hier &lt;-</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// http://code.google.com/apis/gdata/reference.html#Queries</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Sicherstellen das der Benutzer eine gültige Session hat sodas wir die</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// AuthSub Session aufnehmen können sobald diese vorhanden ist.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/session_start"><span style="color: #000066;">session_start</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erstellt eine Instanz des Base Services, leitet den Benutzer zum AuthSub Server um</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// wenn das notwendig ist.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Gbase<span style="color: #66cc66;">&#40;</span>getAuthSubHttpClient<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Letztendlich kann ein nicht authentifizierter Server erstellt werden für die
+                Verwendung mit Feed Fetzen:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erstellt eine Instanz des Base Services und verwendet einen nicht</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// authentifizierten HTTP Client</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Gbase<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+
+    <div class="section" id="zend.gdata.gbase.retrieve" name="zend.gdata.gbase.retrieve"><div class="info"><h1 class="title">Elemente empfangen</h1></div>
+        
+
+        <p class="para">
+            Benutzerdefinierte Feeds oder Feed Fetzen können abgefragt werden um Elemente zu
+            erhalten. Es benötigt zwei Schritte um eine Abfrage zu senden und über den
+            zurückgegebenen Feed zu iterieren.
+        </p>
+
+        <div class="section" id="zend.gdata.gbase.retrieve.query" name="zend.gdata.gbase.retrieve.query"><div class="info"><h1 class="title">Eine strukturierte Anfrage senden</h1></div>
+            
+
+            <p class="para">
+                Eine strukturierte Anfrage kann gesendet werden um Elemente vom eigenen
+                benutzerdefinierten Feed oder von einem öffentlichen Feed Fetzen zu erhalten.
+            </p>
+
+            <p class="para">
+                Wenn Elemente empfangen werden indem die Base <acronym class="acronym">API</acronym> verwendet wird,
+                werden speziell konstruierte Abfrage <acronym class="acronym">URL</acronym>s verwendet um zu
+                beschreiben welche Evente zurückgegeben werden sollen. Die
+                <span class="classname">Zend_Gdata_Gbase_ItemQuery</span> und
+                <span class="classname">Zend_Gdata_Gbase_SnippetQuery</span> Klassen vereinfachen diese
+                Aufgabe durch die automatische Erstellung einer Anfrage <acronym class="acronym">URL</acronym>
+                basierend auf den angegebenen Parametern.
+            </p>
+
+            <div class="section" id="zend.gdata.gbase.retrieve.query.customeritems" name="zend.gdata.gbase.retrieve.query.customeritems"><div class="info"><h1 class="title">Benutzerdefinierte Feed Elemente Anfragen</h1></div>
+                
+
+                <p class="para">
+                    Um eine Abfrage auf Benutzerdefinierte Feed Elemente durchzuführen, gibt es die
+                     <span class="methodname">newItemQuery()</span> und
+                     <span class="methodname">getGbaseItemFeed()</span> Methoden:
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Gbase<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newItemQuery</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setBq</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'[title:Programming]'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setOrderBy</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'modification_time'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setSortOrder</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'descending'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setMaxResults</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'5'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$feed</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getGbaseItemFeed</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+                <p class="para">
+                    Eine komplette Liste dieser Parameter ist im <a href="http://code.google.com/apis/base/items-feed.html#QueParameters" class="link external">&raquo; Abfrage
+                        Parameter Kapitel</a> der Benutzerdefinierten Feed Elemente
+                    Dokumentation vorhanden.
+                </p>
+            </div>
+
+            <div class="section" id="zend.gdata.gbase.retrieve.query.snippets" name="zend.gdata.gbase.retrieve.query.snippets"><div class="info"><h1 class="title">Feed Fetzen abfragen</h1></div>
+                
+
+                <p class="para">
+                    Um eine Abfrage über öffentliche Feed Fetzen durchzuführen, gibt es die
+                     <span class="methodname">newSnippetQuery()</span> und
+                     <span class="methodname">getGbaseSnippetFeed()</span> Methoden:
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Gbase<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newSnippetQuery</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setBq</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'[title:Programming]'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setOrderBy</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'modification_time'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setSortOrder</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'descending'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">setMaxResults</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'5'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$feed</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">getGbaseSnippetFeed</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+                <p class="para">
+                    Eine komplette Liste dieser Parameter ist im <a href="http://code.google.com/apis/base/items-feed.html#QueParameters" class="link external">&raquo; Abfrage
+                        Parameter Kapitel</a> der Feed Fetzen Dokumentation vorhanden.
+                </p>
+            </div>
+        </div>
+
+        <div class="section" id="zend.gdata.gbase.retrieve.iterate" name="zend.gdata.gbase.retrieve.iterate"><div class="info"><h1 class="title">Über die Elemente iterieren</h1></div>
+            
+
+            <p class="para">
+                Google Base Elemente können Element-Spezifische Attribute enthalten, wie
+                <em class="emphasis">&lt;g:main_ingredient&gt;</em> und
+                <em class="emphasis">&lt;g:weight&gt;</em>.
+            </p>
+
+            <p class="para">
+                Um über alle Attribute eines gegebenen Elements zu iterieren, gibt es die
+                 <span class="methodname">getGbaseAttributes()</span> Methode die über alle Ergebnisse
+                iteriert:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$feed</span>-&gt;<span style="color: #006600;">entries</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$entry</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #808080; font-style: italic;">// Alle Attribute erhalten und den Namen und den Textwert</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #808080; font-style: italic;">// jedes Attributes ausgeben</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$baseAttributes</span> = <span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">getGbaseAttributes</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$baseAttributes</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$attr</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Attribut &quot;</span> . <span style="color: #0000ff;">$attr</span>-&gt;<span style="color: #006600;">name</span> . <span style="color: #ff0000;">&quot; : &quot;</span> . <span style="color: #0000ff;">$attr</span>-&gt;<span style="color: #006600;">text</span> . <span style="color: #ff0000;">&quot;&lt;br&gt;&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Oder es kann auf spezielle Attributnamen gesehen werden und über die passenden
+                Ergebnisse iteriert werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$feed</span>-&gt;<span style="color: #006600;">entries</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$entry</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #808080; font-style: italic;">// Gibt alle Hauptzutaten aus &lt;g:main_ingredient&gt;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$baseAttributes</span> = <span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">getGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;main_ingredient&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$baseAttributes</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$attr</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Hauptzutaten: &quot;</span> . <span style="color: #0000ff;">$attr</span>-&gt;<span style="color: #006600;">text</span> . <span style="color: #ff0000;">&quot;&lt;br&gt;&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+    </div>
+
+    <div class="section" id="zend.gdata.gbase.crud" name="zend.gdata.gbase.crud"><div class="info"><h1 class="title">Benutzerdefinierte Elemente einfügen, aktualisieren und löschen</h1></div>
+        
+
+        <p class="para">
+            Ein Benutzer/Eigentümer kann auf seine eigenen Benutzerdefinierten Feed Elemente
+            zugreifen um Sie hinzuzufügen, zu aktualisieren oder Ihre Elemente zu löschen. Diese
+            Operationen sind für den öffentlichen Feed Fetzen nicht vorhanden.
+        </p>
+
+        <p class="para">
+            Eine Feed Operation kann getestet werden bevor diese wirklich ausgeführt wird durch das
+            setzen des Dry-Run Flags (<var class="varname">$dryRun</var>) auf <b><tt>TRUE</tt></b>.
+            Sobald sichergestellt ist das die Daten übertragen werden sollen, muß es auf
+            <b><tt>FALSE</tt></b> gesetzt werden um die Operation durchzuführen.
+        </p>
+
+        <div class="section" id="zend.gdata.gbase.crud.insert" name="zend.gdata.gbase.crud.insert"><div class="info"><h1 class="title">Ein Element einfügen</h1></div>
+            
+
+            <p class="para">
+                Elemente können hinzugefügt werden durch Verwenden der
+                 <span class="methodname">insertGbaseItem()</span> Methode des Base Services:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Gbase<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newItemEntry</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Überschrift hinzufügen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$title</span> = <span style="color: #ff0000;">&quot;PHP Entwickler Handbuch&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">title</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newTitle</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/trim"><span style="color: #000066;">trim</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$title</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Etwas Inhalt hinzufügen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$content</span> = <span style="color: #ff0000;">&quot;Wichtiges Handbuch für PHP Entwickler.&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">content</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newContent</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$content</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">content</span>-&gt;<span style="color: #006600;">type</span> = <span style="color: #ff0000;">'text'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Produkt Typ definieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$itemType</span> = <span style="color: #ff0000;">&quot;Produkte&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">itemType</span> = <span style="color: #0000ff;">$itemType</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Ein spezielles Element Attribut hinzufügen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;product_type&quot;</span>, <span style="color: #ff0000;">&quot;book&quot;</span>, <span style="color: #ff0000;">&quot;text&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;price&quot;</span>, <span style="color: #ff0000;">&quot;12.99 USD&quot;</span>, <span style="color: #ff0000;">&quot;floatUnit&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;quantity&quot;</span>, <span style="color: #ff0000;">&quot;10&quot;</span>, <span style="color: #ff0000;">&quot;int&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;weight&quot;</span>, <span style="color: #ff0000;">&quot;2.2 lbs&quot;</span>, <span style="color: #ff0000;">&quot;numberUnit&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;condition&quot;</span>, <span style="color: #ff0000;">&quot;New&quot;</span>, <span style="color: #ff0000;">&quot;text&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;author&quot;</span>, <span style="color: #ff0000;">&quot;John Doe&quot;</span>, <span style="color: #ff0000;">&quot;text&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;edition&quot;</span>, <span style="color: #ff0000;">&quot;First Edition&quot;</span>, <span style="color: #ff0000;">&quot;text&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;pages&quot;</span>, <span style="color: #ff0000;">&quot;253&quot;</span>, <span style="color: #ff0000;">&quot;number&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;publisher&quot;</span>, <span style="color: #ff0000;">&quot;My Press&quot;</span>, <span style="color: #ff0000;">&quot;text&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;year&quot;</span>, <span style="color: #ff0000;">&quot;2007&quot;</span>, <span style="color: #ff0000;">&quot;number&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newEntry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;payment_accepted&quot;</span>, <span style="color: #ff0000;">&quot;Google Checkout&quot;</span>, <span style="color: #ff0000;">&quot;text&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$dryRun</span> = <span style="color: #000000; font-weight: bold;">true</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$createdEntry</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">insertGbaseItem</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$newEntry</span>, <span style="color: #0000ff;">$dryRun</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.gdata.gbase.crud.modify" name="zend.gdata.gbase.crud.modify"><div class="info"><h1 class="title">Ein Element modifizieren</h1></div>
+            
+
+            <p class="para">
+                Jedes Atribut eines Element kann aktualisiert werden wenn durch Sie iteriert wird:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Die Überschrift aktualisieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$newTitle</span> = <span style="color: #ff0000;">&quot;PHP Entwickler Handbuch zweite Editiondbook Second Edition&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">title</span> = <span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">newTitle</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$newTitle</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// &lt;g:price&gt; Attribute finden und den Preis aktualisieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$baseAttributes</span> = <span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">getGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;price&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/is_object"><span style="color: #000066;">is_object</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$baseAttributes</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$newPrice</span> = <span style="color: #ff0000;">&quot;16.99 USD&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$baseAttributes</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span>-&gt;<span style="color: #006600;">text</span> = <span style="color: #0000ff;">$newPrice</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// &lt;g:pages&gt; Attribute finden und die anzahl an Seiten aktualisieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$baseAttributes</span> = <span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">getGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;pages&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/is_object"><span style="color: #000066;">is_object</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$baseAttributes</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$newPages</span> = <span style="color: #ff0000;">&quot;278&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$baseAttributes</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span>-&gt;<span style="color: #006600;">text</span> = <span style="color: #0000ff;">$newPages</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #808080; font-style: italic;">// Den Attribut Typ von &quot;number&quot; zu &quot;int&quot; aktualisieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$baseAttributes</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span>-&gt;<span style="color: #006600;">type</span> == <span style="color: #ff0000;">&quot;number&quot;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$newType</span> = <span style="color: #ff0000;">&quot;int&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$baseAttributes</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span>-&gt;<span style="color: #006600;">type</span> = <span style="color: #0000ff;">$newType</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// &lt;g:label&gt; Attribute entfernen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$baseAttributes</span> = <span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">getGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;label&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$baseAttributes</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$note</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">removeGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$note</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Neue Attribute hinzufügen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;note&quot;</span>, <span style="color: #ff0000;">&quot;PHP 5&quot;</span>, <span style="color: #ff0000;">&quot;text&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">addGbaseAttribute</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;note&quot;</span>, <span style="color: #ff0000;">&quot;Web Programming&quot;</span>, <span style="color: #ff0000;">&quot;text&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Die Änderungen abspeichern durch Aufruf von save() am Element-Objekt selbst</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$dryRun</span> = <span style="color: #000000; font-weight: bold;">true</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">save</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$dryRun</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Oder die Änderungen durch Aufruf von updateGbaseItem() am Service Objekt abspeichern</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $dryRun = true;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $service-&gt;updateGbaseItem($entry, $dryRun);</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Nach der Durchführung der Änderungen, muß entweder die
+                 <span class="methodname">save($dryRun)</span> Methode am
+                <span class="classname">Zend_Gdata_Gbase_ItemEntry</span> Objekt oder die
+                 <span class="methodname">updateGbaseItem($entry, $dryRun)</span> Methode am
+                <span class="classname">Zend_Gdata_Gbase</span> Objekt aufgerufen werden um die Änderungen
+                abzuspeichern.
+            </p>
+        </div>
+
+        <div class="section" id="zend.gdata.gbase.crud.delete" name="zend.gdata.gbase.crud.delete"><div class="info"><h1 class="title">Ein Element löschen</h1></div>
+            
+
+            <p class="para">
+                ein Element kann gelöscht werden indem die
+                 <span class="methodname">deleteGbaseItem()</span> Methode aufgerufen wird:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$dryRun</span> = <span style="color: #000000; font-weight: bold;">false</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$service</span>-&gt;<span style="color: #006600;">deleteGbaseItem</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$entry</span>, <span style="color: #0000ff;">$dryRun</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Alternativ kann  <span class="methodname">delete()</span> auf dem
+                <span class="classname">Zend_Gdata_Gbase_ItemEntry</span> Objekt aufgerufen werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$dryRun</span> = <span style="color: #000000; font-weight: bold;">false</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$entry</span>-&gt;<span style="color: #006600;">delete</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$dryRun</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.gdata.gapps.html">Google Apps Provisionierung verwenden</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.gdata.html">Zend_Gdata</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.gdata.photos.html">Picasa Web Alben verwenden</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.gdata.html">Zend_Gdata</a></li>
+  <li><a href="zend.gdata.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.gdata.authsub.html">Authentifizierung mit AuthSub</a></li>
+  <li><a href="zend.gdata.books.html">Die Buchsuche Daten API verwenden</a></li>
+  <li><a href="zend.gdata.clientlogin.html">Authentifizieren mit ClientLogin</a></li>
+  <li><a href="zend.gdata.calendar.html">Google Kalender verwenden</a></li>
+  <li><a href="zend.gdata.docs.html">Verwenden der Google Dokumente Listen Daten API</a></li>
+  <li><a href="zend.gdata.health.html">Verwenden von Google Health</a></li>
+  <li><a href="zend.gdata.spreadsheets.html">Google Tabellenkalkulation verwenden</a></li>
+  <li><a href="zend.gdata.gapps.html">Google Apps Provisionierung verwenden</a></li>
+  <li class="active"><a href="zend.gdata.gbase.html">Google Base verwenden</a></li>
+  <li><a href="zend.gdata.photos.html">Picasa Web Alben verwenden</a></li>
+  <li><a href="zend.gdata.youtube.html">Verwenden der YouTube Daten API</a></li>
+  <li><a href="zend.gdata.exception.html">Gdata Ausnahmen auffangen</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

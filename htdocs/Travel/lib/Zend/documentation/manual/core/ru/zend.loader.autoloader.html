@@ -1,0 +1,609 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Автозагрузчик - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.loader.load.html">Динамическая загрузка файлов и классов</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.loader.html">Zend_Loader</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.loader.autoloader-resource.html">Resource Autoloaders</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.loader.autoloader" class="section"><div class="info"><h1 class="title">Автозагрузчик</h1></div>
+    
+
+    <p class="para">
+        <span class="classname">Zend_Loader_Autoloader</span> представляет собой
+        комплексное решение для автозагрузки. Он разрабатывался для следующих
+        целей:
+    </p>
+
+    <ul class="itemizedlist">
+        <li class="listitem"><p class="para">
+            Предоставление настоящего автозарузчика пространств имен
+            (предыдущие реализации перехватывали все пространства имен подряд).
+        </p></li>
+
+        <li class="listitem"><p class="para">
+            Возможность регистрации любых обратных вызовов в качестве
+            автозагрузчиков и управления ими как стеком (на момент написания
+            данного текста он позволяет обойти некоторые проблемы с
+            <code class="code">spl_autoload</code>,
+            которые не позволяют заново регистрировать обратные вызовы,
+            использующие методы экземпляра).
+        </p></li>
+
+        <li class="listitem"><p class="para">
+            Возможность оптимистического сопоставления (optimistic matching)
+            пространств имен для более быстрого определения пути к подключаемому
+            классу.
+        </p></li>
+    </ul>
+
+    <p class="para">
+        <span class="classname">Zend_Loader_Autoloader</span> реализован в виде
+        синглетона, что делает его доступным из любого места.
+        Это дает возможность регистрировать дополнительные автозагрузчики
+        в любой момент выполнения, когда это необходимо.
+    </p>
+
+    <div class="section" id="zend.loader.autoloader.usage" name="zend.loader.autoloader.usage"><div class="info"><h1 class="title">Использование автозагрузчика</h1></div>
+        
+
+        <p class="para">
+            Когда экземпляр автозагрузчика извлекается в первый раз,
+            он регистрирует себя через <code class="code">spl_autoload</code>.
+            Вы извлекаете экземпляр, используя метод <code class="code">getInstance()</code>:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autoloader</span> = Zend_Loader_Autoloader::<span style="color: #006600;">getInstance</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            По умолчанию автозагрузчик сконфигурирован с тем, чтобы
+            соответствовать пространствам имен &quot;Zend_&quot; и &quot;ZendX_&quot;.
+            Если у вас есть есть своя библиотека, которая используют
+            собственное пространство имен, то вы можете зарегистрировать его
+            в автозагрузчике, используя метод <code class="code">registerNamespace()</code>.
+            Например, если ваша библиотека представлена префиксом &quot;My_&quot;, то вы
+            можете сделать это следующим образом:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autoloader</span>-&gt;<span style="color: #006600;">registerNamespace</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'My_'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Префиксы пространств имен</b><br /></span>
+            
+
+            
+                Обратите внимание, что предыдущий пример использует в
+                качестве префикса &quot;My_&quot;, а не &quot;My&quot;. Это из-за того, что
+                <span class="classname">Zend_Loader_Autoloader</span> задуман как
+                загрузчик общего назначения, и не предполагает,
+                что префикс пространства имен должен включать в себя знак
+                подчеркивания. Если ваше пространство имен классов
+                включает в себя знак подчеркивания, то вы должны указывать его
+                при регистрации вашего пространства имен.
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            Вы можете также регистрировать любые обратные вызовы для
+            автозагрузки, опционально с определенным пространством имен (или
+            группой пространств имен).
+            <span class="classname">Zend_Loader_Autoloader</span> будет искать
+            соответствие им до того, как использовать свой встроенный
+            механизм автозагрузки.
+        </p>
+
+        <p class="para">
+            Например, вам можете захотеть использовать одну или более
+            компонент из eZcomponents в своем приложении на основе
+            Zend Framework. Для того, чтобы использовать возможности
+            eZcomponents по автозагрузке, добавьте его автозагрузчик в стек,
+            используя <code class="code">pushAutoloader()</code>:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autoloader</span>-&gt;<span style="color: #006600;">pushAutoloader</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'ezcBase'</span>, <span style="color: #ff0000;">'autoload'</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #ff0000;">'ezc'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Это говорит автозагрузчику, чтобы он использовал автозагрузчик
+            eZcomponents для классов, начинающихся с &quot;ezc&quot;.
+        </p>
+
+        <p class="para">
+            Вы можете использовать метод <code class="code">unshiftAutoloader()</code>
+            для добавления автозагрузчика в начало цепочки автозагрузчиков.
+        </p>
+
+        <p class="para">
+            По умолчанию <span class="classname">Zend_Loader_Autoloader</span> не
+            подавляет ошибки при использовании его внутреннего автозагрузчика,
+            который использует <span class="classname">Zend_Loader::loadClass()</span>.
+            В большинстве случаев это именно то, чего вы хотите.
+            Тем не менее, могут быть случаи, когда может потребоваться подавлять
+            их. Вы можете сделать это, используя метод
+            <code class="code">suppressNotFoundWarnings()</code>:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autoloader</span>-&gt;<span style="color: #006600;">suppressNotFoundWarnings</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            И наконец, иногда может потребоваться, чтобы автозагрузчик загружал
+            все пространства имен. Например, библиотеки PEAR не используют
+            общего пространства имен, что делает указание отдельных
+            пространств имен затруднительным, если используется много компонент
+            из PEAR. Вы можете использовать метод
+            <code class="code">setFallbackAutoloader()</code>
+            для того, чтобы данный автозагрузчик был универсальным для всех
+            пространств имен:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autoloader</span>-&gt;<span style="color: #006600;">setFallbackAutoloader</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.loader.autoloader.interface" name="zend.loader.autoloader.interface"><div class="info"><h1 class="title">Итерфейс автозагрузчика</h1></div>
+        
+
+        <p class="para">
+            Кроме возможности указывать любые обратные вызовы в качестве
+            автозагрузчиков, Zend Framework предоставляет интерфейс,
+            который классы автозагрузчиков могут реализовывать -
+            <span class="classname">Zend_Loader_Autoloader_Interface</span>:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">interface</span> Zend_Loader_Autoloader_Interface</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> autoload<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$class</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Используя этот интерфейс, вы можете передавать экземпляр
+            класса методам <span class="classname">Zend_Loader_Autoloader</span>-а
+            <code class="code">pushAutoloader()</code> и <code class="code">unshiftAutoloader()</code>:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Предполагается, что Foo_Autoloader реализует Zend_Loader_Autoloader_Interface:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$foo</span> = <span style="color: #000000; font-weight: bold;">new</span> Foo_Autoloader<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autoloader</span>-&gt;<span style="color: #006600;">pushAutoloader</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$foo</span>, <span style="color: #ff0000;">'Foo_'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.loader.autoloader.reference" name="zend.loader.autoloader.reference"><div class="info"><h1 class="title">Справка по автозагрузчику</h1></div>
+        
+
+        <p class="para">
+            Ниже приведено руководство по методам, доступным в классе
+            <span class="classname">Zend_Loader_Autoloader</span>.
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>Методы Zend_Loader_Autoloader-а</b></caption></div>
+            
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>Метод</th>
+                        <th>Возвращаемое значение</th>
+                        <th>Параметры</th>
+                        <th>Описание</th>
+                    </tr>
+
+                </thead>
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left"><code class="code">getInstance()</code></td>
+                        <td align="left"><span class="classname">Zend_Loader_Autoloader</span></td>
+                        <td align="left">Нет</td>
+                        <td align="left"><p class="para">
+                            Возвращает экземпляр-синглетон класса
+                            <span class="classname">Zend_Loader_Autoloader</span>.
+                            При первом извлечении он регистрирует
+                            себя через <code class="code">spl_autoload</code>.
+                            Этот метод является статическим.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">resetInstance()</code></td>
+                        <td align="left"><code class="code">void</code></td>
+                        <td align="left">Нет</td>
+                        <td align="left"><p class="para">
+                            Устанавливает состояние экземпляра-синглетона
+                            <span class="classname">Zend_Loader_Autoloader</span>
+                            в его исходное состояние, отменяя регистрацию
+                            всех обратных вызовов и всех зарегистрированных
+                            пространств имен.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">autoload($class)</code></td>
+                        <td align="left"><code class="code">string|false</code></td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$class</var>, <em class="emphasis">обязательный</em>.
+                                Строка с именем класса для загрузки.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Пытается определить путь к файлу по имени класса
+                            и загрузить его.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">setDefaultAutoloader($callback)</code></td>
+                        <td align="left"><span class="classname">Zend_Loader_Autoloader</span></td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$callback</var>, <em class="emphasis">обязательный</em>.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Указывает альтернативный обратный вызов для
+                            применения в используемой по умолчанию реализации
+                            автозагрузчика.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">getDefaultAutoloader()</code></td>
+                        <td align="left"><code class="code">callback</code></td>
+                        <td align="left">Нет</td>
+                        <td align="left"><p class="para">
+                            Возвращает используемую по умолчанию реализацию
+                            автозагрузчика; по умолчанию это
+                            <span class="classname">Zend_Loader::loadClass()</span>.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">setAutoloaders(array $autoloaders)</code></td>
+                        <td align="left"><span class="classname">Zend_Loader_Autoloader</span></td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$autoloaders</var>, <em class="emphasis">обязательный</em>.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Устанавливает список автозагрузчиков для
+                            использования в стеке автозагрузчиков.
+                            Каждый элемент в массиве автозагрузчиков должен быть
+                            обратным вызовом PHP.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">getAutoloaders()</code></td>
+                        <td align="left"> <span class="type">Array</span> </td>
+                        <td align="left">Нет</td>
+                        <td align="left"><p class="para">
+                            Возвращает внутренний стек автозагрузчиков.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">getNamespaceAutoloaders($namespace)</code></td>
+                        <td align="left"> <span class="type">Array</span> </td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$namespace</var>, <em class="emphasis">обязательный</em>
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Извлекает все автозагрузчики, которые были
+                            зарегистрированы для загрузки данного
+                            пространства имен.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">registerNamespace($namespace)</code></td>
+                        <td align="left"><span class="classname">Zend_Loader_Autoloader</span></td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$namespace</var>, <em class="emphasis">обязательный</em>.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Регистрирует одно или более пространств имен с
+                            используемым по умолчанию автозагрузчиком.
+                            Если <var class="varname">$namespace</var> является строкой,
+                            то она регистрируется как пространство имен;
+                            если же массив строк, то все они
+                            регистрируются как пространства имен.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">unregisterNamespace($namespace)</code></td>
+                        <td align="left"><span class="classname">Zend_Loader_Autoloader</span></td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$namespace</var>, <em class="emphasis">обязательный</em>.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Отменяет регистрацию одного или более пространств
+                            имен из используемого по умолчанию автозагрузчика.
+                            Если <var class="varname">$namespace</var> является строкой,
+                            то отменяется регистрация пространства имен
+                            под этим именем;
+                            если это массив строк, то отменяются
+                            регистрации всех пространств имен в этом массиве.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">getRegisteredNamespace()</code></td>
+                        <td align="left"> <span class="type">Array</span> </td>
+                        <td align="left">Нет</td>
+                        <td align="left"><p class="para">
+                            Возвращает массив пространств имен,
+                            зарегистрированных с используемым по умолчанию
+                            автозагрузчиком.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">suppressNotFoundWarnings($flag = null)</code></td>
+                        <td align="left"><code class="code">boolean|Zend_Loader_Autoloader</code></td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$flag</var>, <em class="emphasis">опциональный</em>.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Устанавливает или возвращает значение флага,
+                            который используется для указания того, должна ли
+                            применяемая по умолчанию реализация автозагрузчика
+                            подавлять предупреждение &quot;файл не найден&quot;
+                            (&quot;file not found&quot;). Если ему не передаются аргументы
+                            или передано значение null, то он возвращает
+                            булево значение, показывающее статус флага.
+                            Если же передано булево значение, то флаг
+                            принимает данное значение и возвращается
+                            экземпляр автозагрузчика (для возможности
+                            использования method chaining).
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">setFallbackAutoloader($flag)</code></td>
+                        <td align="left"><span class="classname">Zend_Loader_Autoloader</span></td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$flag</var>, <em class="emphasis">обязательный</em>.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Устанавливает значение флага, который используется
+                            для указания того, должен или нет применяемый по
+                            умолчанию автозагрузчик использоваться в качестве
+                            обратного вызова или универсального автозагрузчика
+                            для всех пространств имен.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">isFallbackAutoloader()</code></td>
+                        <td align="left"> <span class="type">Boolean</span> </td>
+                        <td align="left">Нет</td>
+                        <td align="left"><p class="para">
+                            Возвращает значение флага, который используется для
+                            указания того, должен или нет применяемый по
+                            умолчанию автозагрузчик использоваться в качестве
+                            обратного вызова или универсального автозагрузчика
+                            для всех пространств имен.
+                            По умолчанию его значение равно false.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">getClassAutoloaders($class)</code></td>
+                        <td align="left"> <span class="type">Array</span> </td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$class</var>, <em class="emphasis">обязательный</em>.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Возвращает список автозагрузчиков, которые могут
+                            соответствовать данному классу. Если нет ни одного
+                            подходящего автозагрузчика, то возвращаются все
+                            глобальные (без привязки к пространству имен)
+                            автозагрузчики.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">unshiftAutoloader($callback, $namespace = &#039;&#039;)</code></td>
+                        <td align="left"><span class="classname">Zend_Loader_Autoloader</span></td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$callback</var>, <em class="emphasis">обязательный</em>.
+                                Обратный вызов PHP
+                            </p></li>
+
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$namespace</var>, <em class="emphasis">опциональный</em>.
+                                Строка с префиксом имен классов, используемым в
+                                качестве пространства имен.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Добавляет конкретную реализацию автозагрузчика
+                            в начало внутреннего стека автозагрузчиков. Если
+                            было передано пространство имен, то оно будет
+                            использовано для оптимистического сопоставления
+                            (optimistic matching), иначе автозагрузчик будет
+                            использоваться в качестве глобального.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">pushAutoloader($callback, $namespace = &#039;&#039;)</code></td>
+                        <td align="left"><span class="classname">Zend_Loader_Autoloader</span></td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$callback</var>, <em class="emphasis">обязательный</em>.
+                                Обратный вызов PHP
+                            </p></li>
+
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$namespace</var>, <em class="emphasis">опциональный</em>.
+                                Строка с префиксом имен классов, используемым в
+                                качестве пространства имен.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Добавляет конкретную реализацию автозагрузчика
+                            в конец внутреннего стека автозагрузчиков. Если
+                            было передано пространство имен, то оно будет
+                            использовано для оптимистического сопоставления
+                            (optimistic matching), иначе автозагрузчик будет
+                            использоваться в качестве глобального.
+                        </p></td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><code class="code">removeAutoloader($callback, $namespace = &#039;&#039;)</code></td>
+                        <td align="left"><span class="classname">Zend_Loader_Autoloader</span></td>
+                        <td align="left"><ul class="itemizedlist">
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$callback</var>, <em class="emphasis">обязательный</em>.
+                                Обратный вызов PHP
+                            </p></li>
+
+                            <li class="listitem"><p class="para">
+                                <var class="varname">$namespace</var>, <em class="emphasis">опциональный</em>.
+                                Строка, представляющая собой префикс имен
+                                классов (используемый в качестве пространства
+                                имен) или массив строк с префиксами.
+                            </p></li>
+                        </ul></td>
+                        <td align="left"><p class="para">
+                            Удаляет конкретную реализацию автозагрузчика из
+                            внутреннего стека автозагрузчиков.
+                            Если предоставлено пространство (пространства) имен,
+                            то обратный вызов будет удален только для данного
+                            пространства (пространств) имен.
+                        </p></td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.loader.load.html">Динамическая загрузка файлов и классов</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.loader.html">Zend_Loader</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.loader.autoloader-resource.html">Resource Autoloaders</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.loader.html">Zend_Loader</a></li>
+  <li><a href="zend.loader.load.html">Динамическая загрузка файлов и классов</a></li>
+  <li class="active"><a href="zend.loader.autoloader.html">Автозагрузчик</a></li>
+  <li><a href="zend.loader.autoloader-resource.html">Resource Autoloaders</a></li>
+  <li><a href="zend.loader.pluginloader.html">Loading Plugins</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,726 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>概要 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.search.lucene.html">Zend_Search_Lucene</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.search.lucene.index-creation.html">インデックスの構築</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.search.lucene.overview" class="section"><div class="info"><h1 class="title">概要</h1></div>
+    
+
+    <div class="section" id="zend.search.lucene.introduction" name="zend.search.lucene.introduction"><div class="info"><h1 class="title">導入</h1></div>
+        
+        <p class="para"><span class="classname">Zend_Search_Lucene</span> は、完全に PHP 5
+            で書かれている汎用的なテキスト検索エンジンです。
+            インデックスをファイルシステム上に保存するためデータベースサーバを必要とせず、
+            たいていの PHP ウェブサイト上で動作させることができます。
+            <span class="classname">Zend_Search_Lucene</span> は、以下の機能をサポートしています。
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">重要度による検索 - 最もマッチした結果が最初に返されます</p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                       さまざまな強力な検索方式: フレーズ検索、boolean 検索、ワイルドカード検索、
+                       あいまい検索、範囲指定検索などなど
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">指定したフィールド (例: タイトル、作者、内容) による検索</p>
+                </li>
+            </ul>
+
+            <span class="classname">Zend_Search_Lucene</span> は Apache Lucene プロジェクトから派生したものです。
+            現在 (Zend Framework 1.6 以降) サポートしている Lucene インデックスフォーマットバージョンは
+            1.4 - 2.3 です。
+            Lucene についての詳細は
+            <tt class="uri">http://lucene.apache.org/java/docs/</tt>
+            を参照ください。
+        </p>
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b></span>
+            
+            
+                以前の <span class="classname">Zend_Search_Lucene</span> の実装は Lucene 1.4 (1.9) - 2.1 インデックスフォーマットに対応しています。
+            <br />
+            
+                Zend Framework 1.5 以降、2.1 より前のインデックスフォーマットで作成されたインデックスは
+                <span class="classname">Zend_Search_Lucene</span> をアップグレードすると
+                自動的に Lucene 2.1 フォーマットにアップグレードされるようになっています。
+                いったんアップグレードされたインデックスは、
+                Zend Framework 1.0.x に含まれる Zend_Search_Lucene の実装で読み込むことができません。
+            <br />
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.search.lucene.index-creation.documents-and-fields" name="zend.search.lucene.index-creation.documents-and-fields"><div class="info"><h1 class="title">Document および Field オブジェクト</h1></div>
+        
+            <p class="para">
+                <span class="classname">Zend_Search_Lucene</span> は、ドキュメント単位でインデックスを作成します。
+                ドキュメントは名前つきのフィールドから構成され、
+                検索対象のコンテンツがフィールドの中に含まれます。
+            </p>
+
+            <p class="para">
+                ドキュメントを表すのが <span class="classname">Zend_Search_Lucene_Document</span>
+                オブジェクトです。このオブジェクトの中には、フィールドを表す
+                <span class="classname">Zend_Search_Lucene_Field</span> オブジェクトが含まれます。
+            </p>
+
+            <p class="para">
+                あらゆる種類の情報がインデックス化される可能性があることに注意しましょう。
+                アプリケーション固有の情報やメタデータをドキュメントのフィールドに格納し、
+                検索結果のドキュメントとして後で取得できます。
+            </p>
+
+            <p class="para">
+                インデクサを制御するのは、あなたが作成するアプリケーションの役割です。
+                ということは、あなたのアプリケーションからアクセス可能な、
+                あらゆる内容のデータがインデックス化される可能性があるということです。
+                例えばファイルシステム、データベース、<acronym class="acronym">HTML</acronym> フォームなどが考えられます。
+            </p>
+
+            <p class="para">
+                <span class="classname">Zend_Search_Lucene_Field</span> クラスには、
+                さまざまな性質のフィールドを作成するための静的メソッドが定義されています。
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Search_Lucene_Document<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// フィールドはトークン化されませんが、インデックス化されて保存されます。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 保存されたフィールドは、インデックスから取得できます。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">Keyword</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'doctype'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'autogenerated'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// フィールドはトークン化もインデックス化も行われませんが、インデックスに保存されます。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">UnIndexed</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'created'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// バイナリ文字列フィールドはトークン化もインデックス化も行われません。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// しかしインデックスには保存されます。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">Binary</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'icon'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$iconData</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// フィールドがトークン化・インデックス化されてインデックスに保存されます。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">Text</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'annotation'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Document annotation text'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// フィールドはトークン化されてインデックス化されますが、インデックスには保存されません。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">UnStored</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'contents'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'My document content'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                これらの各メソッド ( <span class="methodname">Zend_Search_Lucene_Field::Binary()</span>
+                メソッドを除く) は、オプションのパラメータ
+                <code class="code">$encoding</code> を持っています。
+                これで入力データのエンコーディングを指定します。
+            </p>
+
+            <p class="para">
+                エンコーディングはドキュメントによって異なるでしょうし、
+                同一ドキュメント内でもフィールドによって異なることもあるでしょう。
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Search_Lucene_Document<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">Text</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'title'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$title</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'iso-8859-1'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">UnStored</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'contents'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$contents</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'utf-8'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </p>
+
+            <p class="para">
+                エンコーディングパラメータを省略した場合は、
+                現在のロケールが処理時に使用されます。たとえば次のようになります。
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/setlocale"><span style="color: #000066;">setlocale</span></a><span style="color: #66cc66;">&#40;</span>LC_ALL, <span style="color: #ff0000;">'de_DE.iso-8859-1'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">UnStored</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'contents'</span>, <span style="color: #0000ff;">$contents</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </p>
+
+            <p class="para">
+                フィールドをインデックス化したり返したりする際には、
+                常に UTF-8 エンコーディングとなります。UTF-8 への変換は自動的に行われます。
+            </p>
+
+            <p class="para">
+                テキスト解析器 (<a href="zend.search.lucene.extending.html#zend.search.lucene.extending.analysis" class="link">以下を参照ください</a>)
+                は、テキストをその他のエンコーディングに変換したりもします。
+                実際、デフォルトの解析器はテキストを &#039;ASCII//TRANSLIT&#039; エンコーディングに変換します。
+                ここで注意が必要なのは、このような変換は現在のロケールに依存して行われるということです。
+            </p>
+
+            <p class="para">
+                フィールドの名前は  <span class="methodname">addField()</span> メソッドで自由につけることができます。
+            </p>
+
+            <p class="para">
+                Java Lucene は、検索の際にデフォルトで使用されるフィールド名として &quot;contents&quot; を使用します。
+                <span class="classname">Zend_Search_Lucene</span> は、デフォルトではすべてのフィールドを検索します。
+                しかし、この挙動を変更することもできます。詳細は
+                <a href="zend.search.lucene.query-language.html#zend.search.lucene.query-language.fields" class="link">&quot;デフォルトの検索フィールド&quot;</a>
+                の章を参照ください。
+            </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.index-creation.understanding-field-types" name="zend.search.lucene.index-creation.understanding-field-types"><div class="info"><h1 class="title">フィールド型について理解する</h1></div>
+        
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">Keyword</code> フィールドは、保存されインデックス化されます。
+                    つまり、検索した際に元の内容がそのまま返されるということです。
+                    トークン化は行われません (いくつかの単語に分割されることはありません)。
+                    列挙方のデータベースフィールドは、通常は <span class="classname">Zend_Search_Lucene</span> の
+                    Keyword フィールドにうまく収まることでしょう。
+                </p>
+            </li>
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">UnIndexed</code> フィールドは検索対象になりませんが、
+                    検索結果としては返されます。このフィールドに設定する値としては、
+                    データベースのタイムスタンプ、主キー、ファイルシステムのパス
+                    およびその他の外部識別子などがあります。
+                </p>
+            </li>
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">Binary</code> フィールドは、トークン化もインデックス化も行われません。
+                    しかし、検索結果として取得できるように保存されます。
+                    画像アイコンのようなバイナリデータをバイナリ文字列として
+                    エンコードしたものなどに対して使用します。
+                </p>
+            </li>
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">Text</code> フィールドは、保存されインデックス化され、
+                    そしてトークン化されます。検索項目として使用し、
+                    かつ検索結果としても取得したいような項目、
+                    例えばタイトルなどを保存するのに適しています。
+                </p>
+            </li>
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">UnStored</code> フィールドはトークン化されインデックス化されます。
+                    しかしインデックスには保存されません。大量のテキストなどに適しています。
+                    データを保存してしまうとディスク上のインデックスのサイズが大きくなってしまうので、
+                    検索はしたいが結果としてそれを表示する必要がない場合などは、
+                    このフィールドを使用しましょう。<span class="classname">Zend_Search_Lucene</span> インデックスを
+                    リレーショナルデータベースと組み合わせて使用する場合などには
+                    UnStored フィールドが実用的に使用できるでしょう。
+                    大きなデータフィールドの内容の検索用に UnStored フィールドに保存し、
+                    結果をデータベースから取得するために、もうひとつ別の ID フィールドを使用します。
+               </p>
+
+                <table class="doctable table"><div class="info"><caption><b>Zend_Search_Lucene_Field の型</b></caption></div>
+                    
+                    
+                        <thead valign="middle">
+                            <tr valign="middle">
+                                <th>フィールド型</th>
+                                <th>保存</th>
+                                <th>インデックス化</th>
+                                <th>トークン化</th>
+                                <th>バイナリ</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody valign="middle" class="tbody">
+                            <tr valign="middle">
+                                <td align="left">Keyword</td>
+                                <td align="left">Yes</td>
+                                <td align="left">Yes</td>
+                                <td align="left">No</td>
+                                <td align="left">No</td>
+                            </tr>
+
+                            <tr valign="middle">
+                                <td align="left">UnIndexed</td>
+                                <td align="left">Yes</td>
+                                <td align="left">No</td>
+                                <td align="left">No</td>
+                                <td align="left">No</td>
+                            </tr>
+
+                            <tr valign="middle">
+                                <td align="left">Binary</td>
+                                <td align="left">Yes</td>
+                                <td align="left">No</td>
+                                <td align="left">No</td>
+                                <td align="left">Yes</td>
+                            </tr>
+
+                            <tr valign="middle">
+                                <td align="left">Text</td>
+                                <td align="left">Yes</td>
+                                <td align="left">Yes</td>
+                                <td align="left">Yes</td>
+                                <td align="left">No</td>
+                            </tr>
+
+                            <tr valign="middle">
+                                <td align="left">UnStored</td>
+                                <td align="left">No</td>
+                                <td align="left">Yes</td>
+                                <td align="left">Yes</td>
+                                <td align="left">No</td>
+                            </tr>
+
+                        </tbody>
+                    
+                </table>
+
+           </li>
+       </ul>
+    </div>
+
+    <div class="section" id="zend.search.lucene.index-creation.html-documents" name="zend.search.lucene.index-creation.html-documents"><div class="info"><h1 class="title">HTML ドキュメント</h1></div>
+        
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> には <acronym class="acronym">HTML</acronym> をパースする機能もあります。
+            次のようにして、<acronym class="acronym">HTML</acronym> ファイルや文字列からドキュメントを直接作成できます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = Zend_Search_Lucene_Document_Html::<span style="color: #006600;">loadHTMLFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filename</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">addDocument</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$doc</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = Zend_Search_Lucene_Document_Html::<span style="color: #006600;">loadHTML</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$htmlString</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">addDocument</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$doc</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Html</span> クラスは、
+             <span class="methodname">DOMDocument::loadHTML()</span> および
+             <span class="methodname">DOMDocument::loadHTMLFile()</span> メソッドを用いてソース <acronym class="acronym">HTML</acronym>
+            をパースしています。つまり、対象となる <acronym class="acronym">HTML</acronym> は整形式である必要はなく、
+            また <acronym class="acronym">XHTML</acronym> である必要もありません。一方、ヘッダの &quot;meta http-equiv&quot;
+            タグで、エンコーディングをきちんと設定しておく必要があります。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Html</span> クラスは、
+            ドキュメントのタイトル、本文そしてヘッダの meta タグの内容を認識します。
+        </p>
+
+        <p class="para">
+            &#039;title&#039; フィールドには /html/head/title の値が入ります。
+            これはインデックスないにトークン化して保存され、検索の対象となります。
+        </p>
+
+        <p class="para">
+            &#039;body&#039; フィールドには body の中身が入ります。
+            スクリプトやコメント、そしてタグの属性は含まれません。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Html</span> クラスの
+             <span class="methodname">loadHTML()</span> および  <span class="methodname">loadHTMLFile()</span> メソッドには、
+            オプションの二番目の引数もあります。これを <b><tt>TRUE</tt></b> に設定すると、
+            body の中身もインデックスに格納され、インデックスから取得できるようになります。
+            body はトークン化とインデックス化だけが行われ、デフォルトでは保存されません。
+        </p>
+        <p class="para">
+             <span class="methodname">loadHTML()</span> メソッドおよび  <span class="methodname">loadHTMLFile()</span>
+            メソッドの三番目のパラメータはオプションで、元の <acronym class="acronym">HTML</acronym> ドキュメントのエンコーディングを指定します。
+            省略した場合は、Content-type HTTP-EQUIV meta タグを使用します。
+        </p>
+
+        <p class="para">
+            ドキュメントヘッダの meta タグの内容をもとに、追加のフィールドを作成します。
+            フィールドの名前は &#039;name&#039; 属性から取得します。そして
+            &#039;content&#039; 属性の内容がその値となります。これはトークン化、インデックス化した上で
+            保存されます。つまり、ドキュメントは meta タグの内容をもとにして
+            (たとえばキーワードによって) 検索できるようになるわけです。
+        </p>
+
+        <p class="para">
+            パースされたドキュメントに、ユーザが別のフィールドを拡張できます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = Zend_Search_Lucene_Document_Html::<span style="color: #006600;">loadHTML</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$htmlString</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">UnIndexed</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'created'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">UnIndexed</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'updated'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">Text</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'annotation'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Document annotation text'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">addDocument</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$doc</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            作成されたドキュメントにはリンクは含まれません。しかし、
+             <span class="methodname">Zend_Search_Lucene_Document_Html::getLinks()</span> および
+             <span class="methodname">Zend_Search_Lucene_Document_Html::getHeaderLinks()</span>
+            メソッドでリンクを取得することもできます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = Zend_Search_Lucene_Document_Html::<span style="color: #006600;">loadHTML</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$htmlString</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$linksArray</span> = <span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">getLinks</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$headerLinksArray</span> = <span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">getHeaderLinks</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            Zend Framework 1.6 以降では、<code class="code">rel</code> 属性が
+            <code class="code">&#039;nofollow&#039;</code> に設定されているリンクを除外できるようになりました。
+            このオプションを有効にするには
+             <span class="methodname">Zend_Search_Lucene_Document_Html::setExcludeNoFollowLinks($true)</span>
+            を使用します。
+        </p>
+        <p class="para">
+             <span class="methodname">Zend_Search_Lucene_Document_Html::getExcludeNoFollowLinks()</span>
+            メソッドは、この &quot;nofollow リンクを除外する&quot;
+            フラグの現在の状態を返します。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.index-creation.docx-documents" name="zend.search.lucene.index-creation.docx-documents"><div class="info"><h1 class="title">Word 2007 ドキュメント</h1></div>
+        
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> には Word 2007 のパース機能があります。Word 2007 ファイルから直接ドキュメントを作成できます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = Zend_Search_Lucene_Document_Docx::<span style="color: #006600;">loadDocxFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filename</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">addDocument</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$doc</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Docx</span> クラスは、<code class="code">ZipArchive</code> クラスと
+            <code class="code">simplexml</code> のメソッドでドキュメントをパースします。<code class="code">ZipArchive</code> クラス (php_zip モジュール)
+            が使用できない場合は、<span class="classname">Zend_Search_Lucene_Document_Docx</span> を Zend Framework で使用することはできません。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Docx</span> クラスは、ドキュメントのメタデータとテキストを扱います。メタデータに含まれる内容は、ドキュメントの内容によって filename, title, subject, creator, keywords, description, lastModifiedBy, revision, modified, created などがあります。
+        </p>
+
+        <p class="para">
+            &#039;filename&#039; フィールドは、実際の Word 2007 ファイルのファイル名です。
+        </p>
+
+        <p class="para">
+            &#039;title&#039; フィールドは、実際のドキュメントのタイトルです。
+        </p>
+
+        <p class="para">
+            &#039;subject&#039; フィールドは、実際のドキュメントの表題です。
+        </p>
+
+        <p class="para">
+            &#039;creator&#039; フィールドは、実際のドキュメントの作成者です。
+        </p>
+
+        <p class="para">
+            &#039;keywords&#039; フィールドは、実際のドキュメントのキーワードです。
+        </p>
+
+        <p class="para">
+            &#039;description&#039; フィールドは、実際のドキュメントの説明です。
+        </p>
+
+        <p class="para">
+            &#039;lastModifiedBy&#039; フィールドは、実際のドキュメントを最後に編集したユーザ名です。
+        </p>
+
+        <p class="para">
+            &#039;revision&#039; フィールドは、実際のドキュメントのリビジョン番号です。
+        </p>
+
+        <p class="para">
+            &#039;modified&#039; フィールドは、実際のドキュメントの最終更新日時です。
+        </p>
+
+        <p class="para">
+            &#039;created&#039; フィールドは、実際のドキュメントの作成日時です。
+        </p>
+
+        <p class="para">
+            &#039;body&#039; フィールドは、Word 2007 ドキュメントの実際の本文です。ここに含まれるのは通常のテキストのみで、コメントやリビジョンは含まれません。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Docx</span> クラスの  <span class="methodname">loadDocxFile()</span>
+            メソッドにもオプションの 2 番目の引数があります。これを <b><tt>TRUE</tt></b> に設定すると、
+            本文もインデックスに格納されてインデックスから取得できるようになります。
+            デフォルトでは、本文のトークン化とインデックスの作成は行いますがインデックスには格納されません。
+        </p>
+
+        <p class="para">
+            パースしたドキュメントに、プログラマが任意のフィールドを追加できます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = Zend_Search_Lucene_Document_Docx::<span style="color: #006600;">loadDocxFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filename</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">UnIndexed</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'indexTime'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">Text</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'annotation'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Document annotation text'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">addDocument</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$doc</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+    </div>
+
+    <div class="section" id="zend.search.lucene.index-creation.pptx-documents" name="zend.search.lucene.index-creation.pptx-documents"><div class="info"><h1 class="title">Powerpoint 2007 ドキュメント</h1></div>
+        
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> には Powerpoint 2007 のパース機能があります。Powerpoint 2007 ファイルから直接ドキュメントを作成できます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = Zend_Search_Lucene_Document_Pptx::<span style="color: #006600;">loadPptxFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filename</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">addDocument</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$doc</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Pptx</span> クラスは、<code class="code">ZipArchive</code> クラスと
+            <code class="code">simplexml</code> のメソッドでドキュメントをパースします。<code class="code">ZipArchive</code> クラス (php_zip モジュール)
+            が使用できない場合は、<span class="classname">Zend_Search_Lucene_Document_Pptx</span> を Zend Framework で使用することはできません。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Pptx</span> クラスは、ドキュメントのメタデータとテキストを扱います。メタデータに含まれる内容は、ドキュメントの内容によって filename, title, subject, creator, keywords, description, lastModifiedBy, revision, modified, created などがあります。
+        </p>
+
+        <p class="para">
+            &#039;filename&#039; フィールドは、実際の Powerpoint 2007 ファイルのファイル名です。
+        </p>
+
+        <p class="para">
+            &#039;title&#039; フィールドは、実際のドキュメントのタイトルです。
+        </p>
+
+        <p class="para">
+            &#039;subject&#039; フィールドは、実際のドキュメントの表題です。
+        </p>
+
+        <p class="para">
+            &#039;creator&#039; フィールドは、実際のドキュメントの作成者です。
+        </p>
+
+        <p class="para">
+            &#039;keywords&#039; フィールドは、実際のドキュメントのキーワードです。
+        </p>
+
+        <p class="para">
+            &#039;description&#039; フィールドは、実際のドキュメントの説明です。
+        </p>
+
+        <p class="para">
+            &#039;lastModifiedBy&#039; フィールドは、実際のドキュメントを最後に編集したユーザ名です。
+        </p>
+
+        <p class="para">
+            &#039;revision&#039; フィールドは、実際のドキュメントのリビジョン番号です。
+        </p>
+
+        <p class="para">
+            &#039;modified&#039; フィールドは、実際のドキュメントの最終更新日時です。
+        </p>
+
+        <p class="para">
+            &#039;created&#039; フィールドは、実際のドキュメントの作成日時です。
+        </p>
+
+        <p class="para">
+            &#039;body&#039; フィールドは、Powerpoint 2007 ドキュメントのすべてのスライドとノートの実際の本文です。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Pptx</span> クラスの  <span class="methodname">loadPptxFile()</span>
+            メソッドにもオプションの 2 番目の引数があります。これを <b><tt>TRUE</tt></b> に設定すると、
+            本文もインデックスに格納されてインデックスから取得できるようになります。
+            デフォルトでは、本文のトークン化とインデックスの作成は行いますがインデックスには格納されません。
+        </p>
+
+        <p class="para">
+            パースしたドキュメントに、プログラマが任意のフィールドを追加できます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = Zend_Search_Lucene_Document_Pptx::<span style="color: #006600;">loadPptxFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filename</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">UnIndexed</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'indexTime'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">Text</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'annotation'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Document annotation text'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">addDocument</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$doc</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.index-creation.xlsx-documents" name="zend.search.lucene.index-creation.xlsx-documents"><div class="info"><h1 class="title">Excel 2007 ドキュメント</h1></div>
+        
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> には Excel 2007 のパース機能があります。Excel 2007 ファイルから直接ドキュメントを作成できます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = Zend_Search_Lucene_Document_Xlsx::<span style="color: #006600;">loadXlsxFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filename</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">addDocument</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$doc</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Xlsx</span> クラスは、<code class="code">ZipArchive</code> クラスと
+            <code class="code">simplexml</code> のメソッドでドキュメントをパースします。<code class="code">ZipArchive</code> クラス (php_zip モジュール)
+            が使用できない場合は、<span class="classname">Zend_Search_Lucene_Document_Xlsx</span> を Zend Framework で使用することはできません。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Xlsx</span> クラスは、ドキュメントのメタデータとテキストを扱います。メタデータに含まれる内容は、ドキュメントの内容によって filename, title, subject, creator, keywords, description, lastModifiedBy, revision, modified, created などがあります。
+        </p>
+
+        <p class="para">
+            &#039;filename&#039; フィールドは、実際の Excel 2007 ファイルのファイル名です。
+        </p>
+
+        <p class="para">
+            &#039;title&#039; フィールドは、実際のドキュメントのタイトルです。
+        </p>
+
+        <p class="para">
+            &#039;subject&#039; フィールドは、実際のドキュメントの表題です。
+        </p>
+
+        <p class="para">
+            &#039;creator&#039; フィールドは、実際のドキュメントの作成者です。
+        </p>
+
+        <p class="para">
+            &#039;keywords&#039; フィールドは、実際のドキュメントのキーワードです。
+        </p>
+
+        <p class="para">
+            &#039;description&#039; フィールドは、実際のドキュメントの説明です。
+        </p>
+
+        <p class="para">
+            &#039;lastModifiedBy&#039; フィールドは、実際のドキュメントを最後に編集したユーザ名です。
+        </p>
+
+        <p class="para">
+            &#039;revision&#039; フィールドは、実際のドキュメントのリビジョン番号です。
+        </p>
+
+        <p class="para">
+            &#039;modified&#039; フィールドは、実際のドキュメントの最終更新日時です。
+        </p>
+
+        <p class="para">
+            &#039;created&#039; フィールドは、実際のドキュメントの作成日時です。
+        </p>
+
+        <p class="para">
+            &#039;body&#039; フィールドは、Excel 2007 ドキュメントのすべてのワークシートのすべてのセルの実際の内容です。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Document_Xlsx</span> クラスの  <span class="methodname">loadXlsxFile()</span>
+            メソッドにもオプションの 2 番目の引数があります。これを <b><tt>TRUE</tt></b> に設定すると、
+            本文もインデックスに格納されてインデックスから取得できるようになります。
+            デフォルトでは、本文のトークン化とインデックスの作成は行いますがインデックスには格納されません。
+        </p>
+
+        <p class="para">
+            パースしたドキュメントに、プログラマが任意のフィールドを追加できます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span> = Zend_Search_Lucene_Document_Xlsx::<span style="color: #006600;">loadXlsxFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filename</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">UnIndexed</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'indexTime'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">addField</span><span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Field::<span style="color: #006600;">Text</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'annotation'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Document annotation text'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">addDocument</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$doc</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.search.lucene.html">Zend_Search_Lucene</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.search.lucene.index-creation.html">インデックスの構築</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></li>
+  <li class="active"><a href="zend.search.lucene.overview.html">概要</a></li>
+  <li><a href="zend.search.lucene.index-creation.html">インデックスの構築</a></li>
+  <li><a href="zend.search.lucene.searching.html">インデックスの検索</a></li>
+  <li><a href="zend.search.lucene.query-language.html">クエリ言語</a></li>
+  <li><a href="zend.search.lucene.query-api.html">クエリ作成用の API</a></li>
+  <li><a href="zend.search.lucene.charset.html">文字セット</a></li>
+  <li><a href="zend.search.lucene.extending.html">拡張性</a></li>
+  <li><a href="zend.search.lucene.java-lucene.html">Java Lucene との相互運用</a></li>
+  <li><a href="zend.search.lucene.advanced.html">応用</a></li>
+  <li><a href="zend.search.lucene.best-practice.html">ベストプラクティス</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>キャッシュの仕組み - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.cache.introduction.html">導入</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.cache.html">Zend_Cache</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.cache.frontends.html">Zend_Cache のフロントエンド</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.cache.theory" class="section"><div class="info"><h1 class="title">キャッシュの仕組み</h1></div>
+    
+
+    <p class="para">
+        <span class="classname">Zend_Cache</span> には、3 つのポイントがあります。まず最初は一意な ID (文字列) で、
+        これによってキャッシュレコードを識別します。二番目は、例に含まれる
+        <em class="emphasis">&#039;lifetime&#039;</em> ディレクティブです。これは、キャッシュされたリソースの
+        「賞味期限」を定義するものです。三番目のポイントとなるのが条件付きの実行処理で、
+        不要なコードを完全に読み飛ばすことで処理速度を向上させることになります。
+        フロントエンドの主となる関数 (例えば  <span class="methodname">Zend_Cache_Core::get()</span>)
+        は、キャッシュがヒットしなかった場合には常に <b><tt>FALSE</tt></b> を返すよう設計されています。
+        そのため、キャッシュしたい (そして読み飛ばしたい) 部分を
+        <em class="emphasis"> <span class="methodname">if()</span>{ ... }</em> 文で囲む際に、
+        条件式として <span class="classname">Zend_Cache</span>
+        のメソッド自身を使用できるようになっています。
+        このブロックの最後では、出力内容を
+        (例えば  <span class="methodname">Zend_Cache_Core::save()</span> などで)
+        保存する必要があります。
+    </p>
+
+    <blockquote><p><b class="note">Note</b>: 
+        
+            条件付きの実行処理を必ず記述しなければならないわけではありません。
+            フロントエンドの種類によっては (例えば <em class="emphasis">Function</em> など)、
+            すべてのロジックがフロントエンドの中で実装されています。
+        <br />
+    </p></blockquote>
+
+    <blockquote><p><b class="note">Note</b>: 
+        
+            &#039;Cache hit (キャッシュにヒットした)&#039; とは、キャッシュレコードが見つかり、
+            かつそのレコードが &#039;fresh (新鮮)&#039; (言い換えると、まだ有効期限が切れていない)
+            状態であることを表す言葉です。&#039;Cache miss (キャッシュが見つからなかった)&#039;
+            はその正反対です。キャッシュが見つからなかった場合は、
+            データを (通常どおりに) 作成し、それをキャッシュしなければなりません。
+            一方、キャッシュにヒットした場合は、
+            バックエンドが自動的にキャッシュレコードを取得してくれます。
+        <br />
+    </p></blockquote>
+
+    <div class="section" id="zend.cache.factory" name="zend.cache.factory"><div class="info"><h1 class="title">Zend_Cache ファクトリメソッド</h1></div>
+        
+
+        <p class="para">
+            使用可能な <span class="classname">Zend_Cache</span> フロントエンドのインスタンスを作成する方法を、
+            以下の例で示します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// バックエンドを選びます (例えば 'File' や 'Sqlite'...)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$backendName</span> = <span style="color: #ff0000;">'[...]'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// フロントエンドを選びます (例えば 'Core'、'Output'、'Page'...)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$frontendName</span> = <span style="color: #ff0000;">'[...]'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 選択したフロントエンド用のオプションを配列に設定します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$frontendOptions</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#91;</span>...<span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 選択したバックエンド用のオプションを配列に設定します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$backendOptions</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#91;</span>...<span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// インスタンスを作成します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// (もちろん、最後の 2 つの引数は必須ではありません)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span> = Zend_Cache::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$frontendName</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$backendName</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$frontendOptions</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$backendOptions</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+         <p class="para">
+            これ以降のドキュメントでは、<var class="varname">$cache</var>
+            の中身が有効なフロントエンドになっているものとします。また、
+            選択したバックエンドにパラメータを渡す方法は理解できているものとします。
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                常に  <span class="methodname">Zend_Cache::factory()</span> を使用してフロントエンドの
+                インスタンスを作成するようにしてください。フロントエンドやバックエンドを
+                自前で作成しようとしても、期待通りには動作しないでしょう。
+            <br />
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.cache.tags" name="zend.cache.tags"><div class="info"><h1 class="title">レコードのタグ付け</h1></div>
+        
+
+        <p class="para">
+            タグは、キャッシュレコードを分類するための仕組みです。
+             <span class="methodname">save()</span> メソッドでキャッシュを保存する際に、
+            適用するタグを配列で指定できます。これを使用すると、
+            指定したタグが設定されているキャッシュレコードのみを削除するといったことが可能となります。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">save</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$huge_data</span>, <span style="color: #ff0000;">'myUniqueID'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tagA'</span>, <span style="color: #ff0000;">'tagB'</span>, <span style="color: #ff0000;">'tagC'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                 <span class="methodname">save()</span> メソッドには、オプションの第四引数
+                <var class="varname">$specificLifetime</var> を指定できることに注意しましょう
+                (<b><tt>FALSE</tt></b> 以外を指定することで、このキャッシュレコードの有効期限を特定の値に設定できます)。
+            <br />
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.cache.clean" name="zend.cache.clean"><div class="info"><h1 class="title">キャッシュの削除</h1></div>
+        
+
+        <p class="para">
+            特定のキャッシュ ID を削除/無効化するには、 <span class="methodname">remove()</span>
+            メソッドを使用します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">remove</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'削除するID'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            一回の操作で複数のキャッシュ ID を削除/無効化するには、 <span class="methodname">clean()</span>
+            メソッドを使用します。例えば、すべてのキャッシュレコードを削除するには次のようにします。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// すべてのレコードを削除します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">clean</span><span style="color: #66cc66;">&#40;</span>Zend_Cache::<span style="color: #006600;">CLEANING_MODE_ALL</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 有効期限切れのレコードのみ削除します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">clean</span><span style="color: #66cc66;">&#40;</span>Zend_Cache::<span style="color: #006600;">CLEANING_MODE_OLD</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            タグ &#039;tagA&#039; および &#039;tagC&#039; に該当するキャッシュエントリを削除するには、このようにします。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">clean</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Cache::<span style="color: #006600;">CLEANING_MODE_MATCHING_TAG</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tagA'</span>, <span style="color: #ff0000;">'tagC'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            タグ &#039;tagA&#039; にも &#039;tagC&#039; にも該当しないキャッシュエントリを削除するには、このようにします。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">clean</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Cache::<span style="color: #006600;">CLEANING_MODE_NOT_MATCHING_TAG</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tagA'</span>, <span style="color: #ff0000;">'tagC'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            タグ &#039;tagA&#039; または &#039;tagC&#039; に該当するキャッシュエントリを削除するには、このようにします。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span>-&gt;<span style="color: #006600;">clean</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Cache::<span style="color: #006600;">CLEANING_MODE_MATCHING_ANY_TAG</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'tagA'</span>, <span style="color: #ff0000;">'tagC'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            削除モードとして指定可能な値は <b><tt>CLEANING_MODE_ALL</tt></b>、<b><tt>CLEANING_MODE_OLD</tt></b>、
+            <b><tt>CLEANING_MODE_MATCHING_TAG</tt></b>、<b><tt>CLEANING_MODE_NOT_MATCHING_TAG</tt></b> および
+            <b><tt>CLEANING_MODE_MATCHING_ANY_TAG</tt></b> です。
+            後者は、その名が示すとおり、タグの配列と組み合わせて使用します。
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.cache.introduction.html">導入</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.cache.html">Zend_Cache</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.cache.frontends.html">Zend_Cache のフロントエンド</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.cache.html">Zend_Cache</a></li>
+  <li><a href="zend.cache.introduction.html">導入</a></li>
+  <li class="active"><a href="zend.cache.theory.html">キャッシュの仕組み</a></li>
+  <li><a href="zend.cache.frontends.html">Zend_Cache のフロントエンド</a></li>
+  <li><a href="zend.cache.backends.html">Zend_Cache のバックエンド</a></li>
+  <li><a href="zend.cache.cache.manager.html">The Cache Manager</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

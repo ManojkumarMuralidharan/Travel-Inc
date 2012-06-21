@@ -1,0 +1,1096 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Filter_Input - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.filter.writing_filters.html">Filter schreiben</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.filter.html">Zend_Filter</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.filter.inflector.html">Zend_Filter_Inflector</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.filter.input" class="section"><div class="info"><h1 class="title">Zend_Filter_Input</h1></div>
+    
+
+    <p class="para">
+        <span class="classname">Zend_Filter_Input</span> bietet ein ausgezeichnetes Interface um mehrere
+        Filter und Prüfer zu assoziieren, Sie Kollektionen von Daten hinzuzufügen, und Eingabewerte
+        zu empfangen nachdem diese durch die Filter und Prüfer bearbeitet wurden. Werte werden
+        standardmäßig in kommentiertem Format zurückgegeben für sichere <acronym class="acronym">HTML</acronym>
+        Ausgabe.
+    </p>
+
+    <p class="para">
+        Angenommen das diese Klasse ein Käfig für externe Daten ist. Daten betreten die Anwendung
+        von externen Quellen, wie <acronym class="acronym">HTTP</acronym> Anfrageparameter, <acronym class="acronym">HTTP</acronym>
+        Header, ein Web Service, oder sogar durch Lesen von eine Datenbank oder anderen Dateien.
+        Daten werden zuerst in den Käfig gesperrt, und die Anwendung kann diese Daten nur dann Stück
+        für Stück empfangen wenn dem Käfig gesagt wird, was diese Daten sein sollten und wie geplant
+        ist diese zu verwenden. Der Käfig inspiziert die Daten auf Gültigkeit. Es kann passieren das
+        er die Datenwerte kommentiert für den entsprechenden Kontext. Der Käfig entlässt die Daten
+        nur wen diese alle Notwendigkeiten komplett erfüllen. Mit einem einzigen und bequemen
+        Interface, wird gutes Programmierverhalten ermöglicht und es lässt Entwickler darüber
+        nachdenken wie die Daten verwendet werden.
+    </p>
+
+    <ul class="itemizedlist">
+        <li class="listitem">
+            <p class="para">
+                <em class="emphasis">Filter</em> wandeln Eingabewerte um, inden Sie Zeichen in dem Wert
+                entfernen oder Ändern. Das Ziel ist es Eingabewerte zu &quot;normalisieren&quot; bis diese
+                einem erwarteten Format entsprechen. Zum Beispiel, wenn ein String von nummerischen
+                Zeichen benötigt wird, und der Eingabewert &quot;abc123&quot; ist dann könnte eine erwartete
+                Umwandlung die Änderung des Wertes in den String &quot;123&quot; sein.
+            </p>
+        </li>
+
+        <li class="listitem">
+            <p class="para">
+                <em class="emphasis">Prüfer</em> prüfen Eingabewerte gegenüber Kriterien und melden ob
+                diese den Test bestanden haben oder nicht. Der Wert wird nicht geändert, aber die
+                Prüfung kann fehlschlagen. Zum Beispiel, wenn ein String wie eine Email Adresse
+                aussehen muß, und der Eingabewert &quot;abc123&quot; ist, dann wird der Wert als nicht gültig
+                angenommen.
+            </p>
+        </li>
+
+        <li class="listitem">
+            <p class="para">
+                <em class="emphasis">Auskommentierer</em> wandeln einen Wert um indem Sie magisches
+                Verhalten von bestimmten Zeichen entfernen. In einigen Ausgabekontexten haben
+                speziellen Zeichen eine Bedeutung. Zum Beispiel das Zeichen &#039;&lt;&#039; und &#039;&gt;&#039;
+                begrenzen <acronym class="acronym">HTML</acronym> Tags, und wenn ein String diese Zeichen enthält
+                und in einem <acronym class="acronym">HTML</acronym> Kontext ausgegeben wird, könnte der Inhalt
+                zwischen Ihnen die Ausgabe oder Funktionalität der <acronym class="acronym">HTML</acronym>
+                Präsentation beeinflussen. Das auskommentieren der Zeichen entfernt die spezielle
+                Bedeutung, damit Sie als literale Zeichen ausgegeben werden.
+            </p>
+        </li>
+    </ul>
+
+    <p class="para">
+        Um <span class="classname">Zend_Filter_Input</span> zu verwenden, müssen die folgenden Schritte
+        unternommen werden:
+    </p>
+
+    <ol type="1">
+        <li class="listitem"><p class="para">Filter und Prüfregeln deklarieren</p></li>
+        <li class="listitem"><p class="para">Filter und Prüfbearbeiter erstellen</p></li>
+        <li class="listitem"><p class="para">Eingabedaten bereitstellen</p></li>
+        <li class="listitem"><p class="para">Geprüfte Felder und andere Reports erhalten</p></li>
+    </ol>
+
+    <p class="para">
+        Die folgenden Sektionen beschreiben die Schritte für die Verwendung dieser Klasse.
+    </p>
+
+    <div class="section" id="zend.filter.input.declaring" name="zend.filter.input.declaring"><div class="info"><h1 class="title">Filter und Prüfregeln deklarieren</h1></div>
+        
+
+        <p class="para">
+            Vor der Erstellung einer Instanz von <span class="classname">Zend_Filter_Input</span>, muß ein
+            Array von Filterregeln deklariert werden und auch ein Array von Prüfregeln. Dieses
+            assoziative Array verbindet einen Regelnamen mit einem Filter oder Prüfer oder einer
+            Kette von Filtern oder Prüfern.
+        </p>
+
+        <p class="para">
+            Das folgende Beispiel eines Sets von Filterregeln deklariert, daß das Feld &#039;month&#039; von
+            <span class="classname">Zend_Filter_Digits</span> gefiltert wird, und das Feld &#039;account&#039; von
+            <span class="classname">Zend_Filter_StringTrim</span> gefiltert wird. Anschließend wird ein Set
+            von Prüfregeln deklariert welches prüft dass das Feld &#039;account&#039; nur dann gültig ist wenn
+            es nur alphabetische Zeichen enthält.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$filters</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span>&nbsp; &nbsp;=&gt; <span style="color: #ff0000;">'Digits'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'account'</span> =&gt; <span style="color: #ff0000;">'StringTrim'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'account'</span> =&gt; <span style="color: #ff0000;">'Alpha'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Jeder Schlüssel im obigen <var class="varname">$filters</var> Array ist der Name einer Regel die
+            auf einen Filter für ein spezielles Datenfeld angewendet wird. Standardmäßig, ist der
+            Name der Regel auch der Name des Feldes der Eingabedaten auf welche die Regel angewendet
+            werden soll.
+        </p>
+
+        <p class="para">
+            Eine Regel kann in verschiedenen Formaten deklariert werden:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    Ein einfacher skalarer String, der einem Klassennamen entspricht:
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span>&nbsp; &nbsp;=&gt; <span style="color: #ff0000;">'Digits'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Die Instanz eines Objektes einer der Klassen die
+                    <span class="classname">Zend_Filter_Interface</span> oder
+                    <span class="classname">Zend_Validate_Interface</span> implementieren.
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$digits</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_Digits<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span>&nbsp; &nbsp;=&gt; <span style="color: #0000ff;">$digits</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Ein Array um eine Kette von Filtern oder Prüfern zu deklarieren. Die Elemente
+                    dieses Arrays können Strings sein die Klassennamen entsprechen oder
+                    Filter/Prüfobjekte, wie in den oben beschriebenen Fällen. Zusätzlich kann eine
+                    dritte Wahl verwendet werden: Ein Array das einen String enthält der dem
+                    Klassennamen entspricht gefolgt von Argumenten die dessen Konstruktor übergeben
+                    werden.
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span>&nbsp; &nbsp;=&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Digits'</span>,&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// String</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_Int<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #808080; font-style: italic;">// Objekt Instanz</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Between'</span>, <span style="color: #cc66cc;">1</span>, <span style="color: #cc66cc;">12</span><span style="color: #66cc66;">&#41;</span>&nbsp; <span style="color: #808080; font-style: italic;">// String mit Konstruktor Argumenten</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </li>
+        </ul>
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                Wenn ein Filter oder Prüfer mit Konstruktor Argumenten in einem Array deklariert
+                wird, muß ein Array für die Regel erstellt werden, selbst wenn die Regel nur einen
+                Filter oder Prüfer enthält.
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            Es kann ein spezieller &quot;Wildcard&quot; Regelschlüssel <em class="emphasis">&#039;*&#039;</em>, entweder im
+            Array des Filters oder im Array des Prüfers, verwendet werden. Das bedeutet das der
+            Filter oder Prüfer der in dieser Regel deklariert wird allen Feldern der Eingabedaten
+            zugewiesen wird. Es gilt zu beachten das die Reihenfolge der Einträge im Array des
+            Filters oder im Array des Prüfers bedeutend ist; die Regeln werden in der gleichen
+            Reihenfolge zugewiesen in dem diese deklariert wurden.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$filters</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'*'</span>&nbsp; &nbsp; &nbsp;=&gt; <span style="color: #ff0000;">'StringTrim'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <span style="color: #ff0000;">'Digits'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.filter.input.running" name="zend.filter.input.running"><div class="info"><h1 class="title">Filter und Prüfbearbeiter erstellen</h1></div>
+        
+
+        <p class="para">
+            Nachdem die Filter und Prüfarrays deklariert wurden, können diese als Argumente im
+            Konstruktor von <span class="classname">Zend_Filter_Input</span> verwendet werden. Das gibt ein
+            Objekt zurück welches alle Filter- und Prüfregeln kennt, und das verwendet werden kann
+            um ein oder mehrere Sets von Eingabedaten zu bearbeiten.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Man kann Eingabedaten als drittes Argument im Konstruktor spezifizieren. Die
+            Datenstruktur ist ein assoziatives Array. Die superglobalen Standardvariablen in
+            <acronym class="acronym">PHP</acronym>, <var class="varname">$_GET</var> und <var class="varname">$_POST</var>, sind
+            Beispiele für dieses Format. Man kann jede dieser Variablen als Eingabedaten für
+            <span class="classname">Zend_Filter_Input</span> verwenden.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$data</span> = <span style="color: #0000ff;">$_GET</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Alternativ kann die  <span class="methodname">setData()</span> Methode verwendet werden, indem
+            ein assoziatives Array von Schlüssel/Werte Paaren, im selben Format wie oben
+            beschrieben, übergeben wird.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">setData</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$newData</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Die  <span class="methodname">setData()</span> Methode definiert Daten nocheinmal, in einem
+            existierenden <span class="classname">Zend_Filter_Input</span> Objekt ohne die Filter- und
+            Prüfregeln zu verändern. Wenn diese Methode verwendet wird können die selben Regeln, an
+            anderen Sets von Eingabedaten, wieder verwendet werden.
+        </p>
+    </div>
+
+    <div class="section" id="zend.filter.input.results" name="zend.filter.input.results"><div class="info"><h1 class="title">Geprüfte Felder und andere Reporte empfangen</h1></div>
+        
+
+        <p class="para">
+            Nachdem Filter und Prüfer deklariert wurden und der Eingabeprozessor erstellt wurde,
+            können Reporte von fehlenden, unbekannten und ungültigen Feldern empfangen werden. Man
+            kann auch die Werte der Felder erhalten, nachdem die Filter angewendet wurden.
+        </p>
+
+        <div class="section" id="zend.filter.input.results.isvalid" name="zend.filter.input.results.isvalid"><div class="info"><h1 class="title">Abfragen ob die Eingabe gültig ist</h1></div>
+            
+
+            <p class="para">
+                Wenn alle Eingabedaten die Prüfregeln bestanden haben, gibt die
+                 <span class="methodname">isValid()</span> Methode <b><tt>TRUE</tt></b> zurück. Wenn
+                irgendein Feld ungültig ist oder ein benötigtes Feld fehlt, gibt die
+                 <span class="methodname">isValid()</span> Methode <b><tt>FALSE</tt></b> zurück.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">isValid</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;OK<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Diese Methode akzeptiert ein optionales String Argument, das ein individuelles Feld
+                benennt. Wenn das spezifizierte Feld die Prüfung passiert und bereit ist um abgeholt
+                zu werden, gibt  <span class="methodname">isValid(&#039;fieldName&#039;)</span> den Wert
+                <b><tt>TRUE</tt></b> zurück.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">isValid</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'month'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;Feld 'month' ist OK<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.filter.input.results.reports" name="zend.filter.input.results.reports"><div class="info"><h1 class="title">Ungültige, fehlende oder unbekannte Felder erhalten</h1></div>
+            
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        <em class="emphasis">Ungültige</em> Felder sind jene, die einen oder mehrere
+                        Ihrer Prüfungen nicht bestehen.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <em class="emphasis">Fehlende</em> Felder sind jene die nicht in den
+                        Eingabedaten vorhanden sind, aber im Metakommando
+                        <strong class="command">&#039;presence&#039;=&gt;&#039;required&#039;</strong> (Siehe die <a href="zend.filter.input.html#zend.filter.input.metacommands.presence" class="link">spätere Sektion</a>
+                        über Metakommandos) deklariert wurden.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <em class="emphasis">Unbekannte</em> Felder sind jene die in keiner einzigen
+                        Regel, im Array der Prüfer, deklariert wurden, aber in den Eingabedaten
+                        vorkommen.
+                    </p>
+                </li>
+            </ul>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">hasInvalid</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> || <span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">hasMissing</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$messages</span> = <span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">getMessages</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// getMessages() gibt einfach die Zusammenfassung von getInvalid()</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// und getMissing() zurück</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">hasInvalid</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$invalidFields</span> = <span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">getInvalid</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">hasMissing</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$missingFields</span> = <span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">getMissing</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">hasUnknown</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #0000ff;">$unknownFields</span> = <span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">getUnknown</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Das Ergebnis der  <span class="methodname">getMessages()</span> Methode ist ein
+                assoziatives Array, das die Regelnamen einem Array von Fehlermeldungen, relativ zu
+                diesen Regeln, zuordnet. Es ist anzumerken das der Index dieses Arrays der Name der
+                Regel ist die in der Regeldeklaration verwendet wird, und welche von den Namen der
+                Felder, die von der Regel geprüft werden, unterschiedlich sein kann.
+            </p>
+
+            <p class="para">
+                Die  <span class="methodname">getMessages()</span> Methode gibt eine Zusammenfassung der
+                Arrays zurück die von  <span class="methodname">getInvalid()</span> und
+                 <span class="methodname">getMissing()</span> retourniert werden. Diese Methoden geben
+                Subsets der Nachrichten zurück, relativ zu den Prüffehlern, oder Felder die als
+                benötigt deklariert wurden aber in der Eingabe fehlen.
+            </p>
+
+            <p class="para">
+                Die  <span class="methodname">getErrors()</span> Methode gibt ein assoziatives Array
+                zurück, in dem die Regelnamen einem Array von Fehler Identifizierern entsprechen.
+                Fehler Identifizierer sind fixe Strings, um Gründe für eine fehlgeschlagene
+                Prüfung, zu identifizieren, wobei Nachrichten selbst geändert werden können. Siehe
+                <a href="zend.validate.introduction.html#zend.validate.introduction.using" class="link">dieses Kapitel</a> für mehr
+                Informationen.
+            </p>
+
+            <p class="para">
+                Die Nachricht die von  <span class="methodname">getMissing()</span> zurückgegeben wird kann
+                als Argument beim <span class="classname">Zend_Filter_Input</span> Konstruktor, oder durch
+                verwenden der  <span class="methodname">setOptions()</span> Methode, spezifiziert werden.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$options</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'missingMessage'</span> =&gt; <span style="color: #ff0000;">&quot;Feld '%field%' wird benötigt&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span>, <span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// alternative Methode:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">setOptions</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Und man kann auch einen Übersetzer hinzufügen der einem die Möglichkeit bietet
+                mehrere Sprachen für die Meldungen anzubieten welche von
+                <span class="classname">Zend_Filter_Input</span> zurückgegeben werden.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$translate</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Translate_Adapter_Array<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'content'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; Zend_Filter_Input::<span style="color: #006600;">MISSING_MESSAGE</span> =&gt; <span style="color: #ff0000;">&quot;Wo ist das Feld?&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">setTranslator</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$translate</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Wenn man einen anwendungsweiten Übersetzer verwendet, dann wird dieser von
+                <span class="classname">Zend_Filter_Input</span> verwendet. In diesem Fall muss man den
+                Übersetzer nicht manuell setzen.
+            </p>
+
+            <p class="para">
+                Das Ergebnis der  <span class="methodname">getUnknown()</span> Methode ist ein assoziatives
+                Array, in dem die Feldnamen den Feldwerten zugeordnet werden. Feldnamen werden in
+                diesem Fall als Arrayschlüssel verwendet, statt als Regelnamen, weil keine Regel
+                die Feld erwähnt die unbekannte Felder sind.
+            </p>
+        </div>
+
+        <div class="section" id="zend.filter.input.results.escaping" name="zend.filter.input.results.escaping"><div class="info"><h1 class="title">Gültige Felder bekommen</h1></div>
+            
+
+            <p class="para">
+                Alle Felder die entweder ungültig, fehlend oder unbekannt sind, werden als gültig
+                angenommen. Man kann Werte für diese Felder erhalten indem ein magischer Accessor
+                verwendet wird. Es gibt auch die nicht-magische Accessor Methoden
+                 <span class="methodname">getEscaped()</span> und  <span class="methodname">getUnescaped()</span>.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$m</span> = <span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">month</span>;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #808080; font-style: italic;">// Ausgabe vom magischen Accessor kommentieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$m</span> = <span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">getEscaped</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'month'</span><span style="color: #66cc66;">&#41;</span>;&nbsp; &nbsp;<span style="color: #808080; font-style: italic;">// Ausgabe kommentieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$m</span> = <span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">getUnescaped</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'month'</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// nicht kommentieren</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Standardmäßig, wenn ein Wert empfangen wird, wird er mit
+                <span class="classname">Zend_Filter_HtmlEntities</span> gefiltert. Das ist der Standard weil
+                angenommen wird, das die am meisten übliche Verwendung, die Ausgabe von Werten von
+                einem Feld in <acronym class="acronym">HTML</acronym> ist. Der HtmlEntities Filter hilft ungewollten
+                Ausgaben von Code vorzubeugen, welche zu Sicherheitsproblemen führen könnten.
+            </p>
+
+            <blockquote><p><b class="note">Note</b>: 
+                
+                    Wie oben gezeigt, kann man unkommentierte Werte erhalten undem die
+                     <span class="methodname">getUnescaped()</span> Methode verwendet wird, aber man muß
+                    dafür Code schreiben um die Werte sicher zu verwenden, und
+                    Sicherheitsprobleme, wie Verletzbarkeit für Seitenübergreifende Skript Attacken
+                    zu vermeiden.
+                <br />
+            </p></blockquote>
+
+            <div class="warning"><b class="warning">Warning</b><div class="info"><h1 class="title">Ungeprüfte Felder escapen</h1></div>
+                
+
+                <p class="para">
+                    Wie vorher erwähnt gibt  <span class="methodname">getEscaped()</span> nur geprüfte
+                    Felder zurück. Felder die keine zugeordnete Prüfung haben können auf diesem Weg
+                    nicht empfangen werden. Trotzdem gibt es einen möglichen Weg. Man kann eine
+                    leere Prüfung für alle Felder hinzufügen.
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'*'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span>, <span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+                <p class="para">
+                    Aber es sei gewarnt das die Verwendung dieser Schreibweise eine Sicherheitslücke
+                    eröffnet welche für Cross-Site Scripting Attacken verwendet werden könnte.
+                    Deswegen sollte man immer individuelle Prüfungen für jedes Feld setzen.
+                </p>
+            </div>
+
+            <p class="para">
+                Es kann ein anderer Filter für das auskommentieren von Werten definiert werden,
+                durch seine Spezifikation im Array der Optionen des Konstruktors:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$options</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'escapeFilter'</span> =&gt; <span style="color: #ff0000;">'StringTrim'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span>, <span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Alternativ kann die  <span class="methodname">setDefaultEscapeFilter()</span> Methode
+                verwendet werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">setDefaultEscapeFilter</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_StringTrim<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Bei jeder Verwendung, kann der Kommentarfilter als String Basisname der
+                Filterklasse, oder als Objektinstanz einer Filterklasse, spezifiziert werden. Der
+                Kommentarfilter kann eine Instanz einer Filterkette, oder ein Objekt der
+                <span class="classname">Zend_Filter</span> Klasse sein.
+            </p>
+
+            <p class="para">
+                Filter die Ausgaben kommentieren sollen auf diesen Weg ausgeführt werden, um
+                sicherzustellen das Sie nach der Prüfung ausgeführt werden. Andere Filter, die im
+                Array der Filterregeln deklariert werden, werden bei den Eingabedaten angewendet
+                bevor diese Daten geprüft werden. Wenn Kommentarfilter vor der Prüfung ausgeführt
+                werden, würde der Prozess der Prüfung viel komplexer sein um sowohl kommentierte
+                als auch unkommentierte Versionen der Daten anzubieten. Deswegen wird empfohlen,
+                Filter die Ausgaben mit  <span class="methodname">setDefaultEscapeFilter()</span>
+                kommentieren, nicht im <var class="varname">$filters</var> Array zu deklarieren.
+            </p>
+
+            <p class="para">
+                Es gibt nur eine  <span class="methodname">getEscaped()</span> Methode, und deswegen kann
+                nur ein Filter für das kommentieren spezifiziert werden (trotzdem kann dieser
+                Filter eine Filterkette sein). Wenn eine einzelne Instanz von
+                <span class="classname">Zend_Filter_Input</span> benötigt wird, um kommentierte Ausgaben zu
+                erhalten, und mehr als eine Filtermethode angewendet werden soll, sollte
+                <span class="classname">Zend_Filter_Input</span> erweitert werden und neue Methoden in der
+                Subklasse implementiert werden um Wert auf unterschiedlichen Wegen zu erhalten.
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="zend.filter.input.metacommands" name="zend.filter.input.metacommands"><div class="info"><h1 class="title">Metakommandos verwenden um Filter oder Prüfregeln zu kontrollieren</h1></div>
+        
+
+        <p class="para">
+            Zusätzlich zum deklarieren der Übereinstimmungen von Feldern zu Filtern oder Prüfer,
+            können einige &quot;Metakommandos&quot; in der Array Deklaration spezifiziert werden um einige
+            optionale Verhaltensweisen von <span class="classname">Zend_Filter_Input</span> zu
+            kontrollieren. Metakommandos treten als String-indizierte Einträge in einem gegebenen
+            Filter- oder Prüfarray Wert auf.
+        </p>
+
+        <div class="section" id="zend.filter.input.metacommands.fields" name="zend.filter.input.metacommands.fields"><div class="info"><h1 class="title">Das FIELDS Metakommando</h1></div>
+            
+
+            <p class="para">
+                Wenn der Name der Regel für einen Filter oder Prüfer anders lautet als das Feld in
+                welchem er angewendet werden soll, kann der Feldname mit dem &#039;fields&#039; Metakommando
+                spezifiziert werden.
+            </p>
+
+            <p class="para">
+                Dieses Metakommando kann durch Verwendung der Klassenkonstanten
+                <b><tt>Zend_Filter_Input::FIELDS</tt></b> statt der Angabe eines Strings
+                spezifiziert werden.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$filters</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Digits'</span>,&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Namen als Integer Index [0] filtern</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'fields'</span> =&gt; <span style="color: #ff0000;">'mo'</span> <span style="color: #808080; font-style: italic;">// Namen als String Index ['fields'] filtern</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Im obigen Beispiel wendet die Filterregel den &#039;digits&#039; Filter am Eingabefeld, das
+                &#039;mo&#039; heißt, an. Der String &#039;month&#039; wird einfach ein mnemonischer Schlüsselfür diese
+                Filterregel; er wird nicht als Filtername verwendet wenn der Filter mit dem &#039;fields&#039;
+                Metakommando spezifiziert wird, aber er wird als Regelname verwendet.
+            </p>
+
+            <p class="para">
+                Der Standardwert des &#039;fields&#039; Metakommandos ist der Index der aktuellen Regel. Im
+                obigen Beispiel wird die Regel, wenn das &#039;fields&#039; Metakommando nicht spezifiziert
+                wird, auf das Eingabefeld das &#039;month&#039; heißt, angewendet.
+            </p>
+
+            <p class="para">
+                Eine weitere Verwendung des &#039;fields&#039; Metakommandos ist es Felder für Filter oder
+                Prüfer zu spezifizieren die mehrere Felder als Eingabe benötigen. Wenn das &#039;fields&#039;
+                Metakommando ein Array ist, ist das Argument des korrespondierenden Filters oder
+                Prüfers ein Array mit den Werten dieser Felder. Zum Beispiel ist es für Benutzer
+                üblich einen Passwort String in zwei Feldern zu spezifizieren, und diese müssen den
+                selben String in beide Felder eingeben. Man kann zum Beispiel eine Prüfklasse
+                implmentieren die ein Array Argument annimmt, und <b><tt>TRUE</tt></b>
+                zurückgibt wenn alle Werte im Array identisch zum jeweils anderen sind.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'password'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'StringEquals'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'fields'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'password1'</span>, <span style="color: #ff0000;">'password2'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">//&nbsp; Inkludiert die hypotetische Klasse Zend_Validate_StringEquals,</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// übergibt dieser ein Array Argument das den Wert der beiden Eingabe</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Datenfelder enthält die 'password1' und 'password2' heißen.</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Wenn die Prüfung dieser Regel fehlschlägt wird der Schlüssel der Regel
+                (&#039;password&#039;) im Rückgabewert von  <span class="methodname">getInvalid()</span>
+                verwendet und nicht eine der benannten Felder im &#039;fields&#039; Metakommando.
+            </p>
+        </div>
+
+        <div class="section" id="zend.filter.input.metacommands.presence" name="zend.filter.input.metacommands.presence"><div class="info"><h1 class="title">Das PRESENCE Metakommando</h1></div>
+            
+
+            <p class="para">
+                Jeder Eintrag im Prüfarray kann ein Metakommando haben das &#039;presence&#039; heißt. Wenn
+                der Wert dieses Metakommandos &#039;required&#039; ist muß dieses Feld in den Eingabedaten
+                existieren, andernfalls wird es als fehlendes Feld gemeldet.
+            </p>
+
+            <p class="para">
+                Das Metakommando kann auch spezifiziert werden indem die Klassenkonstante
+                <b><tt>Zend_Filter_Input::PRESENCE</tt></b> statt dem String verwendet wird.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'digits'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'presence'</span> =&gt; <span style="color: #ff0000;">'required'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Der Standardwert dieses Metakommandos ist &#039;optional&#039;.
+            </p>
+        </div>
+
+        <div class="section" id="zend.filter.input.metacommands.default" name="zend.filter.input.metacommands.default"><div class="info"><h1 class="title">Das DEFAULT_VALUE Metakommando</h1></div>
+            
+
+            <p class="para">
+                Wenn ein Feld, für das ein Wert mit dem &#039;default&#039; Metakommando für diese Regel, in
+                den Eigabedaten vorhanden ist, nimmt das Feld den Wert dieses Metakommandos.
+            </p>
+
+            <p class="para">
+                Dieses Metakommando kann auch spezifiziert werden indem die Klassenkonstante
+                <b><tt>Zend_Filter_Input::DEFAULT_VALUE</tt></b> statt einem String verwendet
+                wird.
+            </p>
+
+            <p class="para">
+                Der Standardwert wird dem Feld zugeordnet bevor irgendeiner der Prüfungen
+                stattfindet. Der Standardwert wird dem Feld nur für die aktuelle Regel zugeordnet;
+                wenn das selbe Weld in einer folgenden Regel referenziert wird, hat dieses Feld
+                keinen Wert wenn diese Regel evaluiert wird. Deshalb können verschiedene Regeln auch
+                verschiedene Standardwerte für ein gegebenes Feld deklarieren.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'digits'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'default'</span> =&gt; <span style="color: #ff0000;">'1'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// kein Wert für das 'month' Feld</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$data</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">null</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">month</span>; <span style="color: #808080; font-style: italic;">// gibt 1 aus</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Wenn eine Regel das <b><tt>FIELDS</tt></b> Metakommando verwendet um ein Array
+                mit mehrfachen Feldern zu definieren, kann ein Array für das
+                <b><tt>DEFAULT_VALUE</tt></b> Metakommando definiert werden und der Standard
+                der korrespondierenden Schlüssel wird für alle fehlenden Felder verwendet. Wenn
+                <b><tt>FIELDS</tt></b> mehrfache Felder definiert aber
+                <b><tt>DEFAULT_VALUE</tt></b> nur ein skalarer Wert ist, dann wird dieser
+                Standardwert als Wert für alle fehlenden Feldern im Array verwendet.
+            </p>
+
+            <p class="para">
+                Es gibt keinen Standardwert für dieses Metakommando.
+            </p>
+        </div>
+
+        <div class="section" id="zend.filter.input.metacommands.allow-empty" name="zend.filter.input.metacommands.allow-empty"><div class="info"><h1 class="title">Das ALLOW_EMPTY Metakommando</h1></div>
+            
+
+            <p class="para">
+                Standardmäßig, wenn ein Feld in den Eingabedaten existiert, wird Ihm der Prüfer
+                zugeordnet selbst wenn der Wert des Feldes ein leerer String ist
+                (<em class="emphasis">&#039;&#039;</em>). Das kann zu einem Fehler in der Prüfung führen. Zum
+                Beispiel, wenn ein Prüfer auf Ziffern prüft und es keine gibt weil ein leerer String
+                keine Zeichen hat, weil der Prüfer dann die Daten als fehlerhaft meldet.
+            </p>
+
+            <p class="para">
+                Wenn, in eigenen Fällen, ein leerer String als gültig angenommen werden soll, kann
+                das Metakommando &#039;allowEmpty&#039; auf <b><tt>TRUE</tt></b> gesetzt werden. Dann
+                passieren die Eingabedaten die Prüfung wenn sie in den Eingabedaten vorhanden sind,
+                aber der Wert ein leerer String ist.
+            </p>
+
+            <p class="para">
+                Dieses Metakommando kann spezifiziert werden indem die Klassenkonstante
+                <b><tt>Zend_Filter_Input::ALLOW_EMPTY</tt></b> statt einem String verwendet
+                wird.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'address2'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Alnum'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'allowEmpty'</span> =&gt; <span style="color: #000000; font-weight: bold;">true</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Der Standardwert dieses Metakommandos ist <b><tt>FALSE</tt></b>.
+            </p>
+
+            <p class="para">
+                Im unüblichen Fall das eine Prüfregel mit keinem Prüfer definiert wird, aber das
+                &#039;allowEmpty&#039; Metakommando <b><tt>FALSE</tt></b> ist (was bedeutet, dass das
+                Feld als ungültig angenommen wird wenn es leer ist), gibt
+                <span class="classname">Zend_Filter_Input</span> eine Standard Fehlermeldung zurück die mit
+                 <span class="methodname">getMessages()</span> empfangen werden kann. Diese Meldung kann
+                spezifiziert werden indem die &#039;notEmptyMessage&#039; als Argument für den
+                <span class="classname">Zend_Filter_Input</span> Constructor verwendet wird oder indem die
+                 <span class="methodname">setOptions()</span> Methode verwendet wird.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$options</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'notEmptyMessage'</span> =&gt; <span style="color: #ff0000;">&quot;Ein nicht-leerer Wert wird für das Feld '%field%' benötigt&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span>, <span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// alternative Methode:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">setOptions</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.filter.input.metacommands.break-chain" name="zend.filter.input.metacommands.break-chain"><div class="info"><h1 class="title">Das BREAK_CHAIN Metakommando</h1></div>
+            
+
+            <p class="para">
+                Standardmäßig, wenn eine Regel mehr als einen Prüfer hat werden alle Prüfer auf die
+                Eingabe angewendet, und die resultierende Nachricht enthält alle Fehlermeldungen die
+                durch die Eingabe verursacht wurden.
+            </p>
+
+            <p class="para">
+                Alternativ, wenn der Wert des &#039;breakChainOnFailure&#039; Metakommandos
+                <b><tt>TRUE</tt></b> ist, terminiert die Prüfkette nachdem der erste Prüfer
+                fehlschlägt. Die Eingabedaten werden nicht gegen nachfolgende Prüfer in der Kette
+                geprüft. Sie können also weitere Fehlschläge verursachen selbst wenn der eine, der
+                gemeldet wurde, korrigiert wird.
+            </p>
+
+            <p class="para">
+                Dieses Metakommando kann spezifiziert werden indem die Klassenkonstante
+                <b><tt>Zend_Filter_Input::BREAK_CHAIN</tt></b> statt einem String verwendet
+                wird.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Digits'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_Between<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">1</span>,<span style="color: #cc66cc;">12</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_GreaterThan<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'breakChainOnFailure'</span> =&gt; <span style="color: #000000; font-weight: bold;">true</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">null</span>, <span style="color: #0000ff;">$validators</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Der Standardwert dieses Metakommandos ist <b><tt>FALSE</tt></b>.
+            </p>
+
+            <p class="para">
+                Die Klasse der Prüfketten, <span class="classname">Zend_Validate</span>, ist flexibler was
+                das Durchbrechen von ausgeführten Ketten betrifft als
+                <span class="classname">Zend_Filter_Input</span>. Mit der ersten Klasse, kann eine Option
+                gesetzt werden um die Kette, für jeden Prüfer in der Kette, bei Fehlern unabhängig
+                von jedem anderen Prüfer abzubrechen. Mit der anderen Klasse wird der definierte
+                Wert des &#039;breakChainOnFailure&#039; Metakommandos für eine Regel, einheitlich für alle
+                Regeln in der Regel, angewendet. Wenn eine flexiblere Verwendung benötigt wird,
+                sollte die Prüfkette selbst erstellt werden und diese als Objekt in der Definition
+                der Prüfregel verwendet werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Prüfkette mit nicht einheitlichen breakChainOnFailure Attributen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// erstellen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$chain</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Validate<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$chain</span>-&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_Digits<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$chain</span>-&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_Between<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">1</span>,<span style="color: #cc66cc;">12</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #000000; font-weight: bold;">false</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$chain</span>-&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_GreaterThan<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Prüfregeln deklarieren welche die oben definierte Kette verwenden</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <span style="color: #0000ff;">$chain</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">null</span>, <span style="color: #0000ff;">$validators</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.filter.input.metacommands.messages" name="zend.filter.input.metacommands.messages"><div class="info"><h1 class="title">Das MESSAGES Metakommando</h1></div>
+            
+
+            <p class="para">
+                Man kann Fehlermeldungen für jeden Prüfer in einer Regel spezifizieren indem das
+                &#039;messages&#039; Metakommando verwendet wird. Der Wert dieses Metakommandos variiert, je
+                nachdem ob man mehrere Prüfer in der Regel hat, oder ob man die Nachricht für eine
+                spezielles Fehlerereignis in einem angegebenen Prüfer setzen will.
+            </p>
+
+            <p class="para">
+                Dieses Metakommando kann spezifiziert werden indem die Klassenkonstante
+                <b><tt>Zend_Filter_Input::MESSAGES</tt></b> statt einem String verwendet
+                wird.
+            </p>
+
+            <p class="para">
+                Anbei ist ein einfaches Beispiel wie eine Standard fehlermeldung für einen einzelnen
+                Prüfer gesetzt wird.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'digits'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'messages'</span> =&gt; <span style="color: #ff0000;">'Ein Monat darf nur aus Ziffern bestehen'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Wenn mehrere Prüfer vorhanden sind für die eine Fehlermeldung gesetzt werden soll,
+                sollte ein Array für dem Wert des &#039;messages&#039; Metakommandos verwendet werden.
+            </p>
+
+            <p class="para">
+                Jedes Element dieses Array wird dem Prüfer an der gleichen Indexposition zugeordnet.
+                Man kann eine Nachricht für die Prüfung an der Position <em class="emphasis">n</em>
+                spezifizieren indem der Wert von <em class="emphasis">n</em> als Array Index verwendet
+                wird. So kann einigen Prüfern erlaubt werden Ihre eigenen Standardnachrichten zu
+                verwenden, wärend die Nachricht für einen nachfolgenden Prüfer in der Kette gesetzt
+                wird.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'digits'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_Between<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">1</span>, <span style="color: #cc66cc;">12</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'messages'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Standardnachricht für Prüfer [0] verwenden</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Neue Nachricht für Prüfer [1] setzen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #cc66cc;">1</span> =&gt; <span style="color: #ff0000;">'Der Wert für Monat muß zwischen 1 und 12 sein'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Wenn einer der Prüfer mehrere Fehlermeldungen besitzt, werden diese durch
+                Nachrichten Schlüssel identifiziert. Es gibt verschiedene Schlüssel in jeder
+                Prüfklasse, welche als Identifizierer für Fehlernachrichten fungieren, die die
+                entsprechende Prüfklasse erstellen kann. Jede Prüfklasse definiert Konstanten für
+                Ihre Nachrichtenschlüssel. Diese Schlüssel können im &#039;messages&#039; Metakommando
+                verwendet werden indem Sie als assoziatives Array übergeben werden statt als String.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'digits'</span>, <span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_Between<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">1</span>, <span style="color: #cc66cc;">12</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'messages'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Ein Monat darf nur aus Ziffern bestehen'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Validate_Between::<span style="color: #006600;">NOT_BETWEEN</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Der Wert %value% vom Monat sollte zwischen '</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'%min% und %max% sein'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Validate_Between::<span style="color: #006600;">NOT_BETWEEN_STRICT</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Der Wert %value% vom Monat darf nur zwischen '</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'%min% und %max% sein'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Es sollte für jede Prüfklasse in die Dokumentation gesehen werden, um zu wissen ob
+                diese mehrere Fehlernachrichten hat, welche Schlüssel die Nachrichten haben und
+                welche Token im Nachrichtentemplate verwendet werden können.
+            </p>
+
+            <p class="para">
+                Wenn man nur eine Prüfung in der Prüfregel hat, oder aller verwendeten Prüfungen
+                die gleiche Nachricht gesetzt haben, dann kann auf Sie ohne zusätzliche Erstellung
+                eines Arrays referiert werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">new</span> Zend_Validate_Between<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">1</span>, <span style="color: #cc66cc;">12</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'messages'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Validate_Between::<span style="color: #006600;">NOT_BETWEEN</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Month value %value% must be between '</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'%min% and %max%'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Validate_Between::<span style="color: #006600;">NOT_BETWEEN_STRICT</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Month value %value% must be strictly between '</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'%min% and %max%'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.filter.input.metacommands.global" name="zend.filter.input.metacommands.global"><div class="info"><h1 class="title">Verwenden von Optionen um Metakommandos für alle Regeln zu setzen</h1></div>
+            
+
+            <p class="para">
+                Der Standardwert für die &#039;allowEmpty&#039;, &#039;breakChainOnFailure&#039;, und &#039;presence&#039;
+                Metakommandos kann für alle Regeln gesetzt werden indem das
+                <var class="varname">$options</var> Argument für den Konstruktor von
+                <span class="classname">Zend_Filter_Input</span> verwendet wird. Das erlaubt das Setzen des
+                Standardwertes für alle Regeln, ohne dass das Metakommando für jede Regel gesetzt
+                werden muß.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Der Standard wird bei allen Feldern gesetzt und erlaubt einen leeren String.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$options</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'allowEmpty'</span> =&gt; <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Diese Regeldefinition kann überschrieben werden, wenn ein Feld keinen leeren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// String akzeptieren soll</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$validators</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'month'</span> =&gt; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'Digits'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'allowEmpty'</span> =&gt; <span style="color: #000000; font-weight: bold;">false</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span>, <span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Die &#039;fields&#039;, &#039;messages&#039;, und &#039;default&#039; Metakommandos können nicht mit dieser
+                Technik gesetzt werden.
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="zend.filter.input.namespaces" name="zend.filter.input.namespaces"><div class="info"><h1 class="title">Namensräume für Filterklassen hinzufügen</h1></div>
+        
+
+        <p class="para">
+            Standardmäßig, wenn ein Filter oder Prüfer als String deklariert wird, sucht
+            <span class="classname">Zend_Filter_Input</span> nach der korrespondierenden Klasse unter dem
+            <span class="classname">Zend_Filter</span> oder <span class="classname">Zend_Validate</span> Namensraum.
+            Ein Filter der zum Beispiel nach dem String &#039;digits&#039; benannt ist wird in der Klasse
+            <span class="classname">Zend_Filter_Digits</span> gefunden.
+        </p>
+
+        <p class="para">
+            Wenn eigene Filter oder Prüfklassen geschrieben werden, oder Filter oder Prüfer von
+            Drittanbietern verwendet werden, können diese Klassen in einem anderen Namensraum als
+            <span class="classname">Zend_Filter</span> oder <span class="classname">Zend_Validate</span> existieren.
+            <span class="classname">Zend_Filter_Input</span> kann mitgeteilt werden, das in zusätzlichen
+            Namensräumen gesucht werden soll. Namensräume können in den Konstruktor Optionen
+            spezifiziert werden:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$options</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'filterNamespace'</span> =&gt; <span style="color: #ff0000;">'My_Namespace_Filter'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'validatorNamespace'</span> =&gt; <span style="color: #ff0000;">'My_Namespace_Validate'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_Input<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filters</span>, <span style="color: #0000ff;">$validators</span>, <span style="color: #0000ff;">$data</span>, <span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Alternativ kann die  <span class="methodname">addValidatorPrefixPath($prefix, $path)</span>
+            oder die  <span class="methodname">addFilterPrefixPath($prefix, $path)</span> Methoden
+            verwendet werden, welche direkt auf den Plugin Lader verweisen der von
+            <span class="classname">Zend_Filter_Input</span> verwendet wird:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">addValidatorPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Other_Namespace'</span>, <span style="color: #ff0000;">'Other/Namespace'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$input</span>-&gt;<span style="color: #006600;">addFilterPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Foo_Namespace'</span>, <span style="color: #ff0000;">'Foo/Namespace'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Die Suchrichtung für die Prüfungen ist jetzt:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 1. My_Namespace_Validate</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 1. My_Namespace</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 3. Zend_Validate</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Die Suchrichtung für die Filter ist jetzt:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 1. My_Namespace_Filter</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 2. Foo_Namespace</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 3. Zend_Filter</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            <span class="classname">Zend_Filter</span> <span class="classname">und Zend_Validate</span> können als
+            Namensraum nicht entfernt werden, es können nur Namensräume hinzugefügt werden.
+            Benutzerdefinierte Namensräume werden zuerst durchsucht, Zend Namensräume werden zuletzt
+            durchsucht.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                Ab der Version 1.5 sollte die Funktion
+                 <span class="methodname">addNamespace($namespace)</span> nicht mehr verwendet werden und
+                wurde durch den Plugin Lader getauscht. Und
+                 <span class="methodname">addFilterPrefixPath()</span> sowie
+                 <span class="methodname">addValidatorPrefixPath()</span> wurden hinzugefügt. Auch die
+                Konstante <b><tt>Zend_Filter_Input::INPUT_NAMESPACE</tt></b> sollte jetzt nicht
+                mehr verwendet werden. Die Konstanten
+                <b><tt>Zend_Filter_Input::VALIDATOR_NAMESPACE</tt></b> und
+                <b><tt>Zend_Filter_Input::FILTER_NAMESPACE</tt></b> sind seit den Releases
+                nach 1.7.0 vorhanden.
+            <br />
+        </p></blockquote>
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                Seit Version 1.0.4 wurde <b><tt>Zend_Filter_Input::NAMESPACE</tt></b>, der
+                den Wert <span class="property">namespace</span> hatte, auf
+                <b><tt>Zend_Filter_Input::INPUT_NAMESPACE</tt></b>, mit dem Wert
+                <span class="property">inputNamespace</span> geändert, um der Reservierung des
+                Schlüsselwortes <span class="property">namespace</span> ab <acronym class="acronym">PHP</acronym> 5.3 gerecht
+                zu werden.
+            <br />
+        </p></blockquote>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.filter.writing_filters.html">Filter schreiben</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.filter.html">Zend_Filter</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.filter.inflector.html">Zend_Filter_Inflector</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.filter.html">Zend_Filter</a></li>
+  <li><a href="zend.filter.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.filter.set.html">Standard Filter Klassen</a></li>
+  <li><a href="zend.filter.filter_chains.html">Filter Ketten</a></li>
+  <li><a href="zend.filter.writing_filters.html">Filter schreiben</a></li>
+  <li class="active"><a href="zend.filter.input.html">Zend_Filter_Input</a></li>
+  <li><a href="zend.filter.inflector.html">Zend_Filter_Inflector</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

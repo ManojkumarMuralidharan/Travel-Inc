@@ -1,0 +1,980 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>LDAP Authentifizierung - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.auth.adapter.http.html">HTTP Authentication Adapter</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.auth.html">Zend_Auth</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.auth.adapter.openid.html">Open ID Authentifikation</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.auth.adapter.ldap" class="section"><div class="info"><h1 class="title">LDAP Authentifizierung</h1></div>
+    
+
+    <div class="section" id="zend.auth.adapter.ldap.introduction" name="zend.auth.adapter.ldap.introduction"><div class="info"><h1 class="title">Einführung</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Auth_Adapter_Ldap</span> unterstützt Webanwendungen bei der
+            Authentifizierung mit <acronym class="acronym">LDAP</acronym> Services. Die Features beinhalten
+            Kanonisierung von Benutzernamen und Domainnamen, Mehrfach-Domain Authentifizierung, und
+            Fehlerbehandlungs Features. Es wurde getestet mit <a href="http://www.microsoft.com/windowsserver2003/technologies/directory/activedirectory/" class="link external">&raquo; Microsoft
+                Active Directory</a> und <a href="http://www.openldap.org/" class="link external">&raquo; OpenLDAP</a>,
+            sollte auch mit anderen <acronym class="acronym">LDAP</acronym> Service Provider zusammenarbeiten.
+        </p>
+
+        <p class="para">
+            Diese Dokumentation enthält eine Anleitung der Verwendung von
+            <span class="classname">Zend_Auth_Adapter_Ldap</span>, eine Beschreibung der
+            <acronym class="acronym">API</acronym>, eine Ausgabe der verschiedenen Optionen, Diagnostische
+            Informationen für die Fehlerbehandlung bei Authentifizierungs Problemen, und Beispiel
+            Optionen für beide, Active Directory und OpenLDAP Server.
+        </p>
+    </div>
+
+    <div class="section" id="zend.auth.adapter.ldap.usage" name="zend.auth.adapter.ldap.usage"><div class="info"><h1 class="title">Verwendung</h1></div>
+        
+
+        <p class="para">
+            Um <span class="classname">Zend_Auth_Adapter_Ldap</span> Authentifizierung in eigene Anwendungen
+            schnell einzubauen, selbst wenn <span class="classname">Zend_Controller</span> nicht verwendet
+            wird, sollte das Fleisch des eigenen Codes in etwa wie folgt aussehen:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$username</span> = <span style="color: #0000ff;">$this</span>-&gt;_request-&gt;<span style="color: #006600;">getParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'username'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$password</span> = <span style="color: #0000ff;">$this</span>-&gt;_request-&gt;<span style="color: #006600;">getParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'password'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$auth</span> = Zend_Auth::<span style="color: #006600;">getInstance</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$config</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Config_Ini<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'../application/config/config.ini'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'production'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$log_path</span> = <span style="color: #0000ff;">$config</span>-&gt;<span style="color: #006600;">ldap</span>-&gt;<span style="color: #006600;">log_path</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$options</span> = <span style="color: #0000ff;">$config</span>-&gt;<span style="color: #006600;">ldap</span>-&gt;<span style="color: #006600;">toArray</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/unset"><span style="color: #000066;">unset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'log_path'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Ldap<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$options</span>, <span style="color: #0000ff;">$username</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$password</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$result</span> = <span style="color: #0000ff;">$auth</span>-&gt;<span style="color: #006600;">authenticate</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$adapter</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$log_path</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$messages</span> = <span style="color: #0000ff;">$result</span>-&gt;<span style="color: #006600;">getMessages</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$logger</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Log<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$logger</span>-&gt;<span style="color: #006600;">addWriter</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">new</span> Zend_Log_Writer_Stream<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$log_path</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$filter</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Log_Filter_Priority<span style="color: #66cc66;">&#40;</span>Zend_Log::<span style="color: #006600;">DEBUG</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$logger</span>-&gt;<span style="color: #006600;">addFilter</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$filter</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$messages</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$i</span> =&gt; <span style="color: #0000ff;">$message</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$i</span>-- &gt; <span style="color: #cc66cc;">1</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span> <span style="color: #808080; font-style: italic;">// $messages[2] und höher sind Log Nachrichten</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$message</span> = <a href="http://www.php.net/str_replace"><span style="color: #000066;">str_replace</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>, <span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span>&nbsp; &quot;</span>, <span style="color: #0000ff;">$message</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$logger</span>-&gt;<span style="color: #006600;">log</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;Ldap: $i: $message&quot;</span>, Zend_Log::<span style="color: #006600;">DEBUG</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Natürlich ist der Logging Code optional, aber es wird dringend empfohlen einen Logger
+            zu verwenden. <span class="classname">Zend_Auth_Adapter_Ldap</span> zeichnet fast jedes
+            Bisschen an Information in <var class="varname">$messages</var> auf das irgendwer benötigen
+            können (mehr anbei), was allerdings selbst ein nettes Feature für jemanden als History
+            ist, kann überaus schwierig zu debuggen sein.
+        </p>
+
+        <p class="para">
+            Der <span class="classname">Zend_Config_Ini</span> wird oben verwendet um die Optionen des
+            Adapters zu laden. Er ist also auch optional. Ein reguläres Array würde genauso gut
+            arbeiten. Das folgende ist eine Beispiel
+            <var class="filename">application/config/config.ini</var> Datei die Optionen für zwei separate
+            Server hat. Mit mehreren Sets von Server Optionen versucht der Adapter jede in
+            Reihenfolge bis die Zugangsdaten erfolgreich authentifiziert wurden. Die Namen der
+            Server (z.B., &#039;server1&#039; und &#039;server2&#039;) sind sehr verallgemeinert. Für Details
+            betreffend dem Array für Optionen, siehe das Kapitel über <em class="emphasis">Server
+                Optionen</em> weiter unten. Es ist zu beachten das
+            <span class="classname">Zend_Config_Ini</span> jeden Wert der mit Gleichheitszeichen
+            (<em class="emphasis">=</em>) geschrieben wird auch unter Anführungszeichen gesetzt wird
+            (wie unten bei DNs gezeigt).
+        </p>
+
+        <div class="programlisting ini"><div class="inicode"><div class="ini" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000066; font-weight:bold;"><span style="">&#91;</span>production<span style="">&#93;</span></span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.<span style="color: #000099;">log_path </span>=<span style="color: #660066;"> /tmp/ldap.log</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #666666; font-style: italic;">; Typische Optionen für OpenLDAP</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server1.<span style="color: #000099;">host </span>=<span style="color: #660066;"> s0.foo.net</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server1.<span style="color: #000099;">accountDomainName </span>=<span style="color: #660066;"> foo.net</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server1.<span style="color: #000099;">accountDomainNameShort </span>=<span style="color: #660066;"> FOO</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server1.<span style="color: #000099;">accountCanonicalForm </span>=<span style="color: #660066;"> <span style="">3</span></span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server1.<span style="color: #000099;">username </span>= <span style="color: #933;">&quot;CN=user1,DC=foo,DC=net&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server1.<span style="color: #000099;">password </span>=<span style="color: #660066;"> pass1</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server1.<span style="color: #000099;">baseDn </span>= <span style="color: #933;">&quot;OU=Sales,DC=foo,DC=net&quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server1.<span style="color: #000099;">bindRequiresDn </span>=<span style="color: #660066;"> true</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #666666; font-style: italic;">; Typische Optionen für Active Directory</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server2.<span style="color: #000099;">host </span>=<span style="color: #660066;"> dc1.w.net</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server2.<span style="color: #000099;">useStartTls </span>=<span style="color: #660066;"> true</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server2.<span style="color: #000099;">accountDomainName </span>=<span style="color: #660066;"> w.net</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server2.<span style="color: #000099;">accountDomainNameShort </span>=<span style="color: #660066;"> W</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server2.<span style="color: #000099;">accountCanonicalForm </span>=<span style="color: #660066;"> <span style="">3</span></span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">ldap.server2.<span style="color: #000099;">baseDn </span>= <span style="color: #933;">&quot;CN=Users,DC=w,DC=net&quot;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Die obige Konfiguration instruiert <span class="classname">Zend_Auth_Adapter_Ldap</span> das es
+            versuchen soll Benutzer zuerst mit dem OpenLDAP Server <var class="filename">s0.foo.net</var>
+            authentifizieren soll. Wenn die Authentifizierung auf irgendeinem Grund fehlschlägt,
+            wird der AD Server <var class="filename">dc1.w.net</var> versucht.
+        </p>
+
+        <p class="para">
+            Mit Servern in verschiedenen Domains, zeigt diese Konfiguration Multi-Domain
+            Authentifizierung. Es können auch mehrere Server in der gleichen Domain sein um
+            Redundanz anzubieten.
+        </p>
+
+        <p class="para">
+            In diesem Fall ist zu beachten das, selbst wenn OpenLDAP keine Notwendigkeit für kurze
+            NetBIOS Stil Domainnamen hat die von Windows verwendet werden bieten wir Sie hier an
+            wegen der Kanonifizierung der Namen (beschrieben im
+            <em class="emphasis">Kanonifizierung von Benutzernamen</em> Kapitel anbei).
+        </p>
+    </div>
+
+    <div class="section" id="zend.auth.adapter.ldap.api" name="zend.auth.adapter.ldap.api"><div class="info"><h1 class="title">Die API</h1></div>
+        
+
+        <p class="para">
+            Der <span class="classname">Zend_Auth_Adapter_Ldap</span> Konstruktor akzeptiert drei Parameter.
+        </p>
+
+        <p class="para">
+            Der <var class="varname">$options</var> Parameter wird benötigt und muß ein Array sein das ein
+            oder mehrere Sets von Optionen enthält. Es ist zu beachten das es sich um
+            <em class="emphasis">Array von Arrays</em> von <a href="zend.ldap.html" class="link"><span class="classname">Zend_Ldap</span></a> Optionen handelt. Selbst
+            wenn nur ein einzelner <acronym class="acronym">LDAP</acronym> Server verwendet wird, müssen die
+            Optionen trotzdem in einem anderen Array sein.
+        </p>
+
+        <p class="para">
+            Anbei ist eine <a href="http://php.net/print_r" class="link external">&raquo;  <span class="methodname">print_r()</span></a>
+            Ausgabe von beispielhaften Optionsparameters die zwei Sets von Serveroptionen für
+            <acronym class="acronym">LDAP</acronym> Server enthalten, <var class="filename">s0.foo.net</var> und
+            <var class="filename">dc1.w.net</var> (die gleichen Optionen wie in der oberen
+            <acronym class="acronym">INI</acronym> Repräsentation):
+        </p>
+
+        <div class="programlisting output"><div class="outputcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Array</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">(</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; [server2] =&gt; Array</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; (</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [host] =&gt; dc1.w.net</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [useStartTls] =&gt; 1</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [accountDomainName] =&gt; w.net</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [accountDomainNameShort] =&gt; W</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [accountCanonicalForm] =&gt; 3</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [baseDn] =&gt; CN=Users,DC=w,DC=net</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; )</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; [server1] =&gt; Array</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; (</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [host] =&gt; s0.foo.net</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [accountDomainName] =&gt; foo.net</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [accountDomainNameShort] =&gt; FOO</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [accountCanonicalForm] =&gt; 3</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [username] =&gt; CN=user1,DC=foo,DC=net</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [password] =&gt; pass1</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [baseDn] =&gt; OU=Sales,DC=foo,DC=net</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [bindRequiresDn] =&gt; 1</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; )</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">)</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Die oben angebotene Information in jedem Set von Optionen ist hauptsächlich deswegen
+            unterschiedlich weil AD keinen Benutzernamen wärend des Bindesn in der DN Form benötigt
+            (siehe die <span class="property">bindRequiresDn</span> Option des
+            <em class="emphasis">Server Optionen</em> Kapitels weiter unten), was bedeutet das die
+            Anzahl der, mit dem Empfangen der DN, für einen Benutzernamen der Authentifiziert
+            werden soll, assoziierten Optionen, unterdrückt werden kann.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Was ist ein ausgezeichneter Name?</b><br /></span>
+            
+
+            
+                Ein DN oder &quot;distinguished name&quot; ist ein String der den Pfad zu einem Objekt im
+                <acronym class="acronym">LDAP</acronym> Verzeichnis repräsentiert. Jede komma-seperierte Komponente
+                ist ein Attribut und Wert der einen Node repräsentiert. Die Komponenten werden
+                rückwirkend evaluiert. Zum Beispiel ist der Benutzeraccount
+                <em class="emphasis">CN=Bob Carter,CN=Users,DC=w,DC=net</em> direkt in
+                <em class="emphasis">CN=Users,DC=w,DC=net container</em> enthalten. Diese Struktur wird
+                am besten mit einem <acronym class="acronym">LDAP</acronym> Browser wie das <acronym class="acronym">ADSI</acronym>
+                Edit <acronym class="acronym">MMC</acronym> snap-in für Active Directory oder phpLDAPadmin erkundet.
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            Die Namen von Servern (z.B. &#039;server1&#039; und &#039;server2&#039; wie unten gezeigt) sind großteils
+            beliebig, aber aus Gründen der Verwendung von <span class="classname">Zend_Config</span>
+            sollten die Identifikatoren (im Gegensatz dazu das Sie nummerische Indezes sind)
+            vorhanden sein, und sollten keine spezielle Zeichen enthalten die vom assoziierten
+            Dateiformat verwendet werden (z.B. der &#039;<em class="emphasis">.</em>&#039; <acronym class="acronym">INI</acronym>
+            Eigenschafts Separator, &#039;<em class="emphasis">&amp;</em>&#039; für <acronym class="acronym">XML</acronym> Entity
+            Referenzen, usw.).
+        </p>
+
+        <p class="para">
+            Mit mehreren Sets von Serveroptionen, kann der Adapter Benutzer in mehreren Domains
+            authentifizieren und bietet ein Failover damit, wenn ein Server nicht erreichbar ist,
+            ein anderer abgefragt wird.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Die glorreichen Details: Was passiert bei der Authentifizierungs Methode?</b><br /></span>
+            
+
+            
+                Wenn die  <span class="methodname">authenticate()</span> Methode aufgerufen wird, iteriert
+                der Adapter über jedes Set von Serveroptione, setzt diese auf der internen
+                <span class="classname">Zend_Ldap</span> Instanz und ruft die
+                 <span class="methodname">Zend_Ldap::bind()</span> Methode, mit dem Benutzernamen und
+                Passwort das authentifiziert werden soll, auf. Die <span class="classname">Zend_Ldap</span>
+                Klasse prüft um zu sehen ob der Benutzer mit einer Domain qualifiziert ist (hat
+                z.B. eine Domainkomponente wie <var class="filename">alice@foo.net</var> oder
+                <var class="filename">FOO\alice</var>). Wenn eine Domain vorhanden ist, aber mit keiner
+                der Domainnamen der Server (<var class="filename">foo.net</var> oder
+                <acronym class="acronym">FOO</acronym>) übereinstimmt, wird eine spezielle Ausnahme geworfen und
+                durch <span class="classname">Zend_Auth_Adapter_Ldap</span> gefangen, was bewirkt das der
+                Server ignoriert wird und der nächste, in den Serveroptionen gesetzte Server,
+                ausgewählt wird. Wenn eine Domain <em class="emphasis">doch</em> passt, oder der
+                Benutzer keinen qualifizierten Benutzernamen angegeben hat, fährt
+                <span class="classname">Zend_Ldap</span> weiter fort und versucht mit den angegebenen
+                Zugangsdaten zu binden. Wenn das Binden nicht erfolgreich war wirft
+                <span class="classname">Zend_Ldap</span> eine <span class="classname">Zend_Ldap_Exception</span>
+                welche durch <span class="classname">Zend_Auth_Adapter_Ldap</span> gefangen wird, und das
+                nächste Set von Serveroptionen wird versucht. Wenn das Binden erfolgreich war, wird
+                die Iteration gestoppt, und die  <span class="methodname">authenticate()</span> Methode des
+                Adapters gibt ein erfolgreiches Ergebnis zurück. Wenn alle Serveroptionen ohne
+                Erfolg durchprobiert wurden, schlägt die Authentifizierung fehl, und
+                 <span class="methodname">authenticate()</span> gibt ein Fehlerergebnis zurück mit der
+                Fehlermeldung der letzten Iteration.
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            Die username und password Parameter des <span class="classname">Zend_Auth_Adapter_Ldap</span>
+            Konstruktors repräsentieren die Zugangsdaten die authentifiziert werden sollen (z.B.
+            die Zugangsdaten die durch den Benutzer über eine <acronym class="acronym">HTML</acronym> Login Form
+            angegeben werden). Alternativ können Sie auch mit den
+             <span class="methodname">setUsername()</span> und  <span class="methodname">setPassword()</span>
+            Methoden gesetzt werden.
+        </p>
+    </div>
+
+    <div class="section" id="zend.auth.adapter.ldap.server-options" name="zend.auth.adapter.ldap.server-options"><div class="info"><h1 class="title">Server Optionen</h1></div>
+        
+
+        <p class="para">
+            Jedes Set von Serveroptionen <em class="emphasis">im Kontext von
+            <span class="classname">Zend_Auth_Adapter_Ldap</span></em> besteht aus den folgenden
+            Optionen welche, großteils ungeändert, an
+             <span class="methodname">Zend_Ldap::setOptions()</span> übergeben werden:
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>Server Optionen</b></caption></div>
+            
+
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>Name</th>
+                        <th>Beschreibung</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">host</span></em></td>
+
+                        <td align="left">
+                            Der Hostname des <acronym class="acronym">LDAP</acronym> Servers der diese Optionen
+                            repräsentiert. Diese Option wird benötigt.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">port</span></em></td>
+
+                        <td align="left">
+                            Der Port auf den der <acronym class="acronym">LDAP</acronym> Server schaut. Wenn
+                            <em class="emphasis">useSsl</em> <b><tt>TRUE</tt></b> ist, ist der
+                            Standardwert von <span class="property">port</span> 636. Wenn
+                            <span class="property">useSsl</span> <b><tt>FALSE</tt></b> ist, ist der
+                            Standardwert von <span class="property">port</span> 389.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">useStartTls</span></em></td>
+
+                        <td align="left">
+                            Ob der <acronym class="acronym">LDAP</acronym> Client einen <acronym class="acronym">TSL</acronym> (aka
+                            <acronym class="acronym">SSL</acronym>v2) verschlüsselten Transport verwenden soll oder
+                            nicht. Der Wert <b><tt>TRUE</tt></b> wird in einer
+                            Produktionsumgebung strengstens empfohlen um zu verhindern das
+                            Passwörter im Klartext übertragen werden. Der Standardwert ist
+                            <b><tt>FALSE</tt></b>, da Server typischerweise nach deren
+                            Installation erwarten das ein Zertifikat installiert wird. Die
+                            <span class="property">useSsl</span> und <span class="property">useStartTls</span>
+                            Optionen schließen sich gegenseitig aus. Die
+                            <span class="property">useStartTls</span> Option sollte über
+                            <span class="property">useSsl</span> favorisiert werden, aber nicht alle Server
+                            unterstützen diesen neueren Mechanismus.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">useSsl</span></em></td>
+
+                        <td align="left">
+                            Ob der <acronym class="acronym">LDAP</acronym> Client einen <acronym class="acronym">SSL</acronym>
+                            verschlüsselten Transport verwenden soll. Die
+                            <span class="property">useSsl</span> und <span class="property">useStartTls</span>
+                            Optionen schließen sich gegenseitig aus, aber
+                            <span class="property">useStartTls</span> sollte favorisiert werden wenn der
+                            Server und die <acronym class="acronym">LDAP</acronym> Bibliothek des Clients diese
+                            unterstützen. Dieser Wert ändert auch den Standardwert von
+                            <span class="property">port</span> (siehe die <span class="property">port</span>
+                            Beschreibung weiter oben).
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">username</span></em></td>
+
+                        <td align="left">
+                            Der DN des Accounts der verwendet wird um DN Account Loopups
+                            durchzuführen. <acronym class="acronym">LDAP</acronym> Server die den Benutzernamen
+                            in DN Form benötigen wenn &quot;bind&quot; durchgeführt wird, benötigen diese
+                            Option. Wenn <span class="property">bindRequiresDn</span>
+                            <b><tt>TRUE</tt></b> ist, wird diese Option benötigt. Dieser
+                            Account muß kein privilegierter Account sein - ein Account mit nur-lese
+                            Zugriff zu Objekten unter <span class="property">baseDn</span> ist alles was
+                            notwendig ist (und bevorzugt unter dem <em class="emphasis">Prinzip des geringsten
+                            Privilegs</em>).
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">password</span></em></td>
+
+                        <td align="left">
+                            Das Passwort des Accounts der verwendet wird um DN Lookups
+                            durchzuführen. Wenn diese Option nicht unterstützt wird, versucht der
+                            <acronym class="acronym">LDAP</acronym> Client einen &quot;anonymen bind&quot; wenn DN Lookups
+                            durchgeführt werden.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">bindRequiresDn</span></em></td>
+
+                        <td align="left">
+                            Einige <acronym class="acronym">LDAP</acronym> Server benötigen den zum Binden
+                            verwendeten Benutzernamen in der DN Form wie
+                            <em class="emphasis">CN=Alice Baker,OU=Sales,DC=foo,DC=net</em>
+                            (grundsätzlich alle Server <em class="emphasis">außer</em> AD). Wenn diese
+                            Option <b><tt>TRUE</tt></b> ist, instuiert dies
+                            <span class="classname">Zend_Ldap</span> das der DN automatisch empfangen wird,
+                            abhängig vom Benutzernamen der authentifiziert wird, wenn er nicht
+                            bereits in DN Form ist, und diesen dann wieder mit der richtigen DN zu
+                            binden. Der Standardwert ist <b><tt>FALSE</tt></b>. Aktuell ist nur
+                            von Microsoft Active Directory Server (<acronym class="acronym">ADS</acronym>) bekannt
+                            das es den Benutzernamen <em class="emphasis">nicht</em> in der DN Form
+                            benötigt wenn gebunden wird, und deswegen kann diese Option mit AD auch
+                            <b><tt>FALSE</tt></b> sein (und sollte das auch, da das Empfangen
+                            des DN eine extra Anfrage zum Server benötigt). Andernfalls muß diese
+                            Option auf <b><tt>TRUE</tt></b> gesetzt werden (z.B. für OpenLDAP).
+                            Diese Option kontrolliert das Standard
+                            <span class="property">acountFilterFormat</span> das verwendet wird wenn nach
+                            Accounts gesucht wird. Siehe auch die
+                            <span class="property">accountFilterFormat</span> Option.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">baseDn</span></em></td>
+
+                        <td align="left">
+                            Der Ort vom DN unter dem alle Accounts die authentifiziert werden. Diese
+                            Option wird benötigt. Wenn man sich unsicher über den richtigen
+                            <span class="property">baseDn</span> ist, sollte es genug sein Ihn von
+                            der <acronym class="acronym">DNS</acronym> Domain des Benutzers der die
+                            <em class="emphasis">DC=</em> Komponenten verwedet abzuleiten. Wenn der
+                            Hauptname eines Benutzers <var class="filename">alice@foo.net</var> ist, sollte
+                            ein <span class="property">baseDn</span> von <em class="emphasis">DC=foo,DC=net</em>
+                            funktionieren. Eine präzisere Ortsangabe
+                            (z.B. <em class="emphasis">OU=Sales,DC=foo,DC=net</em>) ist trotzdem
+                            effizienter.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">accountCanonicalForm</span></em></td>
+
+                        <td align="left">
+                            Ein Wert von 2, 3 oder 4 zeigt die Form zu der Account Namen
+                            authorisiert werden sollten nachdem die Authentifizierung erfolgreich
+                            war. Die Werte sind wie folgt: 2 für traditionelle Benutzernamen-Stil
+                            Namen (z.B., <em class="emphasis">alice</em>), 3 für Schrägstrich-Stil Namen
+                            (z.B., <var class="filename">FOO\alice</var>) oder 4 für Authentifiziert-Sil
+                            Namen (z.B., <var class="filename">alice@foo.net</var>). Der Standardwert ist 4
+                            (z.B., <var class="filename">alice@foo.net</var>). Mit einem Wert von 3, z.B.,
+                            wird die Identität die von
+                             <span class="methodname">Zend_Auth_Result::getIdentity()</span> zurückgegeben
+                            wird (und  <span class="methodname">Zend_Auth::getIdentity()</span>, wenn
+                            <span class="classname">Zend_Auth</span> verwendet wird), immer
+                            <var class="filename">FOO\alice</var> sein, unabhängig von der Form in der
+                            Alice angegeben wurde, egal ob es <em class="emphasis">alice</em>,
+                            <var class="filename">alice@foo.net</var>, <var class="filename">FOO\alice</var>,
+                            <var class="filename">FoO\aLicE</var>, <var class="filename">foo.net\alice</var>, etc.
+                            Siehe das Kapitel <em class="emphasis">Kanonisierung von Account Namen</em>
+                            in der <span class="classname">Zend_Ldap</span> Dokumentation für Details. Bei
+                            der Verwendung von mehreren Sets von Serveroptionen ist es
+                            empfehlenswert, aber nicht notwendig, das die selbe
+                            <span class="property">accountCanonicalForm</span> in allen
+                            Serveroptionen verwendet wird, sodas die sich ergebenden Benutzernamen
+                            immer auf die selbe Art und Weise kanonisiert werden (z.b. wenn man auf
+                            <var class="filename">EXAMPLE\username</var> mit einem AD Server kanonisiert,
+                            aber zu <var class="filename">username@example.com</var> mit einem OpenLDAP
+                            Server, kann das quirks für die High-Level Logik einer Anwendung sein).
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">accountDomainName</span></em></td>
+
+                        <td align="left">
+                            Der <acronym class="acronym">FQDN</acronym> Domainname für welchen der Ziel
+                            <acronym class="acronym">LDAP</acronym> Server eine Authorität ist (z.B.,
+                            <var class="filename">example.com</var>). Diese Option wird verwendet um Namen
+                            zu kanonisieren sodas der Benutzername der vom Benutzer angeboten wird,
+                            wie es für das Binden notwendig ist, konvertiert werden kann. Er wird
+                            auch verwendet um festzustellen ob der Server eine Authorität für den
+                            angegebenen Benutzernamen ist (z.B., wenn
+                            <span class="property">accountDomainName</span> <var class="filename">foo.net</var> ist
+                            und der angegebene Benutzer <var class="filename">bob@bar.net</var>, wird der
+                            Server nicht abgefragt, und das Ergebnis wird ein Fehler sein). Diese
+                            Option wird nicht benötigt, aber wenn Sie nicht angegeben wird, dann
+                            werden Benutzernamen in prinzipieller Namensform (z.B.,
+                            <var class="filename">alice@foo.net</var>) nicht unterstützt. Es wird stark
+                            empfohlen das diese Option angegeben wird, da es viele Anwendungsfälle
+                            gibt welche die Erstellung von prinzipieller Namensform benötigen.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">accountDomainNameShort</span></em></td>
+
+                        <td align="left">
+                            Die &#039;short&#039; Domain für die der Ziel <acronym class="acronym">LDAP</acronym> Server eine
+                            Authorität ist (z.B., <acronym class="acronym">FOO</acronym>). Es ist z ubeachten das
+                            es ein 1:1 Mapping zwischen <span class="property">accountDomainName</span> und
+                            <span class="property">accountDomainNameShort</span> existiert. Diese
+                            Option sollte verwendet werden um den NetBIOS Domainnamen für Windows
+                            Netzwerke zu spezifizieren, kann aber auch von nicht-AD Servern
+                            verwendet werden (z.B., für Konsistenz bei mehreren Sets von
+                            Serveroptionen bei dem Schrägstrich Stil
+                            <span class="property">accountCanonicalForm</span>). Diese Option wird nicht
+                            benötigt, aber wenn Sie nicht angegeben wird, werden Benutzernamen im
+                            Schrägstrich Stil (z.B. <var class="filename">FOO\alice</var>) nicht
+                            unterstützt.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">accountFilterFormat</span></em></td>
+
+                        <td align="left">
+                            Der <acronym class="acronym">LDAP</acronym> Suchfilter der für die Suche nach Accounts
+                            verwendet wird. Dieser String ist ein <a href="http://php.net/printf" class="link external">&raquo;  <span class="methodname">printf()</span></a>-Stil
+                            Ausdruck der ein &#039;<em class="emphasis">%s</em>&#039; enthalten muß um den
+                            Benutzernamen unterzubringen. Der Standardwert ist
+                            &#039;<em class="emphasis">(&amp;(objectClass=user)(sAMAccountName=%s))</em>&#039;,
+                            ausgenommen <span class="property">bindRequiresDn</span> wird auf
+                            <b><tt>TRUE</tt></b> gesetzt. In diesem Fall ist der Standardwert
+                            &#039;<em class="emphasis">(&amp;(objectClass=posixAccount)(uid=%s))</em>&#039;. Wenn,
+                            zum Beispiel, aus irgendeinem Grund
+                            <em class="emphasis">bindRequiresDn = true</em> mit AD verwendet werden soll,
+                            muß <em class="emphasis">accountFilterFormat =
+                                &#039;(&amp;(objectClass=user)(sAMAccountName=%s))</em>&#039; gesetzt
+                            werden.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">optReferrals</span></em></td>
+
+                        <td align="left">
+                            Wenn sie auf <b><tt>TRUE</tt></b> gesetzt wird, zeigt diese Option
+                            dem <acronym class="acronym">LDAP</acronym> Client an, das Referenzen gefolgt werden
+                            soll. Der Standardwert ist <b><tt>FALSE</tt></b>.
+                        </td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                Wenn <em class="emphasis">useStartTls = <b><tt>TRUE</tt></b></em> oder
+                <em class="emphasis">useSsl = <b><tt>TRUE</tt></b></em> aktiviert ist, erzeugt der
+                <acronym class="acronym">LDAP</acronym> Client einen Fehler der aussagt das er das Zertifikat des
+                Servers nicht überprüfen kann. Angenommen die <acronym class="acronym">PHP</acronym>
+                <acronym class="acronym">LDAP</acronym> Erweiterung ist ultimativ verlinkt mit der OpenLDAP Client
+                Bibliothek, muß man um dieses Problem zu lösen
+                &quot;<strong class="command">TLS_REQCERT never</strong>&quot; im OpenLDAP Client
+                <var class="filename">ldap.conf</var> setzen (und den Web Server restarten) um der
+                OpenLDAP Client Bibliothek anzuzeigen das man dem Server vertraut. Alternativ,
+                wenn man annimmt das der Server gehackt werden könnte kann das Basiszertifikat des
+                <acronym class="acronym">LDAP</acronym> Servers exportiert und auf den Webserver gegeben werden so
+                dass der OpenLDAP Client die Identität des Servers prüfen kann.
+            <br />
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.auth.adapter.ldap.debugging" name="zend.auth.adapter.ldap.debugging"><div class="info"><h1 class="title">Debug Nachrichten sammeln</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Auth_Adapter_Ldap</span> sammelt Debug Informationen in seiner
+             <span class="methodname">authenticate()</span> Methode. Diese Information wird im
+            <span class="classname">Zend_Auth_Result</span> Objekt als Nachrichten gespeichert. Das von
+             <span class="methodname">Zend_Auth_Result::getMessages()</span> zurückgegebene Array kann wie
+            folgt beschrieben werden:
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>Debug Nachrichten</b></caption></div>
+            
+
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>Array Index der Nachricht</th>
+                        <th>Beschreibung</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left">Index 0</td>
+
+                        <td align="left">
+                            Eine generelle, Benutzerfreundliche Meldung die für die Anzeige für
+                            Benutzer passt (z.B. &quot;Ungültige Anmeldedaten&quot;). Wenn die
+                            Authentifizierung erfolgreich ist, dann ist dieser String leer.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left">Index 1</td>
+
+                        <td align="left">
+                            Eine detailiertere Fehlermeldung die nicht für die Anzeige für Benutzer
+                            hergenommen werden kann, die aber mitgeloggt werden sollte zum Vorteil
+                            des Server Operators. Wenn die Authentifizierung erfolgreich war, ist
+                            dieser String leer.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left">Indezes 2 und höher</td>
+                        <td align="left">Alle Logmeldungen in Reihenfolge starten bei Index 2.</td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+
+        <p class="para">
+            Aus der Praxis heraus sollte der Index 0 dem Benutzer angezeigt werden (z.B. bei
+            Verwendung des FlashMessenger Helfers), Index 1 sollte geloggt werden und, wenn die
+            Debugging Information gesammelt wird, sollten die Indezes 2 und höher auch geloggt
+            werden (auch wenn die letzte Nachricht immer den String vom Index 1 enthält).
+        </p>
+    </div>
+
+    <div class="section" id="zend.auth.adapter.ldap.options-common-server-specific" name="zend.auth.adapter.ldap.options-common-server-specific"><div class="info"><h1 class="title">Übliche Optionen für spezielle Server</h1></div>
+        
+
+        <div class="section" id="zend.auth.adapter.ldap.options-common-server-specific.active-directory" name="zend.auth.adapter.ldap.options-common-server-specific.active-directory"><div class="info"><h1 class="title">Optionen für Active Directory</h1></div>
+            
+
+            <p class="para">
+                Für <acronym class="acronym">ADS</acronym> sind die folgenden Optionen beachtenswert:
+            </p>
+
+            <table class="doctable table"><div class="info"><caption><b>Optionen für Active Directory</b></caption></div>
+                
+
+                
+                    <thead valign="middle">
+                        <tr valign="middle">
+                            <th>Name</th>
+                            <th>Zusätzliche Notizen</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody valign="middle" class="tbody">
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">host</span></em></td>
+                            <td align="left">Wie bei allen Servern, wird diese Option benötigt.</td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">useStartTls</span></em></td>
+
+                            <td align="left">
+                                Zum Zwecke der Sicherheit, sollte das <b><tt>TRUE</tt></b> sein
+                                wenn der Server das notwendige Zertifikat installiert hat.
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">useSsl</span></em></td>
+
+                            <td align="left">
+                                Möglicherweise als Alternative zu <em class="emphasis">useStartTls</em>
+                                zu verwenden (siehe davor).
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">baseDn</span></em></td>
+
+                            <td align="left">
+                                Wie bei allen Servern, wird diese Option benötigt. Standardmäßig
+                                platziert AD alle Benutzer Accounts unter dem
+                                <em class="emphasis">Users</em> Container (z.B.,
+                                <em class="emphasis">CN=Users,DC=foo,DC=net</em>), aber der Standard ist
+                                in größeren Organisationen nicht üblich. Der AD Administrator sollte
+                                nach der besten DN für Accounts für die eigene Anwendung gefragt
+                                werden.
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">accountCanonicalForm</span></em></td>
+
+                            <td align="left">
+                                Das wird man normalerweise für Schrägstrich-Stil Namen auf 3 stellen
+                                (z.B., <var class="filename">FOO\alice</var>), was für Windows Benutzer am
+                                bekanntesten ist. Man sollte <em class="emphasis">nicht</em> die
+                                unqualifizierte Form 2 verwenden (z.B., <em class="emphasis">alice</em>),
+                                da das anderen Benutzern Zugriff auf die Anwendung geben würde, wenn
+                                Sie den gleichen Benutzernamen in anderen vertrauten Domains haben
+                                (z.B., <var class="filename">BAR\alice</var> und
+                                <var class="filename">FOO\alice</var> würden als der gleiche Benutzer
+                                behandelt). (siehe auch die Notiz anbei.)
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">accountDomainName</span></em></td>
+
+                            <td align="left">
+                                Das wird mit AD benötigt, ausser
+                                <span class="property">accountCanonicalForm</span> 2 wird
+                                verwendet, was wiederum nicht eingesetzt werden sollte.
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">accountDomainNameShort</span></em></td>
+
+                            <td align="left">
+                                Der NetBIOS Name der Domain in der die Benutzer sind und für den der
+                                AD Server die Authorität ist. Das wird benötigt wenn der
+                                Schrägstrich-Stil <span class="property">accountCanonicalForm</span>
+                                verwendet wird.
+                            </td>
+                        </tr>
+
+                    </tbody>
+                
+            </table>
+
+
+            <blockquote><p><b class="note">Note</b>: 
+                
+                    Technisch sollte es keine Probleme mit irrtümlichen Domain-übergreifenden
+                    Authentifizierungen mit der aktuellen
+                    <span class="classname">Zend_Auth_Adapter_Ldap</span> Implementation geben, da
+                    Serverdomains explizit geprüft werden, aber das muss für zukünftige
+                    Implementationen, welche die Domain wärend der Laufzeit ermitteln, nicht wahr
+                    sein, oder auch wenn ein alternativer Adapter verwendet wird (z.B., Kerberos).
+                    Generell ist bekannt das die Mehrdeutigkeit von Accountnamen ein
+                    Sicherheitsproblem ist. Man sollte deswegen immer versuchen qualifizierte
+                    Accountnamen zu verwenden.
+                <br />
+            </p></blockquote>
+        </div>
+
+        <div class="section" id="zend.auth.adapter.ldap.options-common-server-specific.openldap" name="zend.auth.adapter.ldap.options-common-server-specific.openldap"><div class="info"><h1 class="title">Optionen für OpenLDAP</h1></div>
+            
+
+            <p class="para">
+                Für OpenLDAP oder einen generellen <acronym class="acronym">LDAP</acronym> Server der ein typisches
+                posixAccount Stil Schema verwendet sind die folgenden Optionen beachtenswert:
+            </p>
+
+            <table class="doctable table"><div class="info"><caption><b>Optionen für OpenLDAP</b></caption></div>
+                
+
+                
+                    <thead valign="middle">
+                        <tr valign="middle">
+                            <th>Name</th>
+                            <th>Zusätzliche Notizen</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody valign="middle" class="tbody">
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">host</span></em></td>
+                            <td align="left">Wie bei allen Servern, wird diese Option benötigt.</td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">useStartTls</span></em></td>
+
+                            <td align="left">
+                                Zum Zwecke der Sicherheit, sollte das <b><tt>TRUE</tt></b> sein
+                                wenn der Server das notwendige Zertifikat installiert hat.
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">useSsl</span></em></td>
+
+                            <td align="left">
+                                Möglicherweise als Alternative zu <span class="property">useStartTls</span>
+                                zu verwenden (siehe davor).
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">username</span></em></td>
+
+                            <td align="left">
+                                Benötigt und muß ein DN sein, da OpenLDAP den Benutzernamen in DN
+                                Form benötigt wenn ein Binden durchgeführt wird. Es sollte versucht
+                                werden einen nicht privilegierten Account zu verwenden.
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">password</span></em></td>
+
+                            <td align="left">
+                                Das Passwort das zum Benutzernamen von oben gehört. Es kann aber
+                                unterdrückt werden wenn der <acronym class="acronym">LDAP</acronym> Server anonymes
+                                Binden bei Abfragen zu Benutzer Accounts erlaubt.
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">bindRequiresDn</span></em></td>
+
+                            <td align="left">
+                                Benötigt und muß <b><tt>TRUE</tt></b> sein, da OpenLDAP den
+                                Benutzernamen in DN Form benötigt wenn ein Binden durchgeführt wird.
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">baseDn</span></em></td>
+
+                            <td align="left">
+                                Wie bei allen Servern, wird diese Option benötigt und zeigt den DN
+                                in dem alle Accounts die authentifiziert werden enthalten sind.
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">accountCanonicalForm</span></em></td>
+
+                            <td align="left">
+                                Optional, aber der Standardwert ist 4 (prinzipielle-Stil Namen wie
+                                <var class="filename">alice@foo.net</var>) und könnte für die Benutzer
+                                nicht ideal sein wenn diese Schrägstrich-Stil Namen verwendetn
+                                (z.B., <var class="filename">FOO\alice</var>). Für Schrägstrich-Stil Namen
+                                sollte der Wert 3 verwendet werden.
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">accountDomainName</span></em></td>
+
+                            <td align="left">
+                                Benötigt es sei denn man verwendet
+                                <span class="property">accountCanonicalForm</span> 2, was nicht
+                                zu empfehlen ist.
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><em class="emphasis"><span class="property">accountDomainNameShort</span></em></td>
+
+                            <td align="left">
+                                Wenn AD auch nicht verwendet wird, wird dieser Wert nicht benötigt.
+                                Andernfalls, wenn
+                                <span class="property">accountCanonicalForm</span> 3 verwendet
+                                wird, wird diese Option benötigt und sollte ein Kurzname sein der
+                                adäquat zu <span class="property">accountDomainName</span>
+                                korrespondiert (z.B., wenn
+                                <span class="property">accountDomainName</span>
+                                <var class="filename">foo.net</var> ist, wäre ein guter
+                                <span class="property">accountDomainNameShort</span> Wert
+                                <acronym class="acronym">FOO</acronym>).
+                            </td>
+                        </tr>
+
+                    </tbody>
+                
+            </table>
+
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.auth.adapter.http.html">HTTP Authentication Adapter</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.auth.html">Zend_Auth</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.auth.adapter.openid.html">Open ID Authentifikation</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.auth.html">Zend_Auth</a></li>
+  <li><a href="zend.auth.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.auth.adapter.dbtable.html">Datenbanktabellen Authentifizierung</a></li>
+  <li><a href="zend.auth.adapter.digest.html">Digest Authentication</a></li>
+  <li><a href="zend.auth.adapter.http.html">HTTP Authentication Adapter</a></li>
+  <li class="active"><a href="zend.auth.adapter.ldap.html">LDAP Authentifizierung</a></li>
+  <li><a href="zend.auth.adapter.openid.html">Open ID Authentifikation</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Einf&uuml;hrung zu OAuth - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.oauth.html">Zend_Oauth</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.oauth.html">Zend_Oauth</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.openid.html">Zend_OpenId</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.oauth.introduction" class="section"><div class="info"><h1 class="title">Einführung zu OAuth</h1></div>
+    
+
+    <p class="para">
+        OAuth erlaubt es Zugriffe auf private Daten welche in einer Website gespeicher sind von
+        jeder Anwendung aus zu gestatten ohne dazu gezwungen zu sein den Benutzernamen oder das
+        Passwort herauszugeben. Wenn man darüber nachdenk ist die Praxis der Herausgabe von
+        Benutzername und Passwort für Sites wie Yahoo Mail oder Twitter seit einer ganzen Weile
+        endemisch. Dies hat einige Bedenken ausgelöst weil es nichts gibt um zu verhindern das
+        Anwendungen diese Daten missbrauchen. Ja, einige Serives mögen vertrauenswürdig erscheinen
+        aber dies kann nie garantiert werden. OAuth löst dieses Problem indem es die Notwendigkeit
+        eliminiert Benutzernamen und Passwörter zu teilen, und es mit einem vom Benutzer
+        kontrollierten Authorisationsprozess ersetzt.
+    </p>
+
+    <p class="para">
+        Dieser Authorisationsprozess basiert auf Tokens. Wenn man eine Anwendung authorisiert (wobei
+        eine Anwendung jede Webbasierende- oder Desktop- anwendung enthält) auf die eigenen Daten
+        zuzugreifen, wird diese einen Access Token erhalten der mit dem eigenen Account assoziiert
+        ist. Bei Verwendung dieses Access Tokens kann die Anwendungen auf die privaten Daten
+        zugreifen ohne dauernd die Zugangsdaten zu benötigen. Insgesamt ist dieses Prokoll einer
+        delegationsartigen Authorisierung eine sicherere Lösung des Problems auf private Daten
+        über eine beliebige Webservice <acronym class="acronym">API</acronym> zuzugreifen.
+    </p>
+
+    <p class="para">
+        OAuth ist keine komplett neue Idee, es ist mehr ein standardisiertes Protokoll welches auf
+        existierende Eigenschaften von Protokollen wie Google AuthSub, Yahoo BBAuth, Flickr
+        <acronym class="acronym">API</acronym>, usw. aufsetzt. Alle von Ihnen arbeiten im weiteren Sinne auf der
+        Basis einer standardisierten Benutzerkennung für eine Art Access Token. Der Vorteil einer
+        standardisierten Spezifikation wie OAuth ist, das Sie nur eine einzelne Implementation
+        benötigt im gegensatz zu vielen unterschiedlichen abhängig vom verwendeten Webservice. Diese
+        Standardisierung hat nicht unabhängig von den Major Players stattgefunden, und aktuell
+        unterstützen viele bereits OAuth als Alternative und wollen in Zukunft Ihre eigenen Lösungen
+        damit ersetzen.
+    </p>
+
+    <p class="para">
+        Zend Framework&#039;s <span class="classname">Zend_Oauth</span> implementiert aktuell über die Klasse
+        <span class="classname">Zend_Oauth_Consumer</span> einen vollständigen OAuth Konsumenten welcher der
+        OAuth Core 1.0 Revision A Spezifikation (24 Juni 2009) entspricht.
+    </p>
+
+    <div class="section" id="zend.oauth.introduction.protocol-workflow" name="zend.oauth.introduction.protocol-workflow"><div class="info"><h1 class="title">Workflow des Protokolls</h1></div>
+    
+
+    <p class="para">
+        Bevor OAuth implementiert wird macht es Sinn zu verstehen wie das Protokoll arbeitet.
+        Hierfür nehmen wir ein Beispiel von Twitter welches aktuell bereits OAuth basierend auf der
+        OAuth Core 1.0 Revision A Spezifikation imeplementiert. Dieses Beispiel sieht das Protokoll
+        aus der Perspektive des Benutzers (der den Zugriff gestattet), dem Konsumenten (der den
+        Zugriff anfragt) und dem Provider (der die privaten Daten des Benutzers hat). Ein Zugriff
+        kann nur-lesend, oder lesend und schreibend sein.
+    </p>
+
+    <p class="para">
+        Durch Zufall hat unser Benutzer entschieden das er einen neuen Service verwenden will der
+        TweetExpress genannt wird und behauptet in der Lage zu sein Blog Posts bei Twitter in
+        wenigen Sekunden nochmals zu posten. TweetExpress ist bei Twitter eine registrierte
+        Anwendung was bedeutet das es Zugriff auf einen Konsumentenschlüssel und ein Geheimnis des
+        Konsumenten hat (alle OAuth Anwendungen müssen diese vom Provider haben auf welchen Sie
+        zugreifen wollen) welche seine Anfragen bei Twitter identifizieren und sicherstellen das
+        alle Anfragen signiert werden können indem das Geheimnis des Konsumenten verwendet wird um
+        deren Herkunft zu prüfen.
+    </p>
+
+    <p class="para">
+        Um TweetExpress zu verwenden wird man danach gefragt sich für einen neuen Account zu
+        registrieren, und das der Registrierung wird sichergestellt das man dafüber informiert ist
+        das TweetExpress den eigenen Twitter Account mit dem Service assoziiert.
+    </p>
+
+    <p class="para">
+        In der Zwischenzeit was TweenExpress beschäftigt. Bevor das Einverständnis von Twitter
+        gegeben wird, hat es eine <acronym class="acronym">HTTP</acronym> Anfrage an den Service von Twitter
+        geschickt und nach einem neuen unauthorisierten Anfrage Token gefragt. Dieser Token ist aus
+        der Perspektive von Twitter nicht Benutzerspezifisch, aber TweetExpress man Ihn spezifisch
+        für den aktuellen Benutzer verwenden und sollte Ihn mit seinem Account verknüpfen und Ihn
+        für eine künftige Verwendung speichern. TweetExpress leitet den Benutzer nun zu Twitter um
+        damit er den Zugriff von TweetExpress erlauben kann. Die URL für diese Umleitung wird
+        signiert indem das Konsumentengeheimnis von TweetExpress verwendet wird und Sie enthält den
+        unauthorisierten Anfrage Token als Parameter.
+    </p>
+
+    <p class="para">
+        An diesem Punkt kann der Benutzer gefragt werden sich in Twitter anzumelden und wird jetzt
+        mit einem Twitter Bildschirm konfrontiert welcher Ihn fragt ob er diese Anfrage von
+        TweetExpress für den Zugriff auf die <acronym class="acronym">API</acronym> von Twitter im Auftrag des
+        Benutzers gestattet. Twitter speichert die Antwort von der wir annehmen das Sie positiv war.
+        Basierend auf dem Einverständnis des Benutzers speichert Twitter den aktuell
+        unauthorisierten Anfrage Token als vom Benutzer akzeptiert (was Ihn Benutzerspezifisch
+        macht) und erzeugt einen neuen Wert in der Form eines Überprüfungscodes. Der Benutzer wird
+        jetzt auf eine spezifische Callback URL zurückgeleitet welche von TweetExpress verwendet
+        wird (diese Callback URL kann bei Twitter registriert sein, oder dynamisch gesetzt werden
+        indem bei den Anfragen ein oauth_callback Parameter verwendet wird). Die Umleitungs-URL wird
+        den neu erzeugten Überprüfungscode enthalten.
+    </p>
+
+    <p class="para">
+        Die Callback URL von TweetExpress löst eine Überprüfung der Anfrage aus um zu erkennen ob
+        der Benutzer seine Zustimmung an Twitter gegeben hat. Wir nehmen an das dies der Fall war,
+        dann kann jetzt sein nicht authorisierter Anfrage Token gegen einen voll authorisierten
+        Anfrage Token getauscht werden indem eine Anfrage an Twitter zurückgesendet wird inklusive
+        dem Anfrage Token und dem empfangenen Überprüfungscode. Twitter sollte jetzt eine Antwort
+        zurücksenden welche diesen Zugriffstoken enthält welcher in allen Anfragen verwendet werden
+        muss um Zugriff auf die <acronym class="acronym">API</acronym> von Twitter im Auftrag des Benutzers zu
+        erhalten. Twitter macht das nur einmal sobald bestätigt wurde das der angehängte Anfrage
+        Token noch nicht verwendet wurde um einen anderen Anfrage Token zu erhalten. Ab diesem Punkt
+        kann TweetExpress dem Benutzer die Anfrage der Akzeptanz bestätigen und den originalen
+        Anfrage Token löschen da er nicht länger benötigt wird.
+    </p>
+
+    <p class="para">
+        Ab diesem Punkt kann TweetExpress die <acronym class="acronym">API</acronym> von Twitter verwenden um neue
+        Tweets im Sinne des Benutzers zu schicken indem einfach auf die Endpunkte der
+        <acronym class="acronym">API</acronym> mit einer Anfrage zugegriffen wird welche digital signiert wurde
+        (über HMAC-SHA1) mit einer Kombination von dem Konsumenten Geheimnis von TweetExpress und
+        dem Zugriffsschlüssel der verwendet wird.
+    </p>
+
+    <p class="para">
+        Auch wenn Twitter den Zugriffstoken nicht ablaufen lässt, steht es dem Benutzer frei
+        TweetExpress zu de-authorisieren damit es nicht mehr auf seine Einstellungen des Twitter
+        Accounts zugreifen kann. Sobald er de-authorisiert wurde, wird der Zugriff von TweetExpress
+        abgeschnitten und sein eigener Zugriffstoken wird als ungültig dargestellt.
+    </p>
+</div>
+    <div class="section" id="zend.oauth.introduction.security-architecture" name="zend.oauth.introduction.security-architecture"><div class="info"><h1 class="title">Architektur der Sicherheit</h1></div>
+    
+
+    <p class="para">
+        OAuth wurde speziell designt um über eine unsichere <acronym class="acronym">HTTP</acronym> Verbindung zu
+        arbeiten und deshalb ist die Verwendung von <acronym class="acronym">HTTPS</acronym> nicht notwendig obwohl
+        es natürlich wünschenswert wäre wenn es vorhanden ist. Sollte eine <acronym class="acronym">HTTPS</acronym>
+        Verbindung möglich sein bietet OAuth die Implementation einer Signaturmethode an welche
+        PLAINTEXT heißt und verwendet werden kann. Über eine typische unsichere
+        <acronym class="acronym">HTTP</acronym> Verbindung muss die Verwendung von PLAINTEXT verhindert werden und
+        ein alternatives Schema wird verwendet. Die OAuth Spezifikation definiert zwei solcher
+        Signaturmethoden: HMAC-SHA1 und RSA-SHA1. Beide werden von <span class="classname">Zend_Oauth</span>
+        vollständig unterstützt.
+    </p>
+
+    <p class="para">
+        Diese Signaturmethoden sind recht einfach zu verstehen. Wie man sich vorstellen kann macht
+        die PLAINTEXT Signaturmethode nichts das erwähnenswert wäre da Sie auf
+        <acronym class="acronym">HTTPS</acronym> aufsetzt. Wenn man aber PLAINTEXT über <acronym class="acronym">HTTP</acronym>
+        verwenden würde, dann würde ein signifikantes Problem bestehen: Es gibt keinen Weg um
+        sicherzustellen das der Inhalt einer OAuth-aktivierten Anfrage (welche einen OAuth
+        Zugriffstoken enthalten würde) beim Routen verändert wurde. Das ist der Fall weil unsichere
+        <acronym class="acronym">HTTP</acronym> Anfragen immer das Risiko des Lauschens, von Man In The Middle
+        (MITM) Attacken, oder andere Risiken haben können in denen eine Anfrage weiterbearbeitet
+        werden könnten und damit Arbeiten im Sinne des Angreifers ausgeführt werden indem sich
+        dieser als Originalanwendung maskiert ohne das dies vom Serviceprovider bemerkt wird.
+    </p>
+
+    <p class="para">
+        HMAC-SHA1 und RSA-SHA1 vermindern dieses Risiko indem alle OAuth Anfragen mit dem originalen
+        von der Anwendung registrierten Konsumentengeheimnis digital signiert werden. Angenommen nur
+        der Konsument und der Provider wissen was das Geheimnis ist, dann kann ein Mann in der Mitte
+        soviele Anfragen verändern wie er will - aber er wird nicht in der Lage sein sie gültig zu
+        signieren und unsignierte oder ungültig signierte Anfragen würden von beiden Parteien
+        ausgeschieden werden. Digitale Signaturen bieten deshalb eine Garantie das gültig signierte
+        Anfragen von der erwarteten Partei kommen und beim Routen nicht verändert wurden. Das ist
+        der Kern warum OAuth über eine unsichere Verbindung arbeiten kann.
+    </p>
+
+    <p class="para">
+        Wie diese digitalen Signaturen arbeiten hängt von der verwendeten Methode ab, z.B.
+        HMAC-SHA1, RSA-SHA1 oder möglicherweise eine andere Methode welche vom Serviceprovider
+        definiert wird. HMAC-SHA1 ist ein einfacher Mechanismus welcher einen Nachrichten
+        Authentifizierungscode (MAC) erzeugt indem eine kryptographische Hash Funktion (z.B. SHA1)
+        in Verbindung mit einem geheimen Schlüssel verwendet wird der nur dem Sender und dem
+        Empfänger der Nachricht bekannt sind (z.b. das Konsumentengeheimnis von OAuth kombiniert
+        mit dem authorisierten Zugriffsschlüssel). Dieser Hashing Mechanismus wird den Parametern
+        und dem Inhalt aller OAuth Anfragen angehängt und zu einem &quot;Basissignatur String&quot;
+        zusammengefügt wie es von der OAuth Spezifikation definiert ist.
+    </p>
+
+    <p class="para">
+        RSA-SHA1 operiert auf ähnlichen Prinzipien ausser dass das Geheimnis welches geteilt wird,
+        wie man es erwarten würde, der private RSA Schlüssel jeder Partei ist. Beide Seiten haben
+        den öffentlichen Schlüssel des anderen mit dem die digitalen Signaturen geprüft werden. Das
+        führt verglichen mit HMAC-SHA1 zu einem Riskolevel da die RSA Methode keinen
+        Zugriffsschlüssel als teil des geteilten Geheimnisses verwendet. Dies bedeutet dass wenn
+        der private RSA Schlüssel eines Konsumenten kompromitiert ist, sind es alle zugeordneten
+        Zugriffstoken dieses Konsumenten auch. RSA führt zu einem alles oder gar nichts Schema.
+        Generell tendiert die Mehrheit der Serviceprovider welche OAuth Authorisierung anbieten
+        dazu HMAC-SHA1 standardmäßig zu verwenden, und jene welche RSA-SHA1 anbieten können eine
+        Fallback Unterstützung für HMAC-SHA1 anbieten.
+    </p>
+
+    <p class="para">
+        Wärend digitale Signaturen zur Sicherheit von OAuth beitragen sind Sie trotzdem für andere
+        Formen von Attacken angreifbar, wie Replay Attacken welche vorhergehende Anfragen
+        aufgezeichnet und zu einer Zeit geprüft und signiert wurden. Ein Angreifen können jetzt
+        exakt die gleiche Anfrage zum Provider wie er will und zu jeder Zeit senden und seine
+        Ergebnisse auffangen. Das führt zu einem signifikanten Risiko aber es ist recht einfach
+        sich davor zu schützen - einen eindeutigen String (z.b. eine Nonce) bei allen Anfragen
+        hinzufügen welcher sich bei jeder Anfrage ändert (dies verändert laufend den Signaturstring)
+        kann aber niemals wiederverwendet werden weil Provider verwendete Nonces zusammen mit einem
+        bestimmten Fenster aktiv verfolgen welches vom Timestamp definiert wird der einer Anfrage
+        auch angehängt wird. Man würde erwarten das wenn die Verfolgung einer bestimmten Nonce
+        gestoppt wird, das wiederabspielen funktionieren würde, aber das ignoriert den Timestamp
+        der verwendet werden kann um das Alter einer Anfrage zu ermitteln zu welcher Sie digital
+        signiert wurde. Man kann also annehmen dass die eine Woche alte Anfrage in einem
+        Wiederholungsversuch abgespielt wird, auf ähnliche Weise verworfen wird.
+    </p>
+
+    <p class="para">
+        Als letzter Punkt erwähnt, ist dies keine exzessive Ansicht der Sicherheitsarchitektur in
+        OAuth. Was passiert zum Beispiel wenn <acronym class="acronym">HTTP</acronym> Anfragen welche sowohl den
+        Zugriffstoken als auch das Geheimnis des Konsumenten enthalten abgehört werden? Das System
+        ist auf der einen Seite von einer klaren Übermittlung von allem abhängig solange
+        <acronym class="acronym">HTTPS</acronym> nicht aktiv ist. Deshalb ist die naheliegende Feststellung das
+        <acronym class="acronym">HTTPS</acronym>, dort wo es möglich ist zu bevorzugen ist und
+        <acronym class="acronym">HTTP</acronym> nur an solchen Orten eingesetzt wird so es nicht anders möglich oder
+        nicht erschwinglich ist.
+    </p>
+</div>
+    <div class="section" id="zend.oauth.introduction.getting-started" name="zend.oauth.introduction.getting-started"><div class="info"><h1 class="title">Beginnen</h1></div>
+    
+
+    <p class="para">
+        Da das OAuth Protokoll jetzt erklärt wurde sehen wir uns ein einfaches Beispiel mit
+        Quellcode an. Unser neuer Konsument wird Twitter Statusübertragungen verwenden. Um das tun
+        zu können muss er bei Twitter registriert sein um einen OAuth Konsumentenschlüssel und ein
+        Konsumentengeheimnis zu empfangen. Diese werden verwendet um einen Zugriffstoken zu
+        erhalten bevor wir die Twitter <acronym class="acronym">API</acronym> verwenden um eine Statusmeldung zu
+        schicken.
+    </p>
+
+    <p class="para">
+        Angenommen wir haben einen Schlüssel und ein Geheimnis bekommen, dann können wir den OAuth
+        Workflow starten indem eine <span class="classname">Zend_Oauth_Consumer</span> Instanz wie folgt
+        eingerichtet und eine Konfiguration übergeben wird (entweder ein Array oder ein
+        <span class="classname">Zend_Config</span> Objekt).
+    </p>
+
+    <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$config</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'callbackUrl'</span> =&gt; <span style="color: #ff0000;">'http://example.com/callback.php'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'siteUrl'</span> =&gt; <span style="color: #ff0000;">'http://twitter.com/oauth'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'consumerKey'</span> =&gt; <span style="color: #ff0000;">'gg3DsFTW9OU9eWPnbuPzQ'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'consumerSecret'</span> =&gt; <span style="color: #ff0000;">'tFB0fyWLSMf74lkEu9FTyoHXcazOWpbrAjTCCK48A'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$consumer</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Oauth_Consumer<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$config</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+    <p class="para">
+        callbackUrl ist die URI von der wir wollen das Sie Twitter von unserem Server anfragt wenn
+        Informationen gesendet werden. Wir sehen uns das später an. siteUrl ist die Basis URL der
+        OAuth <acronym class="acronym">API</acronym> Endpunkte von Twitter. Die komplette Liste der Endpunkt enthält
+        http://twitter.com/oauth/request_token, http://twitter.com/oauth/access_token und
+        http://twitter.com/oauth/authorize. Die grundsätzliche siteUrl verwendet eine Konvention
+        welche auf diese drei OAuth Endpunkte verweist (als Standard) um einen Anfragetoken, den
+        Zugriffstoken oder die Authorisierung zu erhalten. Wenn sich der aktuelle Endpunkt eines
+        beliebigen Services vom Standardset unterscheidet, dann können diese drei URIs separat
+        gesetzt werden indem die Methoden  <span class="methodname">setRequestTokenUrl()</span>,
+         <span class="methodname">setAccessTokenUrl()</span>, und
+         <span class="methodname">setAuthorizeUrl()</span>, oder die Konfigurationsfelder requestTokenUrl,
+        accessTokenUrl und authorizeUrl verwendet werden.
+    </p>
+
+    <p class="para">
+        consumerKey und consumerSecret werden von Twitter empfangen wenn sich die eigene Anwendung
+        für den OAuth Zugriff registriert. Das wird auch bei jedem OAuth aktivierten Service so
+        angewendet, so dass jeder einen Schlüssel und ein Geheimnis für die eigene Anwendung
+        anbietet.
+    </p>
+
+    <p class="para">
+        Alle diese Konfigurationsoptionen müssen durch Verwendung von Methodenaufrufen gesetzt
+        werden indem Sie einfach von callbackUrl auf setCallbackUrl() konvertiert werden.
+    </p>
+
+    <p class="para">
+        Zusätzlich sollte beachtet werden das verschiedene andere Konfigurationswerte nicht explizit
+        verwendet werden: requestMethod und requestScheme. Standardmäßig sendet
+        <span class="classname">Zend_Oauth_Consumer</span> Anfragen als POST (ausgenommen bei einer
+        Weiterleitung welche <b><tt>GET</tt></b> verwendet). Der konsumierende Client (siehe
+        später) enthält auch seine Authorisierung in Art eines Headers. Einige Services können, zu
+        Ihrer Diskretion, Alternativen benötigen. Man kann requestMethod (welche standardmäßig
+        Zend_Oauth::POST ist) zum Beispiel auf Zend_Oauth::GET zurückgesetzt, und requestScheme von
+        seinem Standardwert Zend_Oauth::REQUEST_SCHEME_HEADER entweder auf
+        Zend_Oauth::REQUEST_SCHEME_POSTBODY oder auf Zend_Oauth::REQUEST_SCHEME_QUERYSTRING.
+        Typischerweise sollten die Standardwerte bis auf ein paar bestimmte Ausnahmen problemlos
+        funktionieren. Für Details sehen Sie bitte in die Dokumentation des Service Providers.
+    </p>
+
+    <p class="para">
+        Der zweite Teil der Anpassung definiert wie <acronym class="acronym">HMAC</acronym> arbeitet wenn es für
+        alle Anfragen berechnet und verglichen wird. Das wird durch Verwendung des
+        Konfigurationsfeldes signatureMethod oder durch
+         <span class="methodname">setSignatureMethod()</span> konfiguriert. Standardmäßig ist es HMAC-SHA1.
+        Man kann es auch auf die vom Provider bevorzugte Methode setzen inklusive RSA-SHA1. Für
+        RSA-SHA1 sollte man die privaten und öffentlichen RSA Schlüssel über die
+        Konfigurationsfelder rsaPrivateKey und rsaPublicKey oder die Methoden
+         <span class="methodname">setRsaPrivateKey()</span> und  <span class="methodname">setRsaPublicKey()</span>
+        konfigurieren.
+    </p>
+
+    <p class="para">
+        Der erste Teil des OAuth Workflows holt sich einen Anfragetoken. Das wird bewerkstelligt
+        indem folgendes verwendet wird:
+    </p>
+
+    <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$config</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'callbackUrl'</span> =&gt; <span style="color: #ff0000;">'http://example.com/callback.php'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'siteUrl'</span> =&gt; <span style="color: #ff0000;">'http://twitter.com/oauth'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'consumerKey'</span> =&gt; <span style="color: #ff0000;">'gg3DsFTW9OU9eWPnbuPzQ'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'consumerSecret'</span> =&gt; <span style="color: #ff0000;">'tFB0fyWLSMf74lkEu9FTyoHXcazOWpbrAjTCCK48A'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$consumer</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Oauth_Consumer<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$config</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Holt den Anfragetoken</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$token</span> = <span style="color: #0000ff;">$consumer</span>-&gt;<span style="color: #006600;">getRequestToken</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+    <p class="para">
+        Der neue Anfragetoken (eine Instanz von <span class="classname">Zend_Oauth_Token_Request</span>)
+        ist nicht authorisiert. Um Ihn mit einem authorisierten Token zu wechseln mit dem wir auf
+        die Twitter <acronym class="acronym">API</acronym> zugreifen können, muss Ihn der Benutzer authorisieren.
+        Wir bewerkstelligen das indem der Benutzer auf den Authorisierungsendpunkt von Twitter
+        umgeleitet wird:
+    </p>
+
+    <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$config</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'callbackUrl'</span> =&gt; <span style="color: #ff0000;">'http://example.com/callback.php'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'siteUrl'</span> =&gt; <span style="color: #ff0000;">'http://twitter.com/oauth'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'consumerKey'</span> =&gt; <span style="color: #ff0000;">'gg3DsFTW9OU9eWPnbuPzQ'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'consumerSecret'</span> =&gt; <span style="color: #ff0000;">'tFB0fyWLSMf74lkEu9FTyoHXcazOWpbrAjTCCK48A'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$consumer</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Oauth_Consumer<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$config</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Holt den Anfragetoken</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$token</span> = <span style="color: #0000ff;">$consumer</span>-&gt;<span style="color: #006600;">getRequestToken</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Den token im Speicher fixieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'TWITTER_REQUEST_TOKEN'</span><span style="color: #66cc66;">&#93;</span> = <a href="http://www.php.net/serialize"><span style="color: #000066;">serialize</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$token</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Den Benutzer umleiten</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$consumer</span>-&gt;<span style="color: #006600;">redirect</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+    <p class="para">
+        Der Benutzer wird jetzt auf Twitter umgeleitet. Er wird gefragt den Anfragetoken zu
+        authorisieren, welcher an den Anfragestring der umgeleiteten URI angehängt ist. Angenommen
+        er akzeptiert und vervollständigt die Authorisierung, dann wird er wieder umgeleitet. Dieses
+        Mal auf unsere Callback URL die vorher gesetzt wurde (Beachte das die Callback URL auch in
+        Twitter registriert wurde als wir unsere Anwendung registriert haben).
+    </p>
+
+    <p class="para">
+        Bevor der Benutzer umgeleitet wird, sollten wir den Anfragetoken im Speicher fixieren. Der
+        Einfachheit halber verwenden wir nur die Session des Benutzer, aber man kann sehr einfach
+        eine Datenbank für den gleichen Zweck verwenden, solange der Anfragetoken mit dem aktuellen
+        Benutzer verbunden bleibt, damit er empfangen werden kann wenn dieser zu unserer Anwendung
+        zurückkommt.
+    </p>
+
+    <p class="para">
+        Die umgeleitete URI von Twitter enthält einen authorisierten Zugriffstoken. Wir können Code
+        einbauen um diesen Zugriffstoken wie folgt herauszuschneiden - dieser Sourcecode würde im
+        ausgeführten Code unserer Callback URI existieren. Sobald er herausgeschnitten wurde können
+        wir den vorherigen Anfragetoken entfernen, und statt dessen den Zugriffstoken für die
+        zukünftige Verendung mit der <acronym class="acronym">API</acronym> von Twitter fixieren. Nochmals, wir
+        fixieren einfach die Session des Benutzer, aber in Wirklichkeit kann ein Zugriffstoken eine
+        lange Lebenszeit haben, und sollte deshalb wirklich in einer Datenbank abgespeichert werden.
+    </p>
+
+    <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$config</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'callbackUrl'</span> =&gt; <span style="color: #ff0000;">'http://example.com/callback.php'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'siteUrl'</span> =&gt; <span style="color: #ff0000;">'http://twitter.com/oauth'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'consumerKey'</span> =&gt; <span style="color: #ff0000;">'gg3DsFTW9OU9eWPnbuPzQ'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'consumerSecret'</span> =&gt; <span style="color: #ff0000;">'tFB0fyWLSMf74lkEu9FTyoHXcazOWpbrAjTCCK48A'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$consumer</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Oauth_Consumer<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$config</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<a href="http://www.php.net/empty"><span style="color: #000066;">empty</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#41;</span> &amp;&amp; <a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'TWITTER_REQUEST_TOKEN'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$token</span> = <span style="color: #0000ff;">$consumer</span>-&gt;<span style="color: #006600;">getAccessToken</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$_GET</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/unserialize"><span style="color: #000066;">unserialize</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'TWITTER_REQUEST_TOKEN'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'TWITTER_ACCESS_TOKEN'</span><span style="color: #66cc66;">&#93;</span> = <a href="http://www.php.net/serialize"><span style="color: #000066;">serialize</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$token</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Jetzt da wir den Zugriffstoken haben können wir den Anfragetoken löschen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'TWITTER_REQUEST_TOKEN'</span><span style="color: #66cc66;">&#93;</span> = <span style="color: #000000; font-weight: bold;">null</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Fehlgeschlagene Anfrage? Ein Gauner versucht etwas?</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/exit"><span style="color: #000066;">exit</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Ungültige Callback Anfrage. Oops. Entschuldigung.'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+    <p class="para">
+        Erfolg! Wir haben einen authorisierten Zugriffstoken - zu dieser Zeit verwenden wir schon
+        die <acronym class="acronym">API</acronym> von Twitter. Da dieser Zugriffstoken bei jeder einzelnen
+        <acronym class="acronym">API</acronym> Anfrage enthalten sein muss, bietet
+        <span class="classname">Zend_Oauth_Consumer</span> einen fix-fertigen <acronym class="acronym">HTTP</acronym> Client
+        an (eine Subklasse von <span class="classname">Zend_Http_Client</span>) welcher entweder für sich
+        verwendet werden, oder der als eigener <acronym class="acronym">HTTP</acronym> Client an eine andere
+        Bibliothek oder Komponente übergeben werden kann. Hier ist ein Beispiel für die
+        eigenständige Verwendung. Das kann von überall aus der Anwendung heraus getan werden,
+        solange man Zugriff auf die OAuth Konfiguration hat, und den endgültigen authorisierten
+        Zugriffstoken empfangen kann.
+    </p>
+
+    <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$config</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'callbackUrl'</span> =&gt; <span style="color: #ff0000;">'http://example.com/callback.php'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'siteUrl'</span> =&gt; <span style="color: #ff0000;">'http://twitter.com/oauth'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'consumerKey'</span> =&gt; <span style="color: #ff0000;">'gg3DsFTW9OU9eWPnbuPzQ'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'consumerSecret'</span> =&gt; <span style="color: #ff0000;">'tFB0fyWLSMf74lkEu9FTyoHXcazOWpbrAjTCCK48A'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$statusMessage</span> = <span style="color: #ff0000;">'Ich sende über Twitter und verwende Zend_Oauth!'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$token</span> = <a href="http://www.php.net/unserialize"><span style="color: #000066;">unserialize</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'TWITTER_ACCESS_TOKEN'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = <span style="color: #0000ff;">$token</span>-&gt;<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$configuration</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setUri</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://twitter.com/statuses/update.json'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setMethod</span><span style="color: #66cc66;">&#40;</span>Zend_Http_Client::<span style="color: #006600;">POST</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setParameterPost</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'status'</span>, <span style="color: #0000ff;">$statusMessage</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$response</span> = <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$data</span> = Zend_Json::<span style="color: #006600;">decode</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$response</span>-&gt;<span style="color: #006600;">getBody</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$result</span> = <span style="color: #0000ff;">$response</span>-&gt;<span style="color: #006600;">getBody</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$data</span>-&gt;<span style="color: #006600;">text</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$result</span> = <span style="color: #ff0000;">'true'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$result</span>;</div></li></ol></div></div></div>
+
+
+    <p class="para">
+        Als Notiz zum eigenen Client, kann dieser an den meisten Services von Zend Framework
+        übergeben werden, oder an andere Klassen welche <span class="classname">Zend_Http_Client</span>
+        verwenden um damit den Standardclient zu ersetzen welcher andernfalls verwendet werden
+        würde.
+    </p>
+</div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.oauth.html">Zend_Oauth</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.oauth.html">Zend_Oauth</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.openid.html">Zend_OpenId</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.oauth.html">Zend_Oauth</a></li>
+  <li class="active"><a href="zend.oauth.introduction.html">Einf&uuml;hrung zu OAuth</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

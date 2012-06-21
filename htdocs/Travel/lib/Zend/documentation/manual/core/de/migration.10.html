@@ -1,0 +1,361 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend Framework 1.0 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="migration.15.html">Zend Framework 1.5</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="migration.html">Zend Framework Migration Notes</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="migration.09.html">Zend Framework 0.9</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="migration.10" class="section"><div class="info"><h1 class="title">Zend Framework 1.0</h1></div>
+    
+
+    <p class="para">
+        Wenn man von einem älteren Release auf Zend Framework 1.0 oder höher hochrüstet sollte
+        man die folgenden Migrations Hinweise beachten.
+    </p>
+
+    <div class="section" id="migration.10.zend.controller" name="migration.10.zend.controller"><div class="info"><h1 class="title">Zend_Controller</h1></div>
+        
+
+        <p class="para">
+            Die prinzipiellen Änderungen die durch 1.0.0RC1 angeboten werden sind die Einführung und
+            standardmäßige Aktivierung des
+            <a href="zend.controller.plugins.html#zend.controller.plugins.standard.errorhandler" class="link">ErrorHandler</a>
+            Plugins und den
+            <a href="zend.controller.actionhelpers.html#zend.controller.actionhelpers.viewrenderer" class="link">ViewRenderer</a>
+            Aktionhelfer. Bitte lies die Dokumentation jedes einzelnen gründlich um zu sehen wie sie
+            arbeiten und welchen Effekt Sie auf die eigene Anwendung haben können.
+        </p>
+
+        <p class="para">
+            Der <span class="classname">ErrorHandler</span> Plugin läuft wärend der
+             <span class="methodname">postDispatch()</span> Prüfung auf Ausnahmen, und leitet zu einem
+            spezifizierten Fehlerhandler Controller weiter. Solch ein Controller sollte in der
+            eigenen Anwendung inkludiert werden. Er kann deaktiviert werden durch das setzen des
+            Frontcontroller Parameters <span class="property">noErrorHandler</span>:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'noErrorHandler'</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Der <span class="classname">ViewRenderer</span> Aktionhelfer automatisiert die Injizierung der
+            View in den Aktioncontroller genauso wie das autorendern von Viewskripten basierend auf
+            die aktuelle Aktion. Das primäre Problem dem man begegnen kann ist, wenn man Aktionen
+            hat die keine View Skripte rendern und weder vorwärts- noch weiterleiten, da der
+            <span class="classname">ViewRenderer</span> versucht ein View Skript zu Rendern basierend auf
+            dem Aktionnamen.
+        </p>
+
+        <p class="para">
+            Es gibt verschiedene Strategien die man anwenden kann um den eigenen Code upzudaten. In
+            kurzer Form, kann man global den <span class="classname">ViewRenderer</span> im eigenen
+            Frontcontroller Bootstrap vor dem Abarbeiten ausschalten:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Annahme das $front eine Instanz von Zend_Controller_Front ist</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'noViewRenderer'</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Trotzdem ist es keine gute Langzeitstrategie, da es auch bedeutet das man mehr Code
+            schreiben muß.
+        </p>
+
+        <p class="para">
+            Wenn man bereit ist damit zu beginnen die <span class="classname">ViewRenderer</span>
+            Funktionalität zu verwenden, gibt es verschiedene Dinge die man im eigenen
+            Controllercode beachten muß. Zuerst muß auf die Aktionmethoden (die Methoden die mit
+            &#039;Action&#039; enden) geachtet werden, und ausgesucht werden was eine jede machen soll. Wenn
+            nichts vom folgenden passiert, muß man Änderungen durchführen:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">Aufruf von <strong class="command">$this-&gt;render();</strong></p></li>
+            <li class="listitem"><p class="para">Aufruf von <strong class="command">$this-&gt;_forward();</strong></p></li>
+            <li class="listitem"><p class="para">Aufruf von <strong class="command">$this-&gt;_redirect();</strong></p></li>
+
+            <li class="listitem">
+                <p class="para">Aufruf des <span class="classname">Redirector</span> Aktionhelfers</p>
+            </li>
+        </ul>
+
+        <p class="para">
+            Die einfachste Änderung ist das Ausschalten des Auto-Rendering für diese Methode:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$this</span>-&gt;_helper-&gt;<span style="color: #006600;">viewRenderer</span>-&gt;<span style="color: #006600;">setNoRender</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Wenn man herausfindet das keine der eigenen Aktionmethoden rendern, weiterleiten oder
+            umleiten, wird man voraussichtlich die oben angeführte Zeile in die eigene
+             <span class="methodname">preDispatch()</span> oder  <span class="methodname">init()</span> Methode
+            einfügen wollen:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> preDispatch<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Ausschalten des autorendern vom View Skript</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;_helper-&gt;<span style="color: #006600;">viewRenderer</span>-&gt;<span style="color: #006600;">setNoRender</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// .. andere Dinge tun...</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Wenn  <span class="methodname">render()</span> aufgerufen wird, und man
+            <a href="zend.controller.modular.html" class="link">die konventionelle Modulare Verzeichnis
+                Struktur</a> verwendet, wird man den Code ändern wollen um Autorendern zu
+            Verwenden:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    Wenn man mehrere View Skripte in einer einzelnen Aktion rendert muß nichts
+                    geändert werden.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Wenn man einfach  <span class="methodname">render()</span> ohne Argumente aufruft,
+                    können diese Zeilen entfernt werden.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Wenn man  <span class="methodname">render()</span> mit Argumenten aufruft, und danach
+                    nicht irgendeine Bearbeitung durchführt oder mehrere View sktipe rendert, können
+                    diese Aufrufe zu <strong class="command">$this-&gt;_helper-&gt;viewRenderer();</strong> geändert
+                    werden.
+                </p>
+            </li>
+        </ul>
+
+        <p class="para">
+            Wenn die konventionelle modulare Verzeichnisstruktur nicht verwendet wird, gibt es eine
+            Vielzahl von Methoden für das Setzen des View Basispfades und der Skript
+            Pfadspezifikationen so das man den <span class="classname">ViewRenderer</span> verwenden kann.
+            Bitte lies die <a href="zend.controller.actionhelpers.html#zend.controller.actionhelpers.viewrenderer" class="link">ViewRenderer
+                Dokumentation</a> für Informationen über diese Methoden.
+        </p>
+
+        <p class="para">
+            Wenn ein View Objekt von der Registry verwendet, oder das eigene View Objekt verändert,
+            oder eine andere View Implementation verwendet wird, dann wird man den
+            <span class="classname">ViewRenderer</span> in diesem Objekt injiziieren wollen. Das kann ganz
+            einfach jederzeit durchgeführt werden.
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    Vor dem Verarbeiten einer Frontcontroller Instanz:
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Annahme das $view bereits definiert wurde</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$viewRenderer</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Controller_Action_Helper_ViewRenderer<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$view</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Controller_Action_HelperBroker::<span style="color: #006600;">addHelper</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$viewRenderer</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Jederzeit wärend des Bootstrap Prozesses:
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$viewRenderer</span> =</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Controller_Action_HelperBroker::<span style="color: #006600;">getStaticHelper</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'viewRenderer'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$viewRenderer</span>-&gt;<span style="color: #006600;">setView</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$view</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </li>
+        </ul>
+
+        <p class="para">
+            Es gibt viele Wege den <span class="classname">ViewRenderer</span> zu modifizieren inklusive dem
+            Setzen eines anderen View Skripts zum Rendern, dem Spezifizieren von Veränderungen für
+            alle veränderbaren Elemente eines View Skript Pfades (inklusive der Endung), dem
+            Auswählen eines Antwort-benannten Segments zur Anpassung und mehr. Wenn die
+            konventionelle modulare Verzeichnisstruktur nicht verwendet wird, kann noch immer eine
+            andere Pfad Spezifikation mit dem <span class="classname">ViewRenderer</span> zugeordnet werden.
+        </p>
+
+        <p class="para">
+            Wir empfehlen die Adaptierung des eigenen Codes um den
+            <span class="classname">ErrorHandler</span> und <span class="classname">ViewRenderer</span> zu verwenden
+            da diese neue Kernfunktionalitäten sind.
+        </p>
+    </div>
+
+    <div class="section" id="migration.10.zend.currency" name="migration.10.zend.currency"><div class="info"><h1 class="title">Zend_Currency</h1></div>
+        
+
+        <p class="para">
+            Die Erstellung von <span class="classname">Zend_Currency</span> wurde vereinfacht.
+            Es muß nicht länger ein Skript angegeben oder auf <b><tt>NULL</tt></b> gesetzt
+            werden. Der optionale script Parameter ist jetzt eine Option welche durch die
+             <span class="methodname">setFormat()</span> Methode gesetzt werden kann.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$currency</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Currency<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$currency</span>, <span style="color: #0000ff;">$locale</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Die  <span class="methodname">setFormat()</span> Methode nimmt jetzt ein Array von Optionen.
+            Diese Optionen werden permanent gesetzt und überschreiben alle vorher gesetzten Werte.
+            Auch eine neue Option &#039;precision&#039; wurde integriert. Die folgenden Optionen wurden
+            überarbeitet:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para"><em class="emphasis">position</em>: Ersetzt den alten &#039;rules&#039; Parameter.</p>
+            </li>
+
+            <li class="listitem">
+                <p class="para"><em class="emphasis">script</em>: Ersetzt den alten &#039;script&#039; Parameter.</p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <em class="emphasis">format</em>: Ersetzt den alten &#039;locale&#039; Parameter welcher keine
+                    neue Währung, sondern nur das Format der Nummern setzt.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para"><em class="emphasis">display</em>: Ersetzt den alten &#039;rules&#039; Parameter.</p>
+            </li>
+
+            <li class="listitem"><p class="para"><em class="emphasis">precision</em>: Neuer Parameter.</p></li>
+
+            <li class="listitem">
+                <p class="para">
+                    <em class="emphasis">name</em>: Ersetzt den alten &#039;rules&#039; Parameter. Setzt den
+                    vollständigen Namen der Währung.
+                </p>
+            </li>
+
+            <li class="listitem"><p class="para"><em class="emphasis">currency</em>: Neuer Parameter.</p></li>
+            <li class="listitem"><p class="para"><em class="emphasis">symbol</em>: Neuer Parameter.</p></li>
+        </ul>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$currency</span>-&gt;<span style="color: #006600;">setFormat</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a> <span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Die  <span class="methodname">toCurrency()</span> Methode unterstützt die optionalen &#039;script&#039;
+            und &#039;locale&#039; Parameter nicht mehr. Stattdessen nimmt sie ein Array von Optionen welche
+            die selben Schlüssel enthalten können wie die  <span class="methodname">setFormat()</span>
+            Methode.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$currency</span>-&gt;<span style="color: #006600;">toCurrency</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$value</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a> <span style="color: #0000ff;">$options</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Die Methoden  <span class="methodname">getSymbol()</span>,
+             <span class="methodname">getShortName()</span>,  <span class="methodname">getName()</span>,
+             <span class="methodname">getRegionList()</span> und  <span class="methodname">getCurrencyList()</span>
+            sind nicht länger statisch und können vom Objekt aus aufgerufen werden. Die geben den
+            aktuell gesetzten Wert des Objekts zurück wenn kein Parameter gesetzt wurde.
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="migration.15.html">Zend Framework 1.5</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="migration.html">Zend Framework Migration Notes</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="migration.09.html">Zend Framework 0.9</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="migration.html">Zend Framework Migration Notes</a></li>
+  <li><a href="migration.110.html">Zend Framework 1.10</a></li>
+  <li><a href="migration.19.html">Zend Framework 1.9</a></li>
+  <li><a href="migration.18.html">Zend Framework 1.8</a></li>
+  <li><a href="migration.17.html">Zend Framework 1.7</a></li>
+  <li><a href="migration.16.html">Zend Framework 1.6</a></li>
+  <li><a href="migration.15.html">Zend Framework 1.5</a></li>
+  <li class="active"><a href="migration.10.html">Zend Framework 1.0</a></li>
+  <li><a href="migration.09.html">Zend Framework 0.9</a></li>
+  <li><a href="migration.08.html">Zend Framework 0.8</a></li>
+  <li><a href="migration.06.html">Zend Framework 0.6</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

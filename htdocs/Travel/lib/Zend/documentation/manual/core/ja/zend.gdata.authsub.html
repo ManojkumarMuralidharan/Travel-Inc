@@ -1,0 +1,251 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>AuthSub による認証 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.gdata.introduction.html">導入</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.gdata.html">Zend_Gdata</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.gdata.books.html">Using the Book Search Data API</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.gdata.authsub" class="section"><div class="info"><h1 class="title">AuthSub による認証</h1></div>
+    
+
+    <p class="para">
+        AuthSub を使用すると、ウェブアプリケーションで
+        Google Data サービスへのアクセスのための認証ができるようになります。
+        ユーザの認証情報を処理するコードを自分で書く必要はありません。
+    </p>
+
+    <p class="para">
+        Google Data AuthSub 認証についての詳細は、
+        <a href="http://code.google.com/apis/accounts/AuthForWebApps.html" class="link external">&raquo; http://code.google.com/apis/accounts/AuthForWebApps.html</a>
+        を参照ください。
+    </p>
+
+    <p class="para">
+        Google のドキュメントでは、ClientLogin 方式は
+        &quot;インストールするアプリケーション&quot; に適しており、一方 AuthSub は
+        &quot;ウェブアプリケーション&quot; に適しているとされています。
+        これらの違いは、AuthSub はユーザとのやりとりが発生するということです。
+        ブラウザのインターフェイスを用いて、リクエストのリダイレクトを行います。
+        ClientLogin では <acronym class="acronym">PHP</acronym> のコードでアカウント情報を提供します。
+        ユーザが直接認証情報を入力する必要がなくなります。
+    </p>
+
+    <p class="para">
+        AuthSub の場合の認証情報は、ウェブアプリケーションのユーザが入力します。
+        つまり、認証情報をユーザが知っておく必要があります。
+    </p>
+
+    <blockquote><p><b class="note">Note</b>: <span class="info"><b>登録されたアプリケーション</b><br /></span>
+        
+        
+            <span class="classname">Zend_Gdata</span> は、現在はセキュアなトークンの使用をサポートしていません。
+            なぜなら、デジタル証明書によるセキュアなトークンの取得を
+            AuthSub 認証がサポートしていないからです。
+        <br />
+    </p></blockquote>
+
+    <div class="section" id="zend.gdata.authsub.login" name="zend.gdata.authsub.login"><div class="info"><h1 class="title">AuthSub 認証済みの Http クライアントの作成</h1></div>
+        
+
+        <p class="para">
+            あなたの作成した <acronym class="acronym">PHP</acronym> アプリケーションで、認証を行う
+            Google <acronym class="acronym">URL</acronym> へのハイパーリンクを提供しなければなりません。そのためには
+            静的関数  <span class="methodname">Zend_Gdata_AuthSub::getAuthSubTokenUri()</span>
+            を使用します。この関数の引数には、あなたの作成した
+            <acronym class="acronym">PHP</acronym> アプリケーションの <acronym class="acronym">URL</acronym> を指定します。それにより、ユーザ認証の後に
+            Google からもとの場所にリダイレクトされるようになります。
+        </p>
+
+        <p class="para">
+            Google の認証サーバからアプリケーションに戻ってくる際に、
+            <em class="emphasis">token</em> という名前の GET パラメータが設定されます。
+            このパラメータの値は、認証されたアクセスに使用する single-use トークンとなります。
+            このトークンを multi-use トークンに変換し、セッションに保存します。
+        </p>
+
+        <p class="para">
+            そしてそのトークンの値は使用して
+             <span class="methodname">Zend_Gdata_AuthSub::getHttpClient()</span>
+            をコールします。この関数は <span class="classname">Zend_Http_Client</span>
+            のインスタンスを返します。このインスタンスには適切なヘッダが設定されており、
+            後でこの <acronym class="acronym">HTTP</acronym> クライアントを使用して送信したリクエストは認証済みのものとなります。
+        </p>
+
+        <p class="para">
+            以下の例は、<acronym class="acronym">PHP</acronym> のウェブアプリケーションのコードです。
+            Google Calendar サービスに対する認証を行い、
+            認証済みの <acronym class="acronym">HTTP</acronym> クライアントを使用して <span class="classname">Zend_Gdata</span>
+            クライアントオブジェクトを作成します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$my_calendar</span> = <span style="color: #ff0000;">'http://www.google.com/calendar/feeds/default/private/full'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'cal_token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// single-use トークンをセッショントークンに変換します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$session_token</span> =</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Gdata_AuthSub::<span style="color: #006600;">getAuthSubSessionToken</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// セッショントークンをセッションに保存します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'cal_token'</span><span style="color: #66cc66;">&#93;</span> = <span style="color: #0000ff;">$session_token</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// single-use トークンを生成するためのリンクを表示します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$googleUri</span> = Zend_Gdata_AuthSub::<span style="color: #006600;">getAuthSubTokenUri</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'http://'</span>. <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'SERVER_NAME'</span><span style="color: #66cc66;">&#93;</span> . <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'REQUEST_URI'</span><span style="color: #66cc66;">&#93;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$my_calendar</span>, <span style="color: #cc66cc;">0</span>, <span style="color: #cc66cc;">1</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;&lt;a href='$googleUri'&gt;ここ&lt;/a&gt; &quot;</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">&quot;をクリックして認証を行います。&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/exit"><span style="color: #000066;">exit</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Google とやり取りするための、認証済み HTTP クライアントを作成します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = Zend_Gdata_AuthSub::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'cal_token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 認証済み Http クライアントを使用して Gdata オブジェクトを作成します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cal</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Calendar<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+    </div>
+
+    <div class="section" id="zend.gdata.authsub.logout" name="zend.gdata.authsub.logout"><div class="info"><h1 class="title">AuthSub 認証の解除</h1></div>
+        
+
+        <p class="para">
+            指定したトークンによる認証状態を終わらせるには、静的関数
+             <span class="methodname">Zend_Gdata_AuthSub::AuthSubRevokeToken()</span>
+            を使用します。そうしないと、このトークンはいつまでも有効なままになります。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// アプリケーションのセキュリティ問題を避けるため、注意してこの値を作成します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$php_self</span> = <a href="http://www.php.net/htmlentities"><span style="color: #000066;">htmlentities</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/substr"><span style="color: #000066;">substr</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'PHP_SELF'</span><span style="color: #66cc66;">&#93;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #cc66cc;">0</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/strcspn"><span style="color: #000066;">strcspn</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'PHP_SELF'</span><span style="color: #66cc66;">&#93;</span>, <span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span><span style="color: #000099; font-weight: bold;">\r</span>&quot;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;ENT_QUOTES<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'logout'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Gdata_AuthSub::<span style="color: #006600;">AuthSubRevokeToken</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'cal_token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/unset"><span style="color: #000066;">unset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'cal_token'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/header"><span style="color: #000066;">header</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Location: '</span> . <span style="color: #0000ff;">$php_self</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/exit"><span style="color: #000066;">exit</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+    <blockquote><p><b class="note">Note</b>: <span class="info"><b>セキュリティについて</b><br /></span>
+        
+        
+            上の例における <var class="varname">$php_self</var> の扱い方は、
+            一般的なセキュリティ問題の対応法に従ったものです。
+            <span class="classname">Zend_Gdata</span> に固有のものではありません。
+            <acronym class="acronym">HTTP</acronym> ヘッダに出力する内容は、つねにフィルタリングするようにしましょう。
+        <br />
+        
+            認証トークンの解除については、ユーザが Google Data
+            セッションを終わらせたときに行うのがお勧めです。
+            だれかがトークンを盗んで悪用するという可能性は非常に小さいものです。
+            とは言え、サービスの利用が終わったら認証も終了させておくことは大切です。
+        <br />
+    </p></blockquote>
+
+    </div>
+
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.gdata.introduction.html">導入</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.gdata.html">Zend_Gdata</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.gdata.books.html">Using the Book Search Data API</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.gdata.html">Zend_Gdata</a></li>
+  <li><a href="zend.gdata.introduction.html">導入</a></li>
+  <li class="active"><a href="zend.gdata.authsub.html">AuthSub による認証</a></li>
+  <li><a href="zend.gdata.books.html">Using the Book Search Data API</a></li>
+  <li><a href="zend.gdata.clientlogin.html">ClientLogin による認証</a></li>
+  <li><a href="zend.gdata.calendar.html">Google Calendar の使用法</a></li>
+  <li><a href="zend.gdata.docs.html">Google Documents List Data API の使用法</a></li>
+  <li><a href="zend.gdata.health.html">Using Google Health</a></li>
+  <li><a href="zend.gdata.spreadsheets.html">Google Spreadsheets の使用法</a></li>
+  <li><a href="zend.gdata.gapps.html">Google Apps Provisioning の使用法</a></li>
+  <li><a href="zend.gdata.gbase.html">Google Base の使用法</a></li>
+  <li><a href="zend.gdata.photos.html">Picasa Web Albums の使用法</a></li>
+  <li><a href="zend.gdata.youtube.html">YouTube Data API の使用法</a></li>
+  <li><a href="zend.gdata.exception.html">Gdata の例外処理</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,499 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend Framework 1.10 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="migration.html">Zend Framework Migration Notes</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="migration.html">Zend Framework Migration Notes</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="migration.19.html">Zend Framework 1.9</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="migration.110" class="section"><div class="info"><h1 class="title">Zend Framework 1.10</h1></div>
+    
+
+    <p class="para">
+        Wenn man von einem älteren Release auf Zend Framework 1.10 oder höher hochrüstet sollte
+        man die folgenden Migrations Hinweise beachten.
+    </p>
+
+    <div class="section" id="migration.110.zend.controller.front" name="migration.110.zend.controller.front"><div class="info"><h1 class="title">Zend_Controller_Front</h1></div>
+        
+
+        <p class="para">
+            Ein fehlerhaftes Verhalten wurde behoben, welches aufgetreten ist wenn keine Modell
+            Route und keine Route mit der angegebenen Anfrage übereinstimmt. Vorher hat der Router
+            das nicht modifizierte Anfrageobjekt zurückgegeben, und der Frontcontroller hat damit
+            nur den Standardcontroller und die Standardaktion angezeigt. Seit Zend Framework 1.10
+            wirft der Router korrekterweise, wie im Router Interface beschrieben, eine Exception
+            wenn keine passende Route vorhanden ist. Das Error Plugin fängt die Exception und leitet
+            Sie an den Errorcontroller weiter. Man kann mit der Konstante
+            <b><tt>Zend_Controller_Plugin_ErrorHandler::EXCEPTION_NO_ROUTE</tt></b> auf einen
+            spezifischen Fehler testen:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Vor 1.10</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> errorAction<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$errors</span> = <span style="color: #0000ff;">$this</span>-&gt;_getParam<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'error_handler'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">switch</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$errors</span>-&gt;<span style="color: #006600;">type</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">case</span> Zend_Controller_Plugin_ErrorHandler::<span style="color: #006600;">EXCEPTION_NO_CONTROLLER</span>:</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">case</span> Zend_Controller_Plugin_ErrorHandler::<span style="color: #006600;">EXCEPTION_NO_ACTION</span>:</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// ...</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Ab 1.10</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> errorAction<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$errors</span> = <span style="color: #0000ff;">$this</span>-&gt;_getParam<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'error_handler'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">switch</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$errors</span>-&gt;<span style="color: #006600;">type</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">case</span> Zend_Controller_Plugin_ErrorHandler::<span style="color: #006600;">EXCEPTION_NO_ROUTE</span>:</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">case</span> Zend_Controller_Plugin_ErrorHandler::<span style="color: #006600;">EXCEPTION_NO_CONTROLLER</span>:</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">case</span> Zend_Controller_Plugin_ErrorHandler::<span style="color: #006600;">EXCEPTION_NO_ACTION</span>:</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp;<span style="color: #808080; font-style: italic;">// ...</span></div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="migration.110.zend.feed.reader" name="migration.110.zend.feed.reader"><div class="info"><h1 class="title">Migrating from 1.9.6 to 1.10 or later</h1></div>
+        
+
+        <p class="para">
+            Mit der Einführung von Zend Framework 1.10 wurde die Behandlung für das Empfangen von
+            Autoren und Entwicklern in <span class="classname">Zend_Feed_Reader</span> geändert. Diese
+            Änderung war ein Weg die Behandlung solcher Daten zwischen RSS und Atom Klassen zwischen
+            den Komponenten zu harmonisieren und die Rückgabe von Autoren und Entwicklern in einer
+            besseren, verwendbareren und detailuerteren Form zu ermöglichen. Das korrigiert auch
+            einen Fehler bei dem angenommen wurde das jedes Autor Element auf einen Namen zeigt.
+            In RSS ist das falsch, da ein Autor Element aktuell nur eine Email Adresse anbieten
+            muss. Zusätzlich fügte die originale Implementation seine RSS Limits bei Atom Feeds
+            hinzu was zu einer Reduzierung der Nützlichkeit des Parsers mit diesem Format führte.
+        </p>
+
+        <p class="para">
+            Die Änderung bedeutet das Methoden wie  <span class="methodname">getAuthors()</span> und
+             <span class="methodname">getContributors</span> nicht länger ein einfaches Array von Strings
+            zurückgeben die von den relevanten RSS und Atom Elementen geparst wurden Statt dessen
+            ist der Rückgabewert eine Unterklasse von <span class="classname">ArrayObject</span> die
+            <span class="classname">Zend_Feed_Reader_Collection_Author</span> genannt wird und ein
+            aufzählbares multidimensionales Array an Autoren simuliert. Jedes Mitglied dieses
+            Objekts ist ein einfaches Array mit drei potentiellen Schlüsseln (wie in den
+            Quelldaten erlaubt). Diese beinhalten name, email und uri.
+        </p>
+
+        <p class="para">
+            Das originale Verhalten dieser Methoden würde ein einfaches Array von Strings
+            zurückgeben, wobei jeder String versucht einen einzelnen Namen zu präsentieren, aber in
+            der Realität war dies nicht möglich da es keine Regel gibt die das Format der RSS
+            Autor Strings leiten.
+        </p>
+
+        <p class="para">
+            Die einfachste Methode der Simulation des originalen Verhaltens dieser Methoden ist die
+            Verwendung von <span class="classname">Zend_Feed_Reader_Collection_Author</span>&#039;s
+             <span class="methodname">getValues()</span> welche auch ein einfaches Array an Strings
+            darstellt und die &quot;relevantesten Daten&quot; repräsentiert. Für Autoren wird deren Name
+            angenommen. Jeder Wert in resultierenden Array wird vom &quot;name&quot; Wert abgeleitet welcher
+            jedem Autor angehängt ist (wenn vorhanden). In den meisten Fällen ist diese einfache
+            Änderung einfach durchzuführen wie anbei demonstriert.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * In 1.9.6</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$feed</span> = Zend_Feed_Reader::<span style="color: #006600;">import</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://example.com/feed'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$authors</span> = <span style="color: #0000ff;">$feed</span>-&gt;<span style="color: #006600;">getAuthors</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Äquivalent in 1.10</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$feed</span> = Zend_Feed_Reader::<span style="color: #006600;">import</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://example.com/feed'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$authors</span> = <span style="color: #0000ff;">$feed</span>-&gt;<span style="color: #006600;">getAuthors</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">getValues</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="migration.110.zend.filter.html-entities" name="migration.110.zend.filter.html-entities"><div class="info"><h1 class="title">Zend_Filter_HtmlEntities</h1></div>
+        
+
+        <p class="para">
+            Um zu einem höheren Sicherheitsstandard für die Zeichenkodierung zu kommen, ist der
+            Standardwert von <span class="classname">Zend_Filter_HtmlEntities</span> jetzt
+            <acronym class="acronym">UTF-8</acronym> statt <acronym class="acronym">ISO-8859-1</acronym>.
+        </p>
+
+        <p class="para">
+            Zusätzlich, weil der aktuelle Mechanismus mit Zeichenkodierung handelt und nicht mit
+            Zeichensets, wurden zwei Methoden hinzugefügt.  <span class="methodname">setEncoding()</span>
+            und  <span class="methodname">getEncoding()</span>. Die vorhergehenden Methoden
+             <span class="methodname">setCharSet()</span> und  <span class="methodname">setCharSet()</span> sind
+            jetzt deprecated und verweisen auf die neuen Methoden. Letztendlich, statt die
+            geschützten Mitglieder in der  <span class="methodname">filter()</span> Methode direkt zu
+            verwenden, werden Sie durch Ihre expliziten Zugriffsmethoden empfangen. Wenn man den
+            Filter in der Vergangenheit erweitert hat, sollte man seinen Code und seine Unittests
+            prüfen um sicherzustellen das weiterhin alles funktioniert.
+        </p>
+    </div>
+
+    <div class="section" id="migration.110.zend.filter.strip-tags" name="migration.110.zend.filter.strip-tags"><div class="info"><h1 class="title">Zend_Filter_StripTags</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Filter_StripTags</span> enthielt in voehergehenden Versionen ein
+            <var class="varname">commentsAllowed</var> Flag, welches es erlaubt hat <acronym class="acronym">HTML</acronym>
+            Kommentare in von dieser Klasse gefiltertem <acronym class="acronym">HTML</acronym> Text als erlaubt zu
+            markieren. Aber das öffnet den Weg für <acronym class="acronym">XSS</acronym> Attacken, speziell im
+            Internet Explorer (der es erlaubt konditionelle Funktionalität über
+            <acronym class="acronym">HTML</acronym> Kommentare zu spezifizieren). Beginnend mit Version 1.9.7 (und
+            retour mit den Versionen 1.8.5 und 1.7.9), hat das <var class="varname">commentsAllowed</var>
+            Flag keine Bedeutung meht, und alle <acronym class="acronym">HTML</acronym> Kommentare, inklusive denen
+            die andere <acronym class="acronym">HTML</acronym> Tags oder untergeordnete Kommentare enthalten, werden
+            von der endgültigen Aufgabe des Filters entfernt.
+        </p>
+    </div>
+
+    <div class="section" id="migration.110.zend.file.transfer" name="migration.110.zend.file.transfer"><div class="info"><h1 class="title">Zend_File_Transfer</h1></div>
+        
+
+        <div class="section" id="migration.110.zend.file.transfer.files" name="migration.110.zend.file.transfer.files"><div class="info"><h1 class="title">Sicherheitsänderung</h1></div>
+            
+
+            <p class="para">
+                Aus Gründen der Sicherheit speichert <span class="classname">Zend_File_Transfer</span> nicht
+                länger die originalen Mimetypen und Dateigrößen welche vom anfragenden Client
+                angegeben wurden in seinem internen Speicher. Stattdessen werden die echten Werte
+                bei der Instanzierung erkannt.
+            </p>
+
+            <p class="para">
+                Zusätzlich werden die originalen Werte in <var class="varname">$_FILES</var> bei der
+                Instanzierung mit den echten Werten überschrieben. Das macht auch
+                <var class="varname">$_FILES</var> sicher.
+            </p>
+
+            <p class="para">
+                Wenn man die originalen Werte benötigt, kann man diese entweder vor der
+                Instanzierung von <span class="classname">Zend_File_Transfer</span> speichern, oder bei der
+                Instanzierung die Option <span class="property">disableInfos</span> verwenden. Es ist zu
+                beachten das diese Option sinnlos ist wenn Sie nach der Instanzierung verwendet
+                wird.
+            </p>
+        </div>
+
+        <div class="section" id="migration.110.zend.file.transfer.count" name="migration.110.zend.file.transfer.count"><div class="info"><h1 class="title">Count Prüfung</h1></div>
+            
+
+            <p class="para">
+                Vor dem Release 1.10 hat die <span class="classname">MimeType</span> Prüfung eine falsche
+                Benennung verwendet. Aus Gründen der Konsistenz wurden die folgenden Konstanten
+                geändert:
+            </p>
+
+            <table class="doctable table"><div class="info"><caption><b>Geänderte Prüfmeldungen</b></caption></div>
+                
+
+                
+                    <thead valign="middle">
+                        <tr valign="middle">
+                            <th>Alt</th>
+                            <th>Neu</th>
+                            <th>Wert</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody valign="middle" class="tbody">
+                        <tr valign="middle">
+                            <td align="left"><b><tt>TOO_MUCH</tt></b></td>
+                            <td align="left"><b><tt>TOO_MANY</tt></b></td>
+
+                            <td align="left">
+                                Too many files, maximum &#039;%max%&#039; are allowed but &#039;%count%&#039; are given
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><b><tt>TOO_LESS</tt></b></td>
+                            <td align="left"><b><tt>TOO_FEW</tt></b></td>
+
+                            <td align="left">
+                                Too few files, minimum &#039;%min%&#039; are expected but &#039;%count%&#039; are given
+                            </td>
+                        </tr>
+
+                    </tbody>
+                
+            </table>
+
+
+            <p class="para">
+                Wenn man diese Meldungen im eigenen Code übersetzt dann sollte man die neuen
+                Konstanten verwenden. Als Vorteil muss man den originalen String im englischen nicht
+                mehr übersetzen um die richtige Schreibweise zu erhalten.
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="migration.110.zend.translate" name="migration.110.zend.translate"><div class="info"><h1 class="title">Zend_Translate</h1></div>
+        
+
+        <div class="section" id="migration.110.zend.translate.xliff" name="migration.110.zend.translate.xliff"><div class="info"><h1 class="title">Xliff Adapter</h1></div>
+            
+
+            <p class="para">
+                In der Vergangenheit hat der Xliff Adapter den Source String als Message Id
+                verwendet. Laut dem Xliff Standard sollte die trans-unit Id verwendet werden.
+                Dieses Verhalten wurde mit Zend Framework 1.10 korrigiert. Jetzt wird
+                standardmäßig die trans-unit Id als Message Id verwendet.
+            </p>
+
+            <p class="para">
+                Aber man kann trotzdem das falsch und alte Verhalten bekommen indem die
+                <span class="property">useId</span> Option auf <b><tt>FALSE</tt></b> gesetzt wird.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$trans</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Translate<span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'xliff'</span>, <span style="color: #ff0000;">'/path/to/source'</span>, <span style="color: #0000ff;">$locale</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'useId'</span> =&gt; <span style="color: #000000; font-weight: bold;">false</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+
+    <div class="section" id="migration.110.zend.validate" name="migration.110.zend.validate"><div class="info"><h1 class="title">Zend_Validate</h1></div>
+        
+
+        <div class="section" id="migration.110.zend.validate.selfwritten" name="migration.110.zend.validate.selfwritten"><div class="info"><h1 class="title">Selbst geschriebene Adapter</h1></div>
+            
+
+            <p class="para">
+                Wenn in einer selbst geschriebenen Prüfung ein Fehler gesetzt wird um diesen
+                zurückzugeben muß die  <span class="methodname">_error()</span> Methode aufgerufen werden.
+                Vor Zend Framework 1.10 konnte man diese Methode ohne einen angegebenen Parameter
+                aufrufen. Es wurde dann das erste gefundene Nachrichtentemplate verwendet.
+            </p>
+
+            <p class="para">
+                Dieses Verhalten ist problematisch wenn man Prüfungen hat die mehr als eine
+                Nachricht zurückgeben kann. Auch wenn man eine existierende Prüfung erweitert kann
+                man unerwartete Ergebnisse erhalten. Das kann zum Problem führen das der Benutzer
+                nicht die Nachricht erhält die man erwartet.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">My_Validator <span style="color: #000000; font-weight: bold;">extends</span> Zend_Validate_Abstract</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> isValid<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$value</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; ...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;_error<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// Unerwartete Ergebnisse zwischen verschiedenen OS</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; ...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Um dieses Problem zu verhindern erlaubt es die  <span class="methodname">_error()</span>
+                Methode nicht mehr ohne einen angegebenen Parameter aufgerufen zu werden.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">My_Validator <span style="color: #000000; font-weight: bold;">extends</span> Zend_Validate_Abstract</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> isValid<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$value</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; ...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;_error<span style="color: #66cc66;">&#40;</span>self::<span style="color: #006600;">MY_ERROR</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Definierter Fehler, keine unerwarteten Ergebnisse</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; ...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="migration.110.zend.validate.datevalidator" name="migration.110.zend.validate.datevalidator"><div class="info"><h1 class="title">Vereinfachungen im Date Prüfer</h1></div>
+            
+
+            <p class="para">
+                Vor Zend Framework 1.10 wurden 2 identische Nachrichten im Date Prüfer geworfen.
+                Es gab <b><tt>NOT_YYYY_MM_DD</tt></b> und <b><tt>FALSEFORMAT</tt></b>.
+                Ab Zend Framework 1.10 wird nur mehr die <b><tt>FALSEFORMAT</tt></b> Meldung
+                zurückgegeben wenn das angegebene Datum mit dem gesetzten Format nicht
+                übereinstimmt.
+            </p>
+        </div>
+
+        <div class="section" id="migration.110.zend.validate.barcodevalidator" name="migration.110.zend.validate.barcodevalidator"><div class="info"><h1 class="title">Fehlerbehebungen im Alpha, Alum und Barcode Prüfer</h1></div>
+            
+
+            <p class="para">
+                Vor dem Zend Framework 1.10 waren Nachrichten in den 2 Barcode Adaptern, dem Alpha
+                und dem Alnum Prüfer identisch. Das führte zu Problemen bei der Verwendung von
+                eigenen Meldungen, Übersetzungen oder mehreren Instanzen dieser Prüfer.
+            </p>
+
+            <p class="para">
+                Mit Zend Framework 1.10 wurden die Werte dieser Konstanten so geändert das Sie
+                eindeutig sind. Wenn man, so wie es im Handbuhc erklärt wird, die Konstanten
+                verwendet gibt es keine Änderungen. Aber wenn man den Inhalt der Konstanten im
+                eigenen Code verwendet dann muß man diese Ändern. Die folgende Tabelle zeigt die
+                geänderten Werte:
+            </p>
+
+            <table class="doctable table"><div class="info"><caption><b>Vorhandenen Meldungen der Prüfer</b></caption></div>
+                
+
+                
+                    <thead valign="middle">
+                        <tr valign="middle">
+                            <th>Prüfer</th>
+                            <th>Konstante</th>
+                            <th>Wert</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody valign="middle" class="tbody">
+                        <tr valign="middle">
+                            <td align="left"><span class="classname">Alnum</span></td>
+                            <td align="left"><b><tt>STRING_EMPTY</tt></b></td>
+                            <td align="left">alnumStringEmpty</td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="classname">Alpha</span></td>
+                            <td align="left"><b><tt>STRING_EMPTY</tt></b></td>
+                            <td align="left">alphaStringEmpty</td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="classname">Barcode_Ean13</span></td>
+                            <td align="left"><b><tt>INVALID</tt></b></td>
+                            <td align="left">ean13Invalid</td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="classname">Barcode_Ean13</span></td>
+                            <td align="left"><b><tt>INVALID_LENGTH</tt></b></td>
+                            <td align="left">ean13InvalidLength</td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="classname">Barcode_UpcA</span></td>
+                            <td align="left"><b><tt>INVALID_LENGTH</tt></b></td>
+                            <td align="left">upcaInvalidLength</td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="classname">Digits</span></td>
+                            <td align="left"><b><tt>STRING_EMPTY</tt></b></td>
+                            <td align="left">digitsStringEmpty</td>
+                        </tr>
+
+                    </tbody>
+                
+            </table>
+
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="migration.html">Zend Framework Migration Notes</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="migration.html">Zend Framework Migration Notes</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="migration.19.html">Zend Framework 1.9</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="migration.html">Zend Framework Migration Notes</a></li>
+  <li class="active"><a href="migration.110.html">Zend Framework 1.10</a></li>
+  <li><a href="migration.19.html">Zend Framework 1.9</a></li>
+  <li><a href="migration.18.html">Zend Framework 1.8</a></li>
+  <li><a href="migration.17.html">Zend Framework 1.7</a></li>
+  <li><a href="migration.16.html">Zend Framework 1.6</a></li>
+  <li><a href="migration.15.html">Zend Framework 1.5</a></li>
+  <li><a href="migration.10.html">Zend Framework 1.0</a></li>
+  <li><a href="migration.09.html">Zend Framework 0.9</a></li>
+  <li><a href="migration.08.html">Zend Framework 0.8</a></li>
+  <li><a href="migration.06.html">Zend Framework 0.6</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

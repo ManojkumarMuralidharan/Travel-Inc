@@ -1,0 +1,610 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>クエリ言語 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.search.lucene.searching.html">インデックスの検索</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.search.lucene.query-api.html">クエリ作成用の API</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.search.lucene.query-language" class="section"><div class="info"><h1 class="title">クエリ言語</h1></div>
+    
+
+    <p class="para">
+        Java Lucene および <span class="classname">Zend_Search_Lucene</span> では、非常に強力なクエリ言語を使用できます。
+    </p>
+
+    <p class="para">
+        これらの言語はほぼ同じものですが、微妙に異なる点もあります。
+        異なる点については以下で説明します。
+    </p>
+
+    <p class="para">
+        Java Lucene のクエリ言語の文法についての完全な文書は
+        <a href="http://lucene.apache.org/java/2_3_0/queryparsersyntax.html" class="link external">&raquo; ここ</a>
+        にあります。
+    </p>
+
+    <div class="section" id="zend.search.lucene.query-language.terms" name="zend.search.lucene.query-language.terms"><div class="info"><h1 class="title">用語</h1></div>
+        
+
+        <p class="para">
+            クエリは、単語と演算子から成り立ちます。単語には三種類の形式があります。
+            単一の単語、フレーズ、そしてサブクエリです。
+        </p>
+        <p class="para">
+            単一の単語とは、&quot;test&quot; や &quot;hello&quot; のようなひとつの単語です。
+        </p>
+        <p class="para">
+            フレーズとは、ダブルクォートで囲まれた複数の単語のグループ、たとえば
+            &quot;hello dolly&quot; です。
+        </p>
+        <p class="para">
+            サブクエリとは、括弧で囲まれたクエリ、たとえば &quot;(hello dolly)&quot; です。
+        </p>
+        <p class="para">
+            複数の単語を論理演算子で組み合わせることで、より複雑なクエリを作成できます
+            (以下を参照ください)。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.fields" name="zend.search.lucene.query-language.fields"><div class="info"><h1 class="title">フィールド</h1></div>
+        
+
+        <p class="para">
+            Lucene は、フィールド指定したデータをサポートしています。
+            検索を行う際には、クエリを指定することもできますし、
+            デフォルトのフィールドを使用することもできます。
+            フィールド名はインデックス化されたデータに依存します。また、
+            デフォルトのフィールドは現在の設定によって決まります。
+        </p>
+        <p class="para">
+            Java Lucene との最初の (そしてもっとも大きな) 違いは、デフォルトでは
+            <em class="emphasis">すべてのフィールド</em> が検索の対象になるということです。
+        </p>
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> クラスにはふたつの静的メソッドがあり、
+            この設定を操作できます。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$defaultSearchField</span> = Zend_Search_Lucene::<span style="color: #006600;">getDefaultSearchField</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Search_Lucene::<span style="color: #006600;">setDefaultSearchField</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'contents'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            <b><tt>NULL</tt></b> 値は、すべてのフィールドを検索の対象とすることを意味します。
+            これがデフォルトの設定です。
+        </p>
+        <p class="para">
+            特定のフィールドを検索するには、まずフィールド名をタイプし、その後にコロン &quot;:&quot;
+            を続け、探したい単語を指定します。
+        </p>
+        <p class="para">
+            例を見てみましょう。Lucene インデックスにはふたつのフィールド
+            title および text があり、text がデフォルトのフィールドであるとします。
+            タイトルが &quot;The Right Way&quot; で本文に &quot;don&#039;t go this way&quot;
+            が含まれるドキュメントを探したいなら、
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">title:&quot;The Right Way&quot; AND text:go</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            あるいは下記にします。
+            &quot;text&quot; はデフォルトのフィールドなので、フィールドの指定は必須ではなくなります。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">title:&quot;Do it right&quot; AND go</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            注意: フィールドが有効なのは、その直後にある単語、
+            フレーズあるいはサブクエリだけであることに注意しましょう。つまり、下記のクエリ
+            は &quot;Do&quot; だけを title フィールドから探し、&quot;it&quot; や &quot;right&quot;
+            はデフォルトのフィールドから探します。デフォルトのフィールドが
+            <b><tt>NULL</tt></b> に設定されている場合は、&quot;it&quot; や &quot;right&quot;
+            はすべてのフィールドから探します。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">title:Do it right</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.wildcard" name="zend.search.lucene.query-language.wildcard"><div class="info"><h1 class="title">ワイルドカード</h1></div>
+        
+        <p class="para">
+            Lucene は、単一の文字あるいは複数の文字を表すワイルドカードをサポートしています
+            これは、単語検索でのみ使用可能です (フレーズクエリでは使用できません)。
+        </p>
+
+        <p class="para">
+            単一の文字を表すワイルドカードは &quot;?&quot; です。
+        </p>
+
+        <p class="para">
+            複数の文字を表すワイルドカードは &quot;*&quot; です。
+        </p>
+
+        <p class="para">
+            単一文字のワイルドカードは、
+            単語の中の &quot;?&quot; を別の一文字に置き換えたものにマッチする単語を探します。
+            たとえば、&quot;text&quot; あるいは &quot;test&quot; を探したい場合はこうします。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">te?t</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            複数文字のワイルドカードは、0 個以上の任意の数の文字に対応します。
+            たとえば test、tests あるいは tester を探したい場合はこうします。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">test*</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            &quot;?&quot; や &quot;*&quot; は単語のどの部分でも使え、
+            また両方を同時に使うこともできます。たとえば
+            下記は、&quot;write&quot; や &quot;wrote&quot;、&quot;written&quot;、&quot;rewrite&quot;、&quot;rewrote&quot; などに対応します。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">*wr?t*</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            ZF 1.7.7 以降、ワイルドカードパターンにはワイルドカード以外のプレフィックスが必要となりました。
+            デフォルトのプレフィックスの長さは 3 (Java Lucene と同じ) です。
+            つまり &quot;*&quot;, &quot;te?t&quot;, &quot;*wr?t*&quot; といった単語は例外を引き起こします<a href="#fnid1" name="fn1"><sup>[1]</sup></a>
+            <code class="code">Zend_Search_Lucene_Search_QueryParserException</code><code class="code">Zend_Search_Lucene_Exception</code>。
+        </p>
+        <p class="para">
+            これは、<code class="code">Zend_Search_Lucene_Search_Query_Wildcard::getMinPrefixLength()</code> および
+            <code class="code">Zend_Search_Lucene_Search_Query_Wildcard::setMinPrefixLength()</code>
+            メソッドで変更できます。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.modifiers" name="zend.search.lucene.query-language.modifiers"><div class="info"><h1 class="title">単語の修正子</h1></div>
+        
+
+        <p class="para">
+            Lucene は、クエリの単語を修飾して幅広い検索オプションを指定することをサポートしています。
+        </p>
+        <p class="para">
+            &quot;~&quot; 修正子を使用すると、
+            フレーズに対する近接検索や個別の単語に対するあいまい検索が可能となります。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.range" name="zend.search.lucene.query-language.range"><div class="info"><h1 class="title">範囲検索</h1></div>
+        
+
+        <p class="para">
+            範囲検索は、フィールドの値の下限と上限を指定して
+            その範囲に含まれるドキュメントを探すものです。
+            最大値と最小値そのものを含めることも含めないこともできます。
+            並べ替えは、辞書順で行われます。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">mod_date:[20020101 TO 20030101]</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            これは、mod_date フィールドの値が 20020101 から 20030101 (両端を含む)
+            であるドキュメントを探します。
+            範囲検索は、日付フィールド以外でも使えることに注意しましょう。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">title:{Aida TO Carmen}</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            これは、タイトルが Aida から Carmen までの間にあるドキュメントを探します。
+            ただし、Aida および Carmen は含めません。
+        </p>
+
+        <p class="para">
+            両端の値を含めるには角括弧 []、含めない場合は波括弧 {}
+            でクエリを指定します。
+        </p>
+
+        <p class="para">
+            フィールドを指定しなかった場合は、<span class="classname">Zend_Search_Lucene</span>
+            はすべてのフィールドに対して範囲検索を行います。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">{Aida TO Carmen}</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.fuzzy" name="zend.search.lucene.query-language.fuzzy"><div class="info"><h1 class="title">あいまい検索</h1></div>
+        
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> は、Java Lucene と同様にあいまい検索をサポートします。
+            これは、レーベンシュタイン距離のアルゴリズムにもとづくものです。
+            あいまい検索を行うには、チルダ記号 &quot;~&quot; を単語の最後に指定します。
+            たとえば、&quot;roam&quot; と似たスペルの単語を探すには、次のようなあいまい検索を使用します。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">roam~</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            この検索は、foam あるいは roams といった単語にマッチします。
+            (オプションの) 追加のパラメータによって、
+            あいまい検索の程度を指定できます。
+            このパラメータの値は 0 から 1 までの間となり、
+            1 に近づくほど、類似点が多い単語にのみマッチするようになります。
+            たとえば次のように使用します。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">roam~0.8</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            このパラメータを省略した場合のデフォルトは 0.5 です。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.matched-terms-limitations" name="zend.search.lucene.query-language.matched-terms-limitations"><div class="info"><h1 class="title">マッチする単語の制限</h1></div>
+        
+
+        <p class="para">
+            ワイルドカード検索や範囲検索、あいまい検索は、マッチする単語が多くなりすぎる可能性があります。
+            そんな場合は検索のパフォーマンスが大幅に低下してしまいます。
+        </p>
+
+        <p class="para">
+            そこで、<span class="classname">Zend_Search_Lucene</span> はマッチする単語数の制限をクエリ (サブクエリ) 単位で設定します。
+            この制限を取得したり設定したりするには
+            <code class="code">Zend_Search_Lucene::getTermsPerQueryLimit()</code>/<code class="code">Zend_Search_Lucene::setTermsPerQueryLimit($limit)</code>
+            メソッドを使用します。
+        </p>
+        <p class="para">
+            デフォルトのマッチ数の制限は、クエリ単位で 1024 です。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.proximity-search" name="zend.search.lucene.query-language.proximity-search"><div class="info"><h1 class="title">近接検索</h1></div>
+        
+
+        <p class="para">
+            Lucene は、複数の単語が指定した範囲内にあらわれる状態の検索をサポートしています。
+            近接検索を行うには、チルダ記号 &quot;~&quot; をフレーズの最後に指定します。
+            たとえば、&quot;Zend&quot; と &quot;Framework&quot; がお互い 10 ワードの範囲内にあらわれるドキュメントを検索するにはこうします。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;Zend Framework&quot;~10</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.boosting" name="zend.search.lucene.query-language.boosting"><div class="info"><h1 class="title">単語の強調</h1></div>
+        
+
+        <p class="para">
+            Java Lucene および <span class="classname">Zend_Search_Lucene</span> は、
+            見つかった単語にもとづいてドキュメントの関連度を提供します。
+            ある単語の関連性を高くするには、キャレット記号 &quot;^&quot; に強調度 (数値)
+            をあわせたものを、検索する単語の最後につなげます。
+            強調度を高くするほど、その単語の関連性が高くなります。
+        </p>
+        <p class="para">
+            この機能を使用すると、単語の強調度によってドキュメントの関連性を制御できるようになります。
+            たとえば
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">PHP framework</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            を検索しようとしており、単語 &quot;PHP&quot; をより重視したいとしましょう。
+            そんな場合は ^ 記号と強調度を単語の後に続けます。つまり
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">PHP^4 framework</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            のようにします。これにより、 <acronym class="acronym">PHP</acronym> という単語を含むドキュメントがより重視されるようになります。
+            フレーズやサブクエリを強調することも可能です。たとえば
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;PHP framework&quot;^4 &quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            のようになります。デフォルトの強調度は 1 です。強調度には正の数値を指定しますが、
+            1 より小さくする (たとえば 0.2 など) ことも可能です。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.boolean" name="zend.search.lucene.query-language.boolean"><div class="info"><h1 class="title">論理演算子</h1></div>
+        
+
+        <p class="para">
+            論理演算子によって、複数の単語を組み合わせることができます。
+            Lucene では、論理演算子として AND、&quot;+&quot;、OR、NOT および &quot;-&quot;
+            をサポートしています。Java Lucene では論理演算子をすべて大文字にする必要がありますが、
+            <span class="classname">Zend_Search_Lucene</span> ではその必要はありません。
+        </p>
+
+        <p class="para">
+            論理クエリを作成するための方式は、大きく AND、OR および NOT の組と &quot;+&quot;、&quot;-&quot;
+            の組に分けられます。Java Lucene とは異なり、<span class="classname">Zend_Search_Lucene</span>
+            ではこれらの二つの組を混ぜて使うことはできません。
+        </p>
+        <p class="para">
+            AND/OR/NOT 形式を使用する場合は、AND/OR 演算子がすべてのクエリ単語の間に存在する必要があります。
+            各単語の前には NOT 演算子をつけることができます。AND 演算子の優先順位は OR
+            より高くなります。これは Java Lucene の挙動とは異なります。
+        </p>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.and" name="zend.search.lucene.query-language.boolean.and"><div class="info"><h1 class="title">AND</h1></div>
+            
+            <p class="para">
+                AND 演算子の意味は、&quot;AND グループ&quot;
+                のすべての単語がドキュメントにマッチしなければならないということです。
+            </p>
+            <p class="para">
+                &quot;PHP framework&quot; および &quot;Zend Framework&quot; を含むドキュメントを検索するには
+                下記を使用します。
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;PHP framework&quot; AND &quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.or" name="zend.search.lucene.query-language.boolean.or"><div class="info"><h1 class="title">OR</h1></div>
+            
+            <p class="para">
+                OR 演算子は、クエリをいくつかのオプションに分割します。
+            </p>
+            <p class="para">
+                &quot;PHP framework&quot; あるいは &quot;Zend Framework&quot; を含むドキュメントを検索するには
+                下記を使用します。
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;PHP framework&quot; OR &quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.not" name="zend.search.lucene.query-language.boolean.not"><div class="info"><h1 class="title">NOT</h1></div>
+            
+            <p class="para">
+                NOT 演算子は、NOT の後に続く単語を含むドキュメントを除外します。
+                しかし &quot;AND グループ&quot; が NOT 演算子つきの単語しか含まない場合は、
+                インデックス化されたドキュメント全体ではなく空の結果を返します。
+            </p>
+            <p class="para">
+                &quot;PHP framework&quot; を含むけれども &quot;Zend Framework&quot; を含まないドキュメントを検索するには
+                下記を使用します。
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;PHP framework&quot; AND NOT &quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.other-form" name="zend.search.lucene.query-language.boolean.other-form"><div class="info"><h1 class="title">&amp;&amp;、|| および ! 演算子</h1></div>
+            
+            <p class="para">
+                &amp;&amp;、|| および ! は、それぞれ AND、OR および NOT 演算子の代わりに使用します。
+            </p>
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.plus" name="zend.search.lucene.query-language.boolean.plus"><div class="info"><h1 class="title">+</h1></div>
+            
+            <p class="para">
+                &quot;+&quot; 演算子 (必須演算子) は、
+                &quot;+&quot; 記号の後の単語が必ずドキュメントにマッチしなければならないことを意味します。
+            </p>
+            <p class="para">
+                &quot;Zend&quot; を必ず含み、&quot;Framework&quot; を含んでも含まなくてもかまわないドキュメントを検索するには
+                下記を使用します。
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">+Zend Framework</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.minus" name="zend.search.lucene.query-language.boolean.minus"><div class="info"><h1 class="title">-</h1></div>
+            
+            <p class="para">
+                &quot;-&quot; 演算子 (禁止演算子) は、
+                &quot;-&quot; 記号の後の単語を含むドキュメントを検索結果から除外します。
+            </p>
+            <p class="para">
+                &quot;PHP framework&quot; を含むけれども &quot;Zend Framework&quot; を含まないドキュメントを検索するには
+                下記を使用します。
+            </p>
+                <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&quot;PHP framework&quot; -&quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.search.lucene.query-language.boolean.no-operator" name="zend.search.lucene.query-language.boolean.no-operator"><div class="info"><h1 class="title">演算子なし</h1></div>
+            
+            <p class="para">
+                演算子を使用しなかった場合は、
+                その挙動は &quot;デフォルトの boolean 演算子&quot; として定義されます。
+            </p>
+            <p class="para">
+                これは、デフォルトでは <code class="code">OR</code> となります。
+            </p>
+            <p class="para">
+                つまり、その単語は任意となるということです。
+                その単語はドキュメント中に存在するかもしれないし、しないかもしれません。
+                ただ、その単語を含むドキュメントのほうが高いスコアとなります。
+            </p>
+            <p class="para">
+                &quot;PHP framework&quot; は必須で &quot;Zend Framework&quot; は含んでも含まなくてもかまわないドキュメントを検索するには
+                下記を使用します。
+            </p>
+
+            <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">+&quot;PHP framework&quot; &quot;Zend Framework&quot;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                デフォルトの boolean 演算子を設定したり取得したりするには、それぞれ
+                <span class="classname">Zend_Search_Lucene_Search_QueryParser::setDefaultOperator($operator)</span> および
+                <span class="classname">Zend_Search_Lucene_Search_QueryParser::getDefaultOperator()</span> を使用します。
+            </p>
+            <p class="para">
+                これらのメソッドで使用する定数は、
+                <span class="classname">Zend_Search_Lucene_Search_QueryParser::B_AND</span> および
+                <span class="classname">Zend_Search_Lucene_Search_QueryParser::B_OR</span> です。
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.grouping" name="zend.search.lucene.query-language.grouping"><div class="info"><h1 class="title">グループ化</h1></div>
+        
+
+        <p class="para">
+            Java Lucene および <span class="classname">Zend_Search_Lucene</span> では、
+            括弧を使用して条件をグループ化することによるサブクエリの作成をサポートしています。
+            これは、クエリのロジックを制御したい場合や異なるスタイルの論理クエリを共用したい場合などに便利です。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">+(framework OR library) +php</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> は、あらゆるレベルのサブクエリをサポートしています。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.field-grouping" name="zend.search.lucene.query-language.field-grouping"><div class="info"><h1 class="title">フィールドのグループ化</h1></div>
+        
+
+        <p class="para">
+            Lucene では、括弧を使用して複数の条件をひとつのフィールドに適用できます。
+        </p>
+        <p class="para">
+            タイトルに単語 &quot;return&quot; とフレーズ &quot;pink panther&quot; の両方を含むドキュメントを検索するには
+            下記を使用します。Zend_Search_Lucene は、あらゆるレベルのサブクエリをサポートしています。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">title:(+return +&quot;pink panther&quot;)</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.search.lucene.query-language.escaping" name="zend.search.lucene.query-language.escaping"><div class="info"><h1 class="title">特殊文字のエスケープ</h1></div>
+        
+
+        <p class="para">
+            Lucene は、クエリの文法に含まれる特殊文字のエスケープをサポートしています。
+            特殊文字に含まれるの文字は次のとおりです。
+        </p>
+        <p class="para">
+            + - &amp;&amp; || ! ( ) { } [ ] ^ &quot; ~ * ? : \
+        </p>
+        <p class="para">
+            + および - が単一の単語の中に含まれる場合は、通常の文字として扱われます。
+        </p>
+        <p class="para">
+            これらの文字をエスケープするには、その文字の前に \ をつけます。
+            たとえば、(1+1):2 を検索するには下記を使用します。
+        </p>
+
+        <div class="programlisting querystring"><div class="querystringcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">\(1\+1\)\:2</div></li></ol></div></div></div>
+
+    </div>
+<div class="footnote"><a name="fnid1" href="#fn1"><sup>[1]</sup></a><span class="para footnote">この例外は  ではなく
+             となることに注意しましょう。
+            この例外がスローされるのは、クエリの書き換え (実行) 操作のときです。</span></div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.search.lucene.searching.html">インデックスの検索</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.search.lucene.query-api.html">クエリ作成用の API</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></li>
+  <li><a href="zend.search.lucene.overview.html">概要</a></li>
+  <li><a href="zend.search.lucene.index-creation.html">インデックスの構築</a></li>
+  <li><a href="zend.search.lucene.searching.html">インデックスの検索</a></li>
+  <li class="active"><a href="zend.search.lucene.query-language.html">クエリ言語</a></li>
+  <li><a href="zend.search.lucene.query-api.html">クエリ作成用の API</a></li>
+  <li><a href="zend.search.lucene.charset.html">文字セット</a></li>
+  <li><a href="zend.search.lucene.extending.html">拡張性</a></li>
+  <li><a href="zend.search.lucene.java-lucene.html">Java Lucene との相互運用</a></li>
+  <li><a href="zend.search.lucene.advanced.html">応用</a></li>
+  <li><a href="zend.search.lucene.best-practice.html">ベストプラクティス</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

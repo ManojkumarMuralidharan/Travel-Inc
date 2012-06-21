@@ -1,0 +1,447 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Db_Statement - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.db.adapter.html">Zend_Db_Adapter</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.db.html">Zend_Db</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.db.profiler.html">Zend_Db_Profiler</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.db.statement" class="section"><div class="info"><h1 class="title">Zend_Db_Statement</h1></div>
+
+    
+
+    <p class="para">
+        В дополнение к удобным методам, таким, как <code class="code">fetchAll()</code> и
+        <code class="code">insert()</code>, документированным в
+        <a href="zend.db.adapter.html" class="xref">Zend_Db_Adapter</a>, вы можете использовать объект
+        оператора для того, чтобы восспользоваться
+        бOльшим количеством опций запуска запросов и
+        получения результатов запроса. Этот раздел описывает, как получить
+        экземпляр объекта оператора и как использовать его методы.
+    </p>
+
+    <p class="para">
+        Zend_Db_Statement основан на объекте PDOStatement в расширении <a href="http://www.php.net/pdo" class="link external">&raquo; PDO</a>.
+    </p>
+
+    <div class="section" id="zend.db.statement.creating" name="zend.db.statement.creating"><div class="info"><h1 class="title">Создание оператора</h1></div>
+
+        
+
+        <p class="para">
+            Обычно объект оператора возвращается методом <code class="code">query()</code>
+            класса адаптера БД. Этот метод является основным средством
+            подготовки любых операторов SQL. Первым аргументом является строка,
+            содержащая оператор SQL. Опциональный второй аргумент - массив
+            значений для подстановки вместо меток заполнения в строке SQL.
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #1 Создание объекта оператора SQL с помощью query()</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'SELECT * FROM bugs WHERE reported_by = ? AND bug_status = ?'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'goofy'</span>, <span style="color: #ff0000;">'FIXED'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            Объект оператора соответствует оператору SQL, который был
+            подготовлен и выполнен с заданными значениями для связки. Если
+            оператор был запросом SELECT или любым другим типом оператора,
+            который возвращает результат, то он уже готов для извлечения
+            результатов.
+        </p>
+
+        <p class="para">
+            Вы можете создать оператор с помощью его конструктора, но это менее
+            типичный вариант использования. Не существует метода-фабрики для
+            создания этого объекта, поэтому нужно загружать определенный
+            класс оператора и вызывать его конструктор. Передавайте объект
+            адаптера в качестве первого аргумента и строку, содержащую оператор
+            SQL в качестве второго. Теперь оператор подготовлен, но еще не
+            выполнен.
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #2 Using a SQL statement constructor</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$sql</span> = <span style="color: #ff0000;">'SELECT * FROM bugs WHERE reported_by = ? AND bug_status = ?'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Db_Statement_Mysqli<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$db</span>, <span style="color: #0000ff;">$sql</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+    </div>
+
+    <div class="section" id="zend.db.statement.executing" name="zend.db.statement.executing"><div class="info"><h1 class="title">Выполнение оператора</h1></div>
+
+        
+
+        <p class="para">
+            Вам нужно выполнять оператор самостоятельно, если создали его объект
+            с помощью его конструктора или хотите запустить один и тот же
+            оператор несколько раз. Используйте метод <code class="code">execute()</code>
+            объекта оператора. Его единственным аргументом является массив
+            значений для связки с метками заполнения в операторе.
+        </p>
+
+        <p class="para">
+            Если вы используете <em class="emphasis">позиционные параметры</em> - те,
+            которые помечаются знаками вопроса (<code class="code">?</code>), - то передавайте значения для связки в простом массиве.
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #3 Выполнение оператора с позиционными параметрами</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$sql</span> = <span style="color: #ff0000;">'SELECT * FROM bugs WHERE reported_by = ? AND bug_status = ?'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Db_Statement_Mysqli<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$db</span>, <span style="color: #0000ff;">$sql</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">execute</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'goofy'</span>, <span style="color: #ff0000;">'FIXED'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            Если вы используете <em class="emphasis">именованные параметры</em> - те,
+            что указываются через строковой идентификатор с двоеточием
+            (<code class="code">:</code>) в начале, - то передавайте значения для связки в
+            ассоциативном массиве. Ключи этого массива должны соответствовать
+            именам параметров.
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #4 Выполнение оператора с именованными параметрами</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$sql</span> = <span style="color: #ff0000;">'SELECT * FROM bugs WHERE '</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'reported_by = :reporter AND bug_status = :status'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Db_Statement_Mysqli<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$db</span>, <span style="color: #0000ff;">$sql</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">execute</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">':reporter'</span> =&gt; <span style="color: #ff0000;">'goofy'</span>, <span style="color: #ff0000;">':status'</span> =&gt; <span style="color: #ff0000;">'FIXED'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            Операторы PDO поддерживают как позиционные, так именованные
+            параметры по отдельности, но не вместе в одном операторе SQL.
+            Некоторые классы Zend_Db_Statement для не-PDO расширений могут
+            поддерживать только один тип параметров.
+        </p>
+
+    </div>
+
+    <div class="section" id="zend.db.statement.fetching" name="zend.db.statement.fetching"><div class="info"><h1 class="title">Извлечение результатов выполнения оператора <code class="code">SELECT</code></h1></div>
+
+        
+
+        <p class="para">
+            Вы можете вызывать методы объекта оператора для получения строк из
+            SQL-операторов, которые возвращают наборы результатов. SELECT, SHOW,
+            DESCRIBE и EXPLAIN являются примерами операторов, которые генерируют
+            наборы результатов, а INSERT, UPDATE и DELETE - примерами
+            операторов, которые не возвращают наборы результатов. Вы можете
+            выполнять последние операторы, используя Zend_Db_Statement, но не
+            можете вызывать методы для получения строк из результатов их
+            выполнения.
+        </p>
+
+        <div class="section" id="zend.db.statement.fetching.fetch" name="zend.db.statement.fetching.fetch"><div class="info"><h1 class="title">Извлечение одной строки из набора результатов</h1></div>
+
+            
+
+            <p class="para">
+                Для извлечения одной строки из набора результатов используйте
+                метод <code class="code">fetch()</code> объекта оператора. Все три аргумента
+                этого метода являются опциональными:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        <em class="emphasis">Формат извлечения</em> -
+                        первый аргумент. Он используется для управления
+                        структурой, в которой возвращаются данные. Описания
+                        допустимых значений и соответствующих им форматов данных
+                        читайте в <a href="zend.db.adapter.html#zend.db.adapter.select.fetch-mode" class="xref">Изменение режима извлечения</a>.
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                        <em class="emphasis">Ориентация курсора</em> -
+                        второй аргумент. Значением по умолчанию является
+                        константа Zend_Db::FETCH_ORI_NEXT, которая просто
+                        означает, что каждый вызов метода <code class="code">fetch()</code>
+                        возвращает следующую строку в наборе результатов, в той
+                        же последовательности, в которой строки были возвращены
+                        из БД.
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                        <em class="emphasis">Смещение</em> - третий
+                        аргумент.
+                        Если ориентация курсора - Zend_Db::FETCH_ORI_ABS, то
+                        число смещения - порядковый номер строки для
+                        возвращения.
+                        Если ориентация курсора - Zend_Db::FETCH_ORI_REL, то
+                        число смещения является относительным по отношению к
+                        положению курсора до того, как был вызван
+                        <code class="code">fetch()</code>.
+                    </p>
+                </li>
+            </ul>
+
+            <p class="para">
+                <code class="code">fetch()</code> возвращает <b><tt>FALSE</tt></b>, если все
+                строки из набора результатов были извлечены.
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #5 Использование fetch() в цикле</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'SELECT * FROM bugs'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">while</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$row</span> = <span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">fetch</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$row</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'bug_description'</span><span style="color: #66cc66;">&#93;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+            </div>
+
+            <p class="para">
+                См. также <a href="http://www.php.net/PDOStatement-fetch" class="link external">&raquo; PDOStatement::fetch()</a>.
+            </p>
+
+        </div>
+
+        <div class="section" id="zend.db.statement.fetching.fetchall" name="zend.db.statement.fetching.fetchall"><div class="info"><h1 class="title">Извлечение всего набора результатов</h1></div>
+
+            
+
+            <p class="para">
+                Для единовременного получения всех строк из набора результатов
+                используйте метод <code class="code">fetchAll()</code>. Он является
+                эквивалентным вызову метода <code class="code">fetch()</code> в цикле и
+                возвращению всех строк в массиве. Метод <code class="code">fetchAll()</code>
+                принимает два аргумента. Первый из них - формат извлечения,
+                описанный выше, через второй аргумент указывается число
+                возвращаемых столбцов, если формат извлечения
+                Zend_Db::FETCH_COLUMN.
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #6 Использование fetchAll()</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'SELECT * FROM bugs'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$rows</span> = <span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">fetchAll</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$rows</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'bug_description'</span><span style="color: #66cc66;">&#93;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            <p class="para">
+                См. также <a href="http://www.php.net/PDOStatement-fetchAll" class="link external">&raquo; PDOStatement::fetchAll()</a>.
+            </p>
+
+        </div>
+
+        <div class="section" id="zend.db.statement.fetching.fetch-mode" name="zend.db.statement.fetching.fetch-mode"><div class="info"><h1 class="title">Изменение формата извлечения</h1></div>
+
+            
+
+            <p class="para">
+                По умолчанию объект оператора возвращает строки из набора
+                результатов в виде ассоциативного массива имен столбцов и их
+                значений. Вы можете указать другой формат для класса оператора,
+                так же, как это делается для класса адаптера. Вы можете
+                использовать метод <code class="code">setFetchMode()</code> объекта оператора
+                для указания режима извлечения. Указывайте режим извлечения,
+                используя константы FETCH_ASSOC, FETCH_NUM, FETCH_BOTH,
+                FETCH_COLUMN и FETCH_OBJ класса Zend_Db. Более подробную
+                информацию об этих режимах читайте в
+                <a href="zend.db.adapter.html#zend.db.adapter.select.fetch-mode" class="xref">Изменение режима извлечения</a>. В
+                последующих вызовах методов <code class="code">fetch()</code>
+                и <code class="code">fetchAll()</code> объекта оператора будет использоваться
+                заданный вами режим извлечения.
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #7 Установка формата извлечения</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'SELECT * FROM bugs'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">setFetchMode</span><span style="color: #66cc66;">&#40;</span>Zend_Db::<span style="color: #006600;">FETCH_NUM</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$rows</span> = <span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">fetchAll</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$rows</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#91;</span><span style="color: #cc66cc;">0</span><span style="color: #66cc66;">&#93;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            <p class="para">
+                См. также <a href="http://www.php.net/PDOStatement-setFetchMode" class="link external">&raquo; PDOStatement::setFetchMode()</a>.
+            </p>
+
+        </div>
+
+        <div class="section" id="zend.db.statement.fetching.fetchcolumn" name="zend.db.statement.fetching.fetchcolumn"><div class="info"><h1 class="title">Извлечение одного столбца из набора результатов</h1></div>
+
+            
+
+            <p class="para">
+                Для извлечения одного столбца из следующей строки в наборе
+                результатов используйте <code class="code">fetchColumn()</code>. Опциональный
+                аргумент - целочисленный индекс столбца, по умолчанию это 0.
+                Этот метод возвращает скалярное значение или <b><tt>FALSE</tt></b>,
+                если все строки набора результатов были уже извлечены
+            </p>
+
+            <p class="para">
+                Обратите внимание, что этот метод работает иначе, чем метод
+                <code class="code">fetchCol()</code> класса адаптера. Метод
+                <code class="code">fetchColumn()</code> оператора возвращает единственное
+                значение из одной строки. Метод <code class="code">fetchCol()</code> адаптера
+                возвращает массив значений, взятых из первого столбца всех строк
+                набора результатов.
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #8 Использование fetchColumn()</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'SELECT bug_id, bug_description, bug_status FROM bugs'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$bug_status</span> = <span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">fetchColumn</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">2</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            <p class="para">
+                См. также <a href="http://www.php.net/PDOStatement-fetchColumn" class="link external">&raquo; PDOStatement::fetchColumn()</a>.
+            </p>
+
+        </div>
+
+        <div class="section" id="zend.db.statement.fetching.fetchobject" name="zend.db.statement.fetching.fetchobject"><div class="info"><h1 class="title">Извлечение строки в виде объекта</h1></div>
+
+            
+
+            <p class="para">
+                Для извлечения строки из набора результатов в виде объекта
+                используйте метод <code class="code">fetchObject()</code>. Этот метод
+                принимает два опциональных аргумента. Первый аргумент является
+                именем класса для возвращаемого объекта, по умолчанию это
+                &#039;stdClass&#039;. Второй аргумент является массивом значений, которые
+                будут переданы конструктору этого класса.
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #9 Использование fetchObject()</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$stmt</span> = <span style="color: #0000ff;">$db</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'SELECT bug_id, bug_description, bug_status FROM bugs'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$obj</span> = <span style="color: #0000ff;">$stmt</span>-&gt;<span style="color: #006600;">fetchObject</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$obj</span>-&gt;<span style="color: #006600;">bug_description</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            <p class="para">
+                См. также <a href="http://www.php.net/PDOStatement-fetchObject" class="link external">&raquo; PDOStatement::fetchObject()</a>.
+            </p>
+
+        </div>
+
+    </div>
+
+    
+
+    
+
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.db.adapter.html">Zend_Db_Adapter</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.db.html">Zend_Db</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.db.profiler.html">Zend_Db_Profiler</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.db.html">Zend_Db</a></li>
+  <li><a href="zend.db.adapter.html">Zend_Db_Adapter</a></li>
+  <li class="active"><a href="zend.db.statement.html">Zend_Db_Statement</a></li>
+  <li><a href="zend.db.profiler.html">Zend_Db_Profiler</a></li>
+  <li><a href="zend.db.select.html">Zend_Db_Select</a></li>
+  <li><a href="zend.db.table.html">Zend_Db_Table</a></li>
+  <li><a href="zend.db.table.row.html">Zend_Db_Table_Row</a></li>
+  <li><a href="zend.db.table.rowset.html">Zend_Db_Table_Rowset</a></li>
+  <li><a href="zend.db.table.relationships.html">Связи между таблицами Zend_Db_Table</a></li>
+  <li><a href="zend.db.table.definition.html">Zend_Db_Table_Definition</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

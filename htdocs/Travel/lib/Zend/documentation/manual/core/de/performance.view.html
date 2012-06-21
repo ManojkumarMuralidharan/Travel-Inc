@@ -1,0 +1,443 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Darstellen der View - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="performance.localization.html">Internationalisierung (I18n) und Lokalisierung (L10n)</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="performance.html">Zend Framework Performance Guide</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="copyrights.html">Urheberrecht Informationen</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="performance.view" class="section"><div class="info"><h1 class="title">Darstellen der View</h1></div>
+    
+
+    <p class="para">
+        Wenn man den <acronym class="acronym">MVC</acronym> Layer vom Zend Framework verwendet, sind die Chancen
+        das man <span class="classname">Zend_View</span> verwendet recht hoch.
+        <span class="classname">Zend_View</span> ist performant verglichen mit anderen View oder Templating
+        Engines; da View Skripte in <acronym class="acronym">PHP</acronym> geschrieben sind muß man weder den
+        Overhead eines Kompilierungssystems zu <acronym class="acronym">PHP</acronym> auf sich nehmen, noch muß man
+        darauf achten dass das kompilierte <acronym class="acronym">PHP</acronym> nicht optimiert ist. Trotzdem
+        zeigt <span class="classname">Zend_View</span> seine eigenen Probleme: Erweiterungen werden durch
+        überladen (View Helfer) durchgeführt, und eine Anzahl von View Helfern, die dadurch
+        Schlüsselfunktionalitäten bieten machen das auch, mit einem Verlust von Geschwindigkeit.
+    </p>
+
+    <div class="section" id="performance.view.pluginloader" name="performance.view.pluginloader"><div class="info"><h1 class="title">Wie kann ich die Auflösung von View Helfern schneller machen?</h1></div>
+        
+
+        <p class="para">
+            Die meisten <span class="classname">Zend_View</span> &quot;Methoden&quot; werden in Wirklichkeit durch
+            Überladen des Helfersystems angeboten. Das bietet <span class="classname">Zend_View</span>
+            wichtige Flexibilität; statt der Notwendigkeit <span class="classname">Zend_View</span> zu
+            erweitern und alle Helfermethoden anzubieten die man in der eigenen Anwendung verwenden
+            will, kann man eigene Helfermethoden in separaten Klassen definieren und Sie bei Bedarf
+            konsumieren wie wenn es direkte Methoden von <span class="classname">Zend_View</span> wären.
+            Das hält das View Objekt selbst relativ dünn, und stellt sicher das Objekte nur
+            erstellt werden wenn Sie auch benötigt werden.
+        </p>
+
+        <p class="para">
+            Intern verwendet <span class="classname">Zend_View</span> den <a href="zend.loader.pluginloader.html" class="link">PluginLoader</a> um nach Helferklassen zu sehen.
+            Das bedeutet das für jeden Helfer den man aufruft, <span class="classname">Zend_View</span> den
+            Helfernamen zum PluginLoader übergeben muß, welcher dann den Klassennamen erkennen muß
+            damit er instanziiert werden kann. Nachfolgende Aufrufe des Helfers sind viel schneller,
+            da <span class="classname">Zend_View</span> eine interne Registry von geladenen Helfern behält,
+            aber wenn man viele Helfer verwendet, werden die Aufrufe hinzuaddiert.
+        </p>
+
+        <p class="para">
+            Die Frage ist also: Wie kann man die Auflösung der Helfer schneller machen?
+        </p>
+
+        <div class="section" id="performance.view.pluginloader.cache" name="performance.view.pluginloader.cache"><div class="info"><h1 class="title">Verwenden des PluginLoader Include-File Caches</h1></div>
+            
+
+            <p class="para">
+                Die einfachste, billigste Lösung ist die gleiche für die <a href="performance.classloading.html#performance.classloading.pluginloader" class="link">generelle PluginLoader
+                Geschwindigkeit</a>: <a href="zend.loader.pluginloader.html#zend.loader.pluginloader.performance.example" class="link">Verwenden des PluginLoader
+                Include-File Caches</a>. Einzelberichte und aussagen haben gezeigt das diese
+                Technik eine Geschwindigkeitssteigerung von 25-30% auf Systemen ohne Opcode Cache
+                bringt, und eine 40-64% Steigerung auf Systemen mit Opcode Cache.
+            </p>
+        </div>
+
+        <div class="section" id="performance.view.pluginloader.extend" name="performance.view.pluginloader.extend"><div class="info"><h1 class="title">Erweitern von Zend_View um oft verwendet Helfermethoden anzubieten</h1></div>
+            
+
+            <p class="para">
+                Eine andere Lösung für jene welche die Geschwindigkeit sogar noch mehr steigern
+                wollen ist es <span class="classname">Zend_View</span> zu erweitern um manuell die
+                Helfermethoden die man am meisten in seiner Anwendung verwendet hinzuzufügen. Solche
+                Helfermethoden können einfach manuell die betreffenden Helferklassen instanziiert
+                und auf Sie verwesen wird, oder indem die komplette Implementation des Helfers in
+                die Methode eingefügt wird.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> My_View <span style="color: #000000; font-weight: bold;">extends</span> Zend_View</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @var array Registry der verwendeten Helferklasse</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; protected <span style="color: #0000ff;">$_localHelperObjects</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* Proxy zum URL View Helfer</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; array $url&nbsp; Options Optionen die an die Assemble Methode des</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Route Objekts übergeben werden</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; mixed $name Der Name der zu verwendenden Route. Wenn null wir</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;die aktuelle Route verwendet</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; bool $reset Ob die Routenstandard mit den angegebenen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;zurückgesetzt werden sollen oder nicht</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return string Url für das Link Href Attribut.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> url<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a> <span style="color: #0000ff;">$urlOptions</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #0000ff;">$name</span> = <span style="color: #000000; font-weight: bold;">null</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$reset</span> = <span style="color: #000000; font-weight: bold;">false</span>, <span style="color: #0000ff;">$encode</span> = <span style="color: #000000; font-weight: bold;">true</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<a href="http://www.php.net/array_key_exists"><span style="color: #000066;">array_key_exists</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'url'</span>, <span style="color: #0000ff;">$this</span>-&gt;_localHelperObjects<span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;_localHelperObjects<span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'url'</span><span style="color: #66cc66;">&#93;</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_View_Helper_Url<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;_localHelperObjects<span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'url'</span><span style="color: #66cc66;">&#93;</span>-&gt;<span style="color: #006600;">setView</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$this</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$helper</span> = <span style="color: #0000ff;">$this</span>-&gt;_localHelperObjects<span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'url'</span><span style="color: #66cc66;">&#93;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$helper</span>-&gt;<span style="color: #006600;">url</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$urlOptions</span>, <span style="color: #0000ff;">$name</span>, <span style="color: #0000ff;">$reset</span>, <span style="color: #0000ff;">$encode</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* Eine Meldung ausgeben</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* Direkte Implementierung.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; string $string</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return string</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> message<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$string</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #ff0000;">&quot;&lt;h1&gt;&quot;</span> . <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">escape</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$message</span><span style="color: #66cc66;">&#41;</span> . <span style="color: #ff0000;">&quot;&lt;/h1&gt;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Wie auch immer, diese Techik reduziert den Overhead des Helfersystems substanziell
+                indem es den Aufruf vom PluginLoader komplett vermeidet, und entweder vom
+                Autoloader profitiert, oder durch dessen Überbrückung.
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="performance.view.partial" name="performance.view.partial"><div class="info"><h1 class="title">Wie kann ich partielle View schneller machen?</h1></div>
+        
+
+        <p class="para">
+            Jene die Partielle sehr oft verwenden und die Ihre Anwendungen profilieren werden oft
+            sofort feststellen das der  <span class="methodname">partial()</span> View Helfer viel des
+            Overheads verwendet, durch die Notwendigkeit das View Objekt zu klonen. Ist es möglich
+            das schneller zu machen?
+        </p>
+
+        <div class="section" id="performance.view.partial.render" name="performance.view.partial.render"><div class="info"><h1 class="title">Verwende partial() nur wenn es wirklich notwendig ist</h1></div>
+            
+
+            <p class="para">
+                Der  <span class="methodname">partial()</span> View Helfer akzeptiert drei Argumente:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        <var class="varname">$name</var>: Den Namen des View Skripts das dargestellt werden
+                        soll
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <var class="varname">$module</var>: Der Name des Moduls in dem das View Skript
+                        sitzt; oder, wenn kein drittes Argument angegeben wurde und es ein Array
+                        oder Objekt ist, wird es als <var class="varname">$model</var> Argument verwendet.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <var class="varname">$model</var>: Ein Array oder Objekt das dem Partial übergeben
+                        wird, und die reinen Daten repräsentiert die der View übergeben werden.
+                    </p>
+                </li>
+            </ul>
+
+            <p class="para">
+                Die Power der Verwendung von  <span class="methodname">partial()</span> kommen vom zweiten
+                und dritten Argument. Das <var class="varname">$module</var> Argument erlaubt es
+                 <span class="methodname">partial()</span> temporär einen Skriptpfad für die angegebenen
+                Module hinzuzufügen damit das partielle Viewskript es zu diesem Modul auflöst; das
+                <var class="varname">$model</var> Argument erlaubt es Variablen explizit für die Verwendung
+                in der partiellen View zu übergeben. Wenn man keines der Argumente übergibt, kann
+                man <em class="emphasis">stattdessen  <span class="methodname">render()</span> verwenden</em>!
+            </p>
+
+            <p class="para">
+                Grundsätzlich, solange man nicht Variablen an das Partial übergibt und einen reinen
+                Variablenraum benötigt, oder ein Viewskript von einem anderen
+                <acronym class="acronym">MVC</acronym> Modul darstellt, gibt es keinen Grund den Overhead von
+                 <span class="methodname">partial()</span> zu verwenden; stattdessen sollte man
+                <span class="classname">Zend_View</span>&#039;s eingebaute  <span class="methodname">render()</span>
+                Methode verwendet um das Viewskript darzustellen.
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="performance.view.action" name="performance.view.action"><div class="info"><h1 class="title">Wie kann ich Aufrufe zu action() vom View Helfers schneller machen?</h1></div>
+        
+
+        <p class="para">
+            Version 1.5.0 führte die  <span class="methodname">action()</span> des View Helfers ein, welche
+            es erlaubt eine <acronym class="acronym">MVC</acronym> Aktion abzuschicken und deren dargestellten
+            Inhalt aufzufangen. Das biete einen wichtigen Schritt in die Prinzipien von
+            <acronym class="acronym">DRY</acronym>, und erlaubt die Wiederverwendung von Code. Trotzdem, wie jede
+            die Ihre Anwendung profilieren schnell feststellen werden, ist es auch eine sehr teure
+            Operation. Intern muß der  <span class="methodname">action()</span> Viewhelfer neue Anfrage und
+            Antwort Objekte klonen, den Dispatcher aufrufen, den angefragten Controller und die
+            Aktion aufrufen, usw.
+        </p>
+
+        <p class="para">
+            Wie kann man das schneller machen?
+        </p>
+
+        <div class="section" id="performance.view.action.actionstack" name="performance.view.action.actionstack"><div class="info"><h1 class="title">Verwende den ActionStack wenn möglich</h1></div>
+            
+
+            <p class="para">
+                Zur selben Zeit die der  <span class="methodname">action()</span> View Helfer eingeführt,
+                besteht der
+                <a href="zend.controller.actionhelpers.html#zend.controller.actionhelpers.actionstack" class="link">ActionStack</a> auf
+                einem Action Helfer und einem Front Controller Plugin. Zusammen erlauben Sie es
+                zusätzliche Aktionen einzufügen die wärend des Dispatch Zyklus auf den Stack
+                aufgerufen werden. Wenn man  <span class="methodname">action()</span> von eigenen Layout
+                View Skripts aufruft, kann es sein das man stattdessen den ActionStack verwenden
+                will, und die Views zu diskreten Antwortsegmenten darstellen will. Als Beispiel
+                könnte man ein  <span class="methodname">dispatchLoopStartup()</span> Plugin wie das
+                folgende schreiben um eine Login Formularbox bei jeder Seite hinzuzufügen:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> LoginPlugin <span style="color: #000000; font-weight: bold;">extends</span> Zend_Controller_Plugin_Abstract</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; protected <span style="color: #0000ff;">$_stack</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> dispatchLoopStartup<span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; Zend_Controller_Request_Abstract <span style="color: #0000ff;">$request</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$stack</span> = <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">getStack</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$loginRequest</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Controller_Request_Simple<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$loginRequest</span>-&gt;<span style="color: #006600;">setControllerName</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'user'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setActionName</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'index'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'responseSegment'</span>, <span style="color: #ff0000;">'login'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$stack</span>-&gt;<span style="color: #006600;">pushStack</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$loginRequest</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getStack<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">null</span> === <span style="color: #0000ff;">$this</span>-&gt;_stack<span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$front</span> = Zend_Controller_Front::<span style="color: #006600;">getInstance</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">hasPlugin</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Zend_Controller_Plugin_ActionStack'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$stack</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Controller_Plugin_ActionStack<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">registerPlugin</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$stack</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$stack</span> = <span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">getPlugin</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'ActionStack'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;_stack = <span style="color: #0000ff;">$stack</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$this</span>-&gt;_stack;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Die  <span class="methodname">UserController::indexAction()</span> Methode könnte dann den
+                <var class="varname">$responseSegment</var> Parameter verwenden um anzuzeigen welches
+                Antwortsegment darzustellen ist. Im Layoutskript, würde man dann einfach das
+                Antwortsegment darstellen:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">&lt;?php</span> <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">layout</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">login</span> <span style="color: #000000; font-weight: bold;">?&gt;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Wärend der ActionStack trotzdem noch einen Dispatch Zyklus benötigt, ist das
+                trotzdem immer noch billiger als der  <span class="methodname">action()</span> View Helfer
+                da er Objekte nicht klonen und den internen Status zurücksetzen muß. Zustzlich
+                stellt es sicher das alle Pre und Post Dispatch Plugins aufgerufen werden, was von
+                spezieller Wichtigkeit ist wenn man Frontcontroller Plugins für die Behandlung von
+                <acronym class="acronym">ACL</acronym>&#039;s in speziellen Aktionen verwendet.
+            </p>
+        </div>
+
+        <div class="section" id="performance.view.action.model" name="performance.view.action.model"><div class="info"><h1 class="title">Helfer bevorzugen die das Modell vor action() abfragen</h1></div>
+            
+
+            <p class="para">
+                In den meisten Fällen ist die Verwendung von  <span class="methodname">action()</span>
+                einfach nur Overkill. Wenn man die meiste Businesslogik in eigenen Modellen
+                verschachtelt hat das Modell einfach abfragt und die Ergebnisse an das View Skript
+                übergibt, ist es typischerweise schneller und sauberer einfach einen View Helfer zu
+                schreiben der das Modell holt, es abfragt und mit der Information irgendwas macht.
+            </p>
+
+            <p class="para">
+                Nehmen wir als Beispiel die folgende Controller Action und das View Skript an:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> BugController <span style="color: #000000; font-weight: bold;">extends</span> Zend_Controller_Action</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> listAction<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$model</span> = <span style="color: #000000; font-weight: bold;">new</span> Bug<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">view</span>-&gt;<span style="color: #006600;">bugs</span> = <span style="color: #0000ff;">$model</span>-&gt;<span style="color: #006600;">fetchActive</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// bug/list.phtml:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;&lt;ul&gt;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">bugs</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$bug</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/printf"><span style="color: #000066;">printf</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;&lt;li&gt;&lt;b&gt;%s&lt;/b&gt;: %s&lt;/li&gt;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">escape</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$bug</span>-&gt;<span style="color: #006600;">id</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">escape</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$bug</span>-&gt;<span style="color: #006600;">summary</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">&quot;&lt;/ul&gt;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Mit Verwendung von  <span class="methodname">action()</span>, würde man es einfach wie
+                folgt einfügen:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">&lt;?php</span> <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">action</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'list'</span>, <span style="color: #ff0000;">'bug'</span><span style="color: #66cc66;">&#41;</span> <span style="color: #000000; font-weight: bold;">?&gt;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Das könnte zu einem View helfer geändert werden die wie folgt aussieht:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> My_View_Helper_BugList <span style="color: #000000; font-weight: bold;">extends</span> Zend_View_Helper_Abstract</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> bugList<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$model</span> = <span style="color: #000000; font-weight: bold;">new</span> Bug<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$html</span>&nbsp; = <span style="color: #ff0000;">&quot;&lt;ul&gt;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$model</span>-&gt;<span style="color: #006600;">fetchActive</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$bug</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$html</span> .= <a href="http://www.php.net/sprintf"><span style="color: #000066;">sprintf</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;&lt;li&gt;&lt;b&gt;%s&lt;/b&gt;: %s&lt;/li&gt;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">view</span>-&gt;<span style="color: #006600;">escape</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$bug</span>-&gt;<span style="color: #006600;">id</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">view</span>-&gt;<span style="color: #006600;">escape</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$bug</span>-&gt;<span style="color: #006600;">summary</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$html</span> .= <span style="color: #ff0000;">&quot;&lt;/ul&gt;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$html</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Der Helfer würde dann wie folgt aufgerufen werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">&lt;?php</span> <span style="color: #0000ff;">$this</span>-&gt;<span style="color: #006600;">bugList</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #000000; font-weight: bold;">?&gt;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Das hat zwei Vorteile: Es übernimmt nicht länger den Overhead vom
+                 <span class="methodname">action()</span> View Helfer, und präsentiert eine bessere und
+                semantisch verständlichere <acronym class="acronym">API</acronym>.
+            </p>
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="performance.localization.html">Internationalisierung (I18n) und Lokalisierung (L10n)</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="performance.html">Zend Framework Performance Guide</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="copyrights.html">Urheberrecht Informationen</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="performance.html">Zend Framework Performance Guide</a></li>
+  <li><a href="performance.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="performance.classloading.html">Laden von Klassen</a></li>
+  <li><a href="performance.database.html">Zend_Db Performance</a></li>
+  <li><a href="performance.localization.html">Internationalisierung (I18n) und Lokalisierung (L10n)</a></li>
+  <li class="active"><a href="performance.view.html">Darstellen der View</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

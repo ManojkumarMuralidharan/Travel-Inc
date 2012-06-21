@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Lucene Index Struktur - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="learning.lucene.intro.html">Einf&uuml;hrung in Zend_Search_Lucene</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="learning.lucene.html">Getting Started with Zend_Search_Lucene</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="learning.lucene.index-opening.html">Indezes &ouml;ffnen und erstellen</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="learning.lucene.index-structure" class="section"><div class="info"><h1 class="title">Lucene Index Struktur</h1></div>
+    
+
+    <p class="para">
+        Um <span class="classname">Zend_Search_Lucene</span>&#039;s Mögichkeiten mit maximaler Performance
+        kompett anzuwenden, muss man die interne Struktur des Index verstehen.
+    </p>
+
+    <p class="para">
+        Ein <em class="emphasis">index</em> wird als Set von Dateien in einem einzelnen Verzeichnis
+        gespeichert.
+    </p>
+
+    <p class="para">
+        Ein <em class="emphasis">index</em> besteht auf einer beliebigen Anzahl von unabhängigen
+        <em class="emphasis">Segmenten</em> welche Informationen über ein Subset von indizierten
+        Dokumenten speichern. Jedes <em class="emphasis">Segment</em> hat sein eigenes
+        <em class="emphasis">Wörterbuch an Ausdrücken</em>, Ausdrucks Wörterbuch Indezes, und Dokument
+        Speicher (speichert Feld Werte)
+        <a href="#fnid1" name="fn1"><sup>[1]</sup></a>
+            <span class="classname">Zend_Search_Lucene</span>
+        .
+        Alle Segmentdaten werden in <var class="filename">_xxxxx.cfs</var> Dateien gespeichert, wobei
+        <em class="emphasis">xxxxx</em> der Name des Segments ist.
+    </p>
+
+    <p class="para">
+        Sobald die Index Segment Datei erstellt wurde kann Sie nicht mehr aktualisiert werden. Neue
+        Dokumente werden in neuen Segmenten hinzugefügt. Gelöschte Dokumente werden nur in einer
+        optionalen <var class="filename">&lt;segmentname&gt;.del</var> Datei als gelöscht markiert.
+    </p>
+
+    <p class="para">
+        Die Aktualisierung von Dokumenten wird als seperate Lösch- und Hinzufüge Operation
+        durchgeführt selbst wenn Sie als <acronym class="acronym">API</acronym> Aufruf mit
+         <span class="methodname">update()</span> durchgeführt wird <a href="#fnid2" name="fn2"><sup>[2]</sup></a><span class="classname">Zend_Search_Lucene</span> <acronym class="acronym">API</acronym>. Das vereinfacht das hinzufügen neuer
+        Dokumente und erlaubt das Aktualisieren gleichzeitig mit Such Operationen.
+    </p>
+
+    <p class="para">
+        Auf der anderen Seite verlängert die Verwendung mehrerer Segmente (ein Dokument pro Segment
+        als extremster Fall) die Suchzeit:
+    </p>
+
+    <ul class="itemizedlist">
+        <li class="listitem">
+            <p class="para">
+                Das Empfangen von Ausdrücken von einem Verzeichnis wird für jedes Segment
+                durchgeführt;
+            </p>
+        </li>
+
+        <li class="listitem">
+            <p class="para">
+                Der Index des Ausdrucks Verzeichnisses wird für jedes Segment vorgeladen (dieser
+                Prozess nimmt für einfache Abfragen die meiste Zeit in Anspruch, und er benötigt
+                auch zusätzlichen Speicher).
+            </p>
+        </li>
+    </ul>
+
+    <p class="para">
+        Wenn das Ausdrucks Verzeichnis einen Wendepunkt erreicht, dann ist die Suche durch ein
+        Segment <em class="emphasis">N</em> in den meisten Fällen mal schneller als die Suche durch
+        <em class="emphasis">N</em> Segmente.
+    </p>
+
+    <p class="para">
+        <em class="emphasis">Index Optimierung</em> verbindet zwei oder mehr Segmente in ein einzelnes
+        Segment. Ein neues Segment wird der Liste der Index Segmente hinzugefügt, und alte Segmente
+        werden ausgeschlossen.
+    </p>
+
+    <p class="para">
+        Aktualisierungen von Segment Listen werden als atomsche Operation durchgeführt. Das gibt
+        die Möglichkeit gleichzeitig neue Dokumente hinzuzufügen, Index Operationen durchzuführen,
+        und den Index zu durchsuchen.
+    </p>
+
+    <p class="para">
+        Die automatische Optimierung des Index wird nach jeder Segment Erzeugung durchgeführt. Sie
+        verbindet Sets der kleinsten Segmente in größere Segmente, und größere Segmente in noch
+        größere Segmente, wenn wir genug Segmente zum verbinden haben.
+    </p>
+
+    <p class="para">
+        Die automatische Optimierung wird von drei Optionen kontrolliert:
+    </p>
+
+    <ul class="itemizedlist">
+        <li class="listitem">
+            <p class="para">
+                <em class="emphasis">MaxBufferedDocs</em> (die minimale Anzahl an notwendigen Dokumenten
+                bevor die im Speicher gepufferten Dokumente in ein neues Segment geschrieben
+                werden);
+            </p>
+        </li>
+
+        <li class="listitem">
+            <p class="para">
+                <em class="emphasis">MaxMergeDocs</em> (die größte Anzahl an Dokumenten die von einer
+                Optimierungs Operation verbunden werden); und
+            </p>
+        </li>
+
+        <li class="listitem">
+            <p class="para">
+                <em class="emphasis">MergeFactor</em> (welcher definiert wie oft Segment Indezes von
+                automatischen Optimierungs Operationen verbunden werden).
+            </p>
+        </li>
+    </ul>
+
+    <p class="para">
+        Wenn wir pro Skript Ausführung ein Dokument hinzufügen, wird
+        <em class="emphasis">MaxBufferedDocs</em> nicht verwendet (es wird nur ein neues Segmente mit nur
+        einem Dokument am Ende der Skript Ausführung erstellt, zu einer Zeit zu welcher der
+        automatische Optimierungs Prozess startet).
+    </p>
+<div class="footnote"><a name="fnid1" href="#fn1"><sup>[1]</sup></a><span class="para footnote">
+                Beginnend mit Lucene 2.3, können Dokument Speicherdateien zwischen Segmenten geteilt
+                werden; trotzdem verwendet  diese
+                Möglichkeit nicht
+            </span></div>
+<div class="footnote"><a name="fnid2" href="#fn2"><sup>[2]</sup></a><span class="para footnote">Dieser Aufruf wird
+        aktuell nur von Java Lucene unterstützt, es ist aber geplant die
+         mit Ähnlicher
+        Funktionalität zu erweitern</span></div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="learning.lucene.intro.html">Einf&uuml;hrung in Zend_Search_Lucene</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="learning.lucene.html">Getting Started with Zend_Search_Lucene</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="learning.lucene.index-opening.html">Indezes &ouml;ffnen und erstellen</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="learning.html">Learning Zend Framework</a></li>
+  <li class="header up"><a href="learning.lucene.html">Getting Started with Zend_Search_Lucene</a></li>
+  <li><a href="learning.lucene.intro.html">Einf&uuml;hrung in Zend_Search_Lucene</a></li>
+  <li class="active"><a href="learning.lucene.index-structure.html">Lucene Index Struktur</a></li>
+  <li><a href="learning.lucene.index-opening.html">Indezes &ouml;ffnen und erstellen</a></li>
+  <li><a href="learning.lucene.indexing.html">Indizierung</a></li>
+  <li><a href="learning.lucene.searching.html">Suchen</a></li>
+  <li><a href="learning.lucene.queries.html">Unterst&uuml;tzte Abfragen</a></li>
+  <li><a href="learning.lucene.pagination.html">Seitendarstellung von Suchergebnissen</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

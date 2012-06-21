@@ -1,0 +1,791 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Json_Server - JSON-RPCサーバー - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.json.xml2json.html">XML から JSON への変換</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.json.html">Zend_Json</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.layout.html">Zend_Layout</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.json.server" class="section"><div class="info"><h1 class="title">Zend_Json_Server - JSON-RPCサーバー</h1></div>
+    
+
+    <p class="para">
+        <span class="classname">Zend_Json_Server</span>は<a href="http://groups.google.com/group/json-rpc/" class="link external">&raquo; JSON-RPC</a>
+        サーバー実装です。それは
+        <a href="http://groups.google.com/group/json-rpc/web/json-rpc-1-2-proposal" class="link external">&raquo; バージョン 2 仕様</a>
+        と同様に
+        <a href="http://json-rpc.org/wiki/specification" class="link external">&raquo; JSON-RPCバージョン 1 仕様</a>
+        の両方をサポートします;
+        それは、サービスのメタデータをサービス利用者に提供するために、
+        <a href="http://groups.google.com/group/json-schema/web/service-mapping-description-proposal" class="link external">&raquo; サービス
+            マッピング定義 (SMD) 仕様</a>の
+        <acronym class="acronym">PHP</acronym>実装を提供します。
+    </p>
+
+    <p class="para">
+        JSON-RPCは、軽量なリモート・プロシージャ呼出しプロトコルです。
+        そのプロトコルでは、<acronym class="acronym">JSON</acronym>をそのメッセージのエンベロープのために利用します。
+        このJSON-RPC実装は<acronym class="acronym">PHP</acronym>の<a href="http://www.php.net/manual/ja/class.soapserver.php" class="link external">&raquo; SoapServer</a>
+        <acronym class="acronym">API</acronym>に従います。
+        このことにより典型的状況では、簡単に下記のことができます:
+    </p>
+
+    <ul class="itemizedlist">
+        <li class="listitem"><p class="para">サーバーオブジェクトのインスタンス化</p></li>
+        <li class="listitem"><p class="para">一つ以上の関数やクラス/オブジェクトをサーバーオブジェクトに配置</p></li>
+        <li class="listitem"><p class="para">リクエストの handle()</p></li>
+    </ul>
+
+    <p class="para">
+        <span class="classname">Zend_Json_Server</span>は
+        どんな付属のクラスまたは関数でもReflectionを実行するために
+        <a href="zend.server.reflection.html" class="link">Zend_Server_Reflection</a> を利用します。
+        また、SMDと実施するメソッド呼び出しのシグナチュアとの両方をビルドするためにその情報を使います。
+        そのように、それはどんな付属の関数またはクラス・メソッドでも完全な<acronym class="acronym">PHP</acronym> docblock文書を最小限、持つ命令文です:
+    </p>
+
+    <ul class="itemizedlist">
+        <li class="listitem"><p class="para">パラメータとそれらで期待される変数の型の全て</p></li>
+        <li class="listitem"><p class="para">戻り値変数の型</p></li>
+    </ul>
+
+    <p class="para">
+        <span class="classname">Zend_Json_Server</span>はこの時だけPOSTリクエストをリスンします;
+        幸いにも、この文書の時点では、ワイルドなJSON-RPC実装の大半は、
+        そのようにリクエストをポストするだけです。
+        次の例で示されるように、
+        リクエストの処理だけではなく、サービスSMDの配信の両方で
+        同じサーバーエンドポイントを簡単に利用できるようにします。
+    </p>
+
+    <div class="example"><div class="info"><p><b>Example #1 Zend_Json_Server利用方法</b></p></div>
+        
+
+        <div class="example-contents"><p>
+            最初に、JSON-RPCサーバーによって公開したいクラスを定義しましょう。
+            そのクラスを &#039;Calculator&#039; とし、
+            &#039;add&#039;、&#039;subtract&#039;、&#039;multiply&#039; 及び &#039;divide&#039;メソッドを定義します:
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Calculator - JSON-RPCを通じて公開するサンプル・クラス。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> Calculator</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* ２つの変数の合計を返します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $x</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $y</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return int</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> add<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$x</span>, <span style="color: #0000ff;">$y</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$x</span> + <span style="color: #0000ff;">$y</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* ２つの変数の差を返します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $x</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $y</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return int</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> subtract<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$x</span>, <span style="color: #0000ff;">$y</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$x</span> - <span style="color: #0000ff;">$y</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* ２つの変数の積を返します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $x</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $y</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return int</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> multiply<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$x</span>, <span style="color: #0000ff;">$y</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$x</span> * <span style="color: #0000ff;">$y</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* ２つの変数の除算結果を返します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $x</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $y</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return float</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> divide<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$x</span>, <span style="color: #0000ff;">$y</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$x</span> / <span style="color: #0000ff;">$y</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <div class="example-contents"><p>
+            それぞれのメソッドで戻り値のための項目だけでなく、
+            それぞれのパラメータとその型を示す項目を持つdocblockを持つことに注意してください。
+            それに関しては、Zend Frameworkで<span class="classname">Zend_Json_Server</span>や
+            その他のいずれのサーバー構成要素を利用するときでも、これは<em class="emphasis">絶対重要</em>です。
+        </p></div>
+
+        <div class="example-contents"><p>
+            それでは、リクエストを処理するためのスクリプトを作成します:
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Json_Server<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// どのような機能が利用できるか示します:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setClass</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Calculator'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">//リクエストを処理:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <div class="example-contents"><p>
+            しかしながら、JSON-RPCクライアントがメソッドを自動検出できるように、
+            SMDを返す問題を対象にしません。
+            それは、<acronym class="acronym">HTTP</acronym>がメソッドをリクエストすることを確定し、
+            それから、若干のサーバー・メタデータを指定することによって達成されます:
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Json_Server<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setClass</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Calculator'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'GET'</span> == <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'REQUEST_METHOD'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// URLのエンドポイント及び使用するJSON-RPCのバージョンを示します:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setTarget</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'/json-rpc.php'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setEnvelope</span><span style="color: #66cc66;">&#40;</span>Zend_Json_Server_Smd::<span style="color: #006600;">ENV_JSONRPC_2</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// SMDをつかみます</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$smd</span> = <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getServiceMap</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// クライアントにSMDを返します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/header"><span style="color: #000066;">header</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Content-Type: application/json'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$smd</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">return</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <div class="example-contents"><p>
+            DojoツールキットでJSON-RPCサーバーを利用するなら、
+            その２つがきちんと相互作用することを確実にするために、
+            特別な互換性フラグをセットする必要もあります:
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Json_Server<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setClass</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Calculator'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'GET'</span> == <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'REQUEST_METHOD'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setTarget</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'/json-rpc.php'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setEnvelope</span><span style="color: #66cc66;">&#40;</span>Zend_Json_Server_Smd::<span style="color: #006600;">ENV_JSONRPC_2</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$smd</span> = <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getServiceMap</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Dojo互換を設定します:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$smd</span>-&gt;<span style="color: #006600;">setDojoCompatible</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/header"><span style="color: #000066;">header</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Content-Type: application/json'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$smd</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">return</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.json.server.details" name="zend.json.server.details"><div class="info"><h1 class="title">高度な詳細</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Json_Server</span>の機能の大半が
+            <a href="zend.json.server.html#zend.json.server.usage" class="link">このセクション</a>で説明されており、
+            より高度な機能を利用できます。
+        </p>
+
+        <div class="section" id="zend.json.server.details.zendjsonserver" name="zend.json.server.details.zendjsonserver"><div class="info"><h1 class="title">Zend_Json_Server</h1></div>
+            
+
+            <p class="para">
+                <span class="classname">Zend_Json_Server</span>は、
+                JSON-RPCを提供する中心的なクラスです;
+                それはすべてのリクエストを扱い、
+                レスポンス・ペイロードを返します。
+                下記のメソッドがあります:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para"> <span class="methodname">addFunction($function)</span>:
+                    サーバーに関連するユーザーランド関数を指定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setClass($class)</span>:
+                    サーバーに関連するクラスまたはオブジェクトを指定します;
+                    そのアイテムのすべてのpublicメソッドは、
+                    JSON-RPCメソッドに公開されます。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">fault($fault = null, $code = 404, $data =
+                        null)</span>:
+                    <span class="classname">Zend_Json_Server_Error</span>オブジェクトを生成して返します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">handle($request = false)</span>:
+                    JSON-RPCリクエストを処理します;
+                    任意で、利用するための<span class="classname">Zend_Json_Server_Request</span>オブジェクトを渡します。
+                    (デフォルトで１つ生成されます)
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getFunctions()</span>:
+                    付属のメソッド全ての一覧を返します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setRequest(Zend_Json_Server_Request
+                        $request)</span>:
+                    サーバーのために使用するためのリクエストオブジェクトを指定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getRequest()</span>:
+                    サーバーで使われるリクエストオブジェクトを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setResponse(Zend_Json_Server_Response
+                        $response)</span>:
+                    サーバーのために使用するためのレスポンスオブジェクトを設定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getResponse()</span>: 
+                    サーバーで使われるレスポンスオブジェクトを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setAutoEmitResponse($flag)</span>:
+                    サーバーがレスポンスとすべてのヘッダを自動的に送り出さなければならないかどうか示します;
+                    デフォルトで、これは <b><tt>TRUE</tt></b> です。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">autoEmitResponse()</span>:
+                    レスポンスの自動送出が使用可能かどうか決定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getServiceMap()</span>:
+                    <span class="classname">Zend_Json_Server_Smd</span>オブジェクトの形で
+                    サービス・マップ記述を取得します
+                </p></li>
+            </ul>
+        </div>
+
+        <div class="section" id="zend.json.server.details.zendjsonserverrequest" name="zend.json.server.details.zendjsonserverrequest"><div class="info"><h1 class="title">Zend_Json_Server_Request</h1></div>
+            
+
+            <p class="para">
+                JSON-RPCのリクエスト環境は、
+                <span class="classname">Zend_Json_Server_Request</span>オブジェクトにカプセル化されます。
+                このオブジェクトによって、リクエストIDやパラメータ、JSON-RPC仕様のバージョンを含む
+                JSON-RPCリクエストの必要な部分を設定できます。
+                それには<acronym class="acronym">JSON</acronym>または一組のオプションによってそれ自体をロードする能力があって、
+                それ自体を <span class="methodname">toJson()</span>メソッドにより<acronym class="acronym">JSON</acronym>として翻訳できます。
+            </p>
+
+            <p class="para">
+                リクエスト・オブジェクトでは、以下のメソッドを利用できます:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para"> <span class="methodname">setOptions(array $options)</span>:
+                    オブジェクトの設定を指定します。
+                    <var class="varname">$options</var>は、どの &#039;set&#039; メソッドにもマッチするキーを含むでしょう:
+                     <span class="methodname">setParams()</span>、 <span class="methodname">setMethod()</span>、
+                     <span class="methodname">setId()</span>及び <span class="methodname">setVersion()</span>
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">addParam($value, $key = null)</span>:
+                    メソッド呼び出しで使うパラメータを追加します。
+                    パラメータは値そのものか、パラメータ名を任意に含むことができます。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">addParams(array $params)</span>:
+                    一度に複数のパラメータを追加します。
+                     <span class="methodname">addParam()</span>の代わりになります。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setParams(array $params)</span>:
+                    一度に全てのパラメータを設定します;
+                    既存の全てのパラメータを上書きします。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getParam($index)</span>:
+                    位置または名前でパラメータを返します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getParams()</span>:
+                    一度に全てのパラメータを返します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setMethod($name)</span>:
+                    呼び出すメソッドを設定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getMethod()</span>:
+                    呼び出されるメソッドを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">isMethodError()</span>:
+                    リクエストが異常で、エラーに終わるかどうか決定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setId($name)</span>:
+                    リクエスト識別子（クライアントでレスポンスにリクエストにマッチすることに使われる）をセットします。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getId()</span>:
+                    リクエストの識別子を取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setVersion($version)</span>:
+                    リクエストが適合するJSON-RPC仕様バージョンを設定します。
+                    おそらく &#039;1.0&#039; かまたは &#039;2.0&#039; のどちらかです。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getVersion()</span>:
+                    リクエストで使われるJSON-RPC仕様バージョンを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">loadJson($json)</span>:
+                    <acronym class="acronym">JSON</acronym>文字列からリクエストオブジェクトを読み込みます。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">toJson()</span>:
+                    リクエストを<acronym class="acronym">JSON</acronym>ストリングに翻訳します。
+                </p></li>
+            </ul>
+
+            <p class="para">
+                <acronym class="acronym">HTTP</acronym>に特有のバージョンは、
+                <span class="classname">Zend_Json_Server_Request_Http</span>を通して利用できます。
+                このクラスは<var class="filename">php://input</var>を通じてリクエストを取得し、
+                 <span class="methodname">getRawJson()</span>メソッドを通じて生の<acronym class="acronym">JSON</acronym>へのアクセスを可能にします。
+            </p>
+        </div>
+
+        <div class="section" id="zend.json.server.details.zendjsonserverresponse" name="zend.json.server.details.zendjsonserverresponse"><div class="info"><h1 class="title">Zend_Json_Server_Response</h1></div>
+            
+
+            <p class="para">
+                JSON-RPCレスポンス・ペイロードは、
+                <span class="classname">Zend_Json_Server_Response</span>オブジェクトにカプセル化されます。
+                このオブジェクトにより、
+                リクエストの戻り値、レスポンスがエラーかどうか、
+                リクエスト識別子、レスポンスが従うJSON-RPC仕様バージョン、
+                そして任意にサービス・マップをセットできます。
+            </p>
+
+            <p class="para">
+                レスポンス・オブジェクトでは、以下のメソッドを利用できます:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para"> <span class="methodname">setResult($value)</span>:
+                    レスポンス結果を設定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getResult()</span>:
+                    レスポンス結果を取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setError(Zend_Json_Server_Error
+                    $error)</span>:
+                    エラーオブジェクトを設定します。
+                    設定すると、<acronym class="acronym">JSON</acronym>にシリアライズ化するとき、これがレスポンスとして使われます。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getError()</span>:
+                    もしあれば、エラーオブジェクトを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">isError()</span>:
+                    レスポンスがエラー・レスポンスであるかどうか。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setId($name)</span>:
+                    リクエスト識別子
+                    （クライアントはオリジナルのリクエストでレスポンスにマッチするかもしれません）
+                    を設定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getId()</span>:
+                    リクエスト識別子を取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setVersion($version)</span>:
+                    レスポンスが適合するJSON-RPCバージョンを設定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getVersion()</span>:
+                    レスポンスが適合するJSON-RPCバージョンを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">toJson()</span>:
+                    レスポンスがエラー・レスポンスで、エラー・オブジェクトをシリアライズ化するならば、
+                    <acronym class="acronym">JSON</acronym>に対するレスポンスをシリアライズ化します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setServiceMap($serviceMap)</span>:
+                    サービス・マップ・オブジェクトをレスポンスに設定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getServiceMap()</span>:
+                    もしあれば、サービス・マップ・オブジェクトを取得します。
+                </p></li>
+            </ul>
+
+            <p class="para">
+                <acronym class="acronym">HTTP</acronym>に依存したバージョンは、
+                <span class="classname">Zend_Json_Server_Response_Http</span>を通じて利用できます。
+                このクラスは<acronym class="acronym">JSON</acronym>としてレスポンスをシリアライズ化するだけでなく、
+                適切な<acronym class="acronym">HTTP</acronym>ヘッダを送ります。
+            </p>
+        </div>
+
+        <div class="section" id="zend.json.server.details.zendjsonservererror" name="zend.json.server.details.zendjsonservererror"><div class="info"><h1 class="title">Zend_Json_Server_Error</h1></div>
+            
+
+            <p class="para">
+                JSON-RPCには、エラー状況を報告するために、特別なフォーマットがあります。
+                エラーはすべて、最小限、エラー・メッセージとエラーコードを用意する必要があります;
+                任意に、追加のデータ（例えばbacktrace）を用意できます。
+            </p>
+
+            <p class="para">
+                エラーコードは、
+                <a href="http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php" class="link external">&raquo; 
+                XML-RPC EPIプロジェクト</a>によって推奨されるコードに由来します。
+                <span class="classname">Zend_Json_Server</span>は、エラー状態に基づくコードを適切に割り当てます。
+                アプリケーション例外のためには、コード &#039;-32000&#039; が使われます。
+            </p>
+
+            <p class="para">
+                <span class="classname">Zend_Json_Server_Error</span>
+                は以下のメソッドを公開します:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para"> <span class="methodname">setCode($code)</span>:
+                    エラーコードを設定します;
+                    認められたXML-RPCエラーコード範囲にそのコードがないならば、
+                    -32000が割り当てられます。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getCode()</span>:
+                    現行のエラーコードを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setMessage($message)</span>:
+                    エラーメッセージを設定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getMessage()</span>:
+                    現行のエラーメッセージを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setData($data)</span>:
+                    backtraceのような、
+                    エラーを制限する補助データをさらにセットします。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getData()</span>:
+                    現行のエラー補助データをいずれも取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">toArray()</span>:
+                    エラーを配列にキャストします。
+                    配列は &#039;code&#039;や&#039;message&#039;及び&#039;data&#039;キーを含むでしょう。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">toJson()</span>:
+                    エラーをJSON-RPCエラー表現にキャストします。
+                </p></li>
+            </ul>
+        </div>
+
+        <div class="section" id="zend.json.server.details.zendjsonserversmd" name="zend.json.server.details.zendjsonserversmd"><div class="info"><h1 class="title">Zend_Json_Server_Smd</h1></div>
+            
+
+            <p class="para">
+                SMDは、サービス・マッピング記述、
+                特定のウェブ・サービスとクライアントが相互作用できる方法を定義する<acronym class="acronym">JSON</acronym>スキーマ、を表します。
+                この文書の時点では、
+                <a href="http://groups.google.com/group/json-schema/web/service-mapping-description-proposal" class="link external">&raquo; 
+                仕様</a>は正式にまだ批准されませんでした、
+                しかし、それは他のJSON-RPC利用者のクライアントだけでなく、
+                Dojoツールキットの範囲内ですでに使用中です。
+            </p>
+
+            <p class="para">
+                最も基本的には、サービス・マッピング記述は、トランスポート（POST、<b><tt>GET</tt></b>、<acronym class="acronym">TCP</acronym>/IP、その他）
+                リクエスト・エンベロープ・タイプ（通常、サーバーのプロトコルに基づきます）、
+                サービスプロバイダのターゲット<acronym class="acronym">URL</acronym>、
+                そして利用できるサービスマップのメソッドを示します。
+                JSON-RPCの場合、サービス・マップは利用できるメソッドのリストです、
+                そしてそれは、各々のメソッドの期待される戻り値タイプだけでなく、
+                利用できるパラメータとタイプを文書化します。
+            </p>
+
+            <p class="para">
+                <span class="classname">Zend_Json_Server_Smd</span>は、
+                サービス・マップをビルドするオブジェクト指向方法を準備します。
+                最も基本的には、ミューテータを用いてサービスを記述しているメタデータをそれに渡して、
+                サービス（メソッドと関数）を指定します。
+            </p>
+
+            <p class="para">
+                サービス記述自体は、
+                一般的に<span class="classname">Zend_Json_Server_Smd_Service</span>のインスタンスです;
+                <span class="classname">Zend_Json_Server_Smd</span>の
+                いろいろなサービス・ミューテータへの配列としてすべての情報を渡すこともできます、
+                そして、それはサービス・オブジェクトのインスタンスを生成します。
+                サービス・オブジェクトは、サービス名（一般的に関数またはメソッド名）、
+                パラメータ（名前、型と位置）や戻り値の型のような情報を含みます。
+                めったに使われない機能ですが、
+                各々のサービスはそれ自身のターゲットとエンベロープを任意に持つことができます。
+            </p>
+
+            <p class="para">
+                付属のクラスと関数のreflectionを用いて、
+                <span class="classname">Zend_Json_Server</span>は舞台裏ですべてを実際に行ないます;
+                クラスと関数自身への参照で提供することができないカスタム機能を準備する必要がある場合だけ、
+                あなた自身のサービス・マップを生成しなければなりません。
+            </p>
+
+            <p class="para">
+                <span class="classname">Zend_Json_Server_Smd</span>での利用可能なメソッドを含みます:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para"> <span class="methodname">setOptions(array $options)</span>:
+                    オプション配列からSMDオブジェクトをセットアップします。
+                    ミューテーターのすべてを、キーとして使うことができます。
+                    (メソッドは &#039;set&#039; で始まります)
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setTransport($transport)</span>:
+                    サービスにアクセスするために使われるトランスポートを設定します;
+                    現行では POST だけがサポートされます。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getTransport()</span>:
+                    現行のサービストランスポートを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setEnvelope($envelopeType)</span>:
+                    サービスにアクセスするために使われるであろうリクエスト・エンベロープを設定します。
+                    現行では定数の
+                    <b><tt>Zend_Json_Server_Smd::ENV_JSONRPC_1</tt></b>及び
+                    <b><tt>Zend_Json_Server_Smd::ENV_JSONRPC_2</tt></b>をサポートします。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getEnvelope()</span>:
+                    現行のリクエスト・エンベロープを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setContentType($type)</span>:
+                     リクエストが使うであろうコンテンツタイプを設定します。
+                     (デフォルトでは、これは &#039;application/json&#039; です)
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getContentType()</span>:
+                    サービスにリクエストするための、現行のコンテンツタイプを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setTarget($target)</span>:
+                    サービスのための<acronym class="acronym">URL</acronym>エンドポイントを設定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getTarget()</span>:
+                    サービスのための<acronym class="acronym">URL</acronym>エンドポイントを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setId($id)</span>:
+                    一般的に、（ターゲットと同じく）これはサービスの<acronym class="acronym">URL</acronym>エンドポイントです。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getId()</span>:
+                    サービスIDを取得します。
+                    (一般的に、サービスの<acronym class="acronym">URL</acronym>エンドポイントです)
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setDescription($description)</span>:
+                    サービスの定義を設定します。
+                    (一般的に、サービスの目的を説明する物語の情報です)
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getDescription()</span>:
+                    サービスの定義を取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setDojoCompatible($flag)</span>:
+                    SMDがDojoツールキットと互換かどうか示すフラグを設定します。
+                    <b><tt>TRUE</tt></b> の場合、生成された<acronym class="acronym">JSON</acronym> SMDは、
+                    DojoのJSON-RPCクライアントが期待する形式に従ってフォーマットされます。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">isDojoCompatible()</span>:
+                    Dojo互換性フラグの値を返します。
+                    (デフォルトでは <b><tt>FALSE</tt></b> です)
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">addService($service)</span>:
+                    マップするサービスを追加します。
+                    <span class="classname">Zend_Json_Server_Smd_Service</span>のコンストラクタに渡す情報の配列か、
+                    またはそのクラスのインスタンスでしょう。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">addServices(array $services)</span>:
+                    一度に複数のサービスを追加します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setServices(array $services)</span>:
+                    一度に複数のサービスを設定します。
+                    以前に設定されたサービスを全て上書きします。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getService($name)</span>:
+                    名前でサービスを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getServices()</span>:
+                    付属のサービスを全て取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">removeService($name)</span>:
+                    マップからサービスを除去します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">toArray()</span>:
+                    サービスマップを配列にキャストします。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">toDojoArray()</span>:
+                    サービスマップをDojoツールキット互換の配列にキャストします。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">toJson()</span>:
+                    サービスマップを<acronym class="acronym">JSON</acronym>表現にキャストします。
+                </p></li>
+            </ul>
+
+            <p class="para">
+                <span class="classname">Zend_Json_Server_Smd_Service</span>には下記のメソッドがあります:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para"> <span class="methodname">setOptions(array $options)</span>:
+                    配列からオブジェクトの状態を設定します。
+                    どのミューテーター(メソッドは &#039;set&#039; で始まります)でもキーとして使われ、
+                    このメソッドを通じて設定されるでしょう。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setName($name)</span>:
+                    サービス名を設定します。
+                    (一般的には、関数やメソッドの名前)
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getName()</span>:
+                     サービス名を取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setTransport($transport)</span>:
+                    サービスのトランスポートを設定します。
+                    (現行では、<span class="classname">Zend_Json_Server_Smd</span>によりサポートされる
+                    トランスポートのみ許可されます)
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getTransport()</span>: Retrieve the
+                        current transport.</p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setTarget($target)</span>:
+                    サービスの<acronym class="acronym">URL</acronym>エンドポイントを設定します。
+                    (一般的には、サービスが付与される全体的なSMDとこれは同じです。)
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getTarget()</span>:
+                    サービスの<acronym class="acronym">URL</acronym>エンドポイントを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setEnvelope($envelopeType)</span>:
+                    サービスのエンベロープタイプを設定します。
+                    (現行では、<span class="classname">Zend_Json_Server_Smd</span>によりサポートされる
+                    エンベロープのみ許可されます)
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getEnvelope()</span>:
+                    サービスのエンベロープタイプを取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">addParam($type, array $options = array(),
+                            $order = null)</span>:
+                    サービスにパラメータを追加します。
+                    デフォルトで、パラメータ型だけは必要です。
+                    しかしながら、下記のオプションのように、指令を与えたいかもしれません:
+                    </p>
+                    <ul class="itemizedlist">
+                        <li class="listitem"><p class="para"><em class="emphasis">name</em>:
+                            パラメータ名
+                        </p></li>
+                        <li class="listitem"><p class="para"><em class="emphasis">optional</em>:
+                            パラメータが任意か否か
+                        </p></li>
+                        <li class="listitem"><p class="para"><em class="emphasis">default</em>:
+                            パラメータの既定値
+                        </p></li>
+                        <li class="listitem"><p class="para"><em class="emphasis">description</em>:
+                            パラメータを記述するテキスト
+                        </p></li>
+                    </ul>
+                </li>
+                <li class="listitem"><p class="para"> <span class="methodname">addParams(array $params)</span>:
+                    一度にいくつかのパラメータを追加します;
+                    各々のパラメータは、最小限、パラメータ型を記述する &#039;型&#039; 、
+                    さらに任意で &#039;順序&#039; キーを含む連想配列でなければなりません。
+                    その他の全てのキーは <span class="methodname">addOption()</span>に
+                    <var class="varname">$options</var>として渡されます。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setParams(array $params)</span>:
+                    一度に複数のパラメーターを設定します。
+                    既存のパラメータを全て上書きします。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getParams()</span>:
+                    現行で設定されているパラメータを全て取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">setReturn($type)</span>:
+                    サービスの返り値の型を設定します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">getReturn()</span>:
+                    サービスの返り値の型を取得します。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">toArray()</span>:
+                    サービスを配列にキャストします。
+                </p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">toJson()</span>:
+                    サービスを<acronym class="acronym">JSON</acronym>表現にキャストします。
+                </p></li>
+            </ul>
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.json.xml2json.html">XML から JSON への変換</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.json.html">Zend_Json</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.layout.html">Zend_Layout</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.json.html">Zend_Json</a></li>
+  <li><a href="zend.json.introduction.html">導入</a></li>
+  <li><a href="zend.json.basics.html">基本的な使用法</a></li>
+  <li><a href="zend.json.advanced.html">Zend_Json の高度な使用法</a></li>
+  <li><a href="zend.json.xml2json.html">XML から JSON への変換</a></li>
+  <li class="active"><a href="zend.json.server.html">Zend_Json_Server - JSON-RPCサーバー</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

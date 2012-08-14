@@ -1,0 +1,364 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Dom_Query - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.dom.introduction.html">Введение</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.dom.html">Zend_Dom</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.exception.html">Zend_Exception</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.dom.query" class="section"><div class="info"><h1 class="title">Zend_Dom_Query</h1></div>
+    
+
+    <p class="para">
+        <code class="code">Zend_Dom_Query</code> предоставляет механизмы для запросов к
+        документам XML и (X)HTML с использованием селекторов XPath и CSS.
+        Он был разработан для того, чтобы помочь с функциональным тестированием
+        приложений MVC, но может также использоваться для быстрой разработки
+        кода, извлекающего нужные данные из выводимых данных приложения
+        (например, XHTML-кода, возвращаемого сайтом).
+    </p>
+
+    <p class="para">
+        Нотация селекторов CSS предоставляется в качестве более простой и
+        знакомой веб-разработчикам при произведении запросов к
+        документам с XML-структурой.
+        Эта нотация должна быть знакома всем, кто разрабатывает каскадные
+        таблицы стилей или использует инструменты Javascript,
+        имеющие функционал для получения узлов через селекторы CSS
+        (именно функции <a href="http://prototypejs.org/api/utility/dollar-dollar" class="link external">&raquo; 
+            $$()</a> из Prototype и
+        <a href="http://api.dojotoolkit.org/jsdoc/dojo/HEAD/dojo.query" class="link external">&raquo; 
+            dojo.query</a> из Dojo натолкнули автора на создание этой
+        компоненты).
+    </p>
+
+    <div class="section" id="zend.dom.query.operation" name="zend.dom.query.operation"><div class="info"><h1 class="title">Теория работы</h1></div>
+        
+
+        <p class="para">
+            Для того, чтобы использовать <code class="code">Zend_Dom_Query</code>,
+            нужно инстанцировать объект <code class="code">Zend_Dom_Query</code>,
+            при этом можно передавать содержимое документа, к которому должны
+            производиться запросы, в виде строки.
+            Установив документ, вы можете использовать методы
+            <code class="code">query()</code> и <code class="code">queryXpath()</code>. Эти методы будут
+            возвращать объект <code class="code">Zend_Dom_Query_Result</code>, который
+            содержит в себе все найденные узлы.
+        </p>
+
+        <p class="para">
+            Основное отличие использования <code class="code">Zend_Dom_Query</code> от
+            применения связки DOMDocument + DOMXPath заключается в возможности
+            извлечения через селекторы CSS. Вы можете использовать все
+            перечисленное ниже, в любой комбинации:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                <em class="emphasis">селекторы типа</em>: основаны на типе
+                элемента: &#039;div&#039;, &#039;a&#039;, &#039;span&#039;, &#039;h2&#039; и т.д.
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">селекторы класса</em>: соответствуют атрибуту
+                class элемента: &#039;.error&#039;, &#039;div.error&#039;, &#039;label.required&#039; и т.д.
+                Если для элемента указано более одного класса, то этот элемент
+                будет соотвествовать запросу, если указанный в запросе класс
+                присутствует в его декларации.
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">id-селекторы</em>: соответствуют ID-атрибуту
+                элемента: &#039;#content&#039;, &#039;div#nav&#039; и т.д.
+            </p></li>
+
+            <li class="listitem">
+                <p class="para">
+                    <em class="emphasis">селекторы атрибута</em>: соответствуют
+                    атрибутам элемента. Используется три типа соответствия:
+                </p>
+
+                <ul class="itemizedlist">
+                    <li class="listitem"><p class="para">
+                        <em class="emphasis">точное соответствие</em>: значение
+                        атрибута в точности равно данной строке.
+                        Запросу &#039;div[bar=&quot;baz&quot;]&#039; должен соответствовать элемент
+                        div с атрибутом &quot;bar&quot;, который имеет значение &quot;baz&quot;.
+                    </p></li>
+
+                    <li class="listitem"><p class="para">
+                        <em class="emphasis">соответствие слову</em>: атрибут
+                        содержит слово, которое в точности равно данной строке.
+                        Запросу &#039;div[bar~=&quot;baz&quot;]&#039; должен соответствовать элемент
+                        div с атрибутом &quot;bar&quot;, который содержит слово &quot;baz&quot;.
+                        Элемент &#039;&lt;div bar=&quot;foo baz&quot;&gt;&#039; будет
+                        соответствовать этому запросу, но
+                        &#039;&lt;div bar=&quot;foo bazbat&quot;&gt;&#039; не будет.
+                    </p></li>
+
+                    <li class="listitem"><p class="para">
+                        <em class="emphasis">соответствие подстроке</em>:
+                        атрибут содержит подстроку. Запросу &#039;div[bar*=&quot;baz&quot;]&#039;
+                        должен соответствовать элемент div с атрибутом &quot;bar&quot;,
+                        который содержит внутри себя подстроку &quot;baz&quot;.
+                    </p></li>
+                </ul>
+            </li>
+
+            <li class="listitem"><p class="para">
+                <em class="emphasis">селекторы прямых потомков</em>: используйте
+                &#039;&gt;&#039; между селекторами для указания прямых потомков.
+                &#039;div &gt; span&#039; должен отбирать только те элементы &#039;span&#039;, которые
+                являются прямыми потомками &#039;div&#039;. Эти селекторы можно
+                использовать с любыми селекторами, перечисленными выше.
+            </p></li>
+
+            <li class="listitem">
+                <p class="para">
+                    <em class="emphasis">селекторы потомков</em>: перечисляйте
+                    селекторы через пробел для обозначения иерархии, вдоль
+                    которой нужно производить поиск. &#039;div .foo span #one&#039; должен
+                    отбирать элемент с идентификатором &#039;one&#039;, который является
+                    потомком любого уровня элемента &#039;span&#039;, который в свою
+                    очередь является потомком любого уровня элемента класса
+                    &#039;foo&#039;, который является потомком любого уровня элемента
+                    &#039;div&#039;. Например, такому запросу будет соответствовать
+                    ссылка со словом &#039;One&#039; в листинге ниже:
+                </p>
+
+                <div class="programlisting html"><div class="htmlcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;div&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;table&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &lt;tr&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &lt;td class=&quot;foo&quot;&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;div&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Lorem ipsum &lt;span class=&quot;bar&quot;&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;a href=&quot;/foo/bar&quot; id=&quot;one&quot;&gt;One&lt;/a&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;a href=&quot;/foo/baz&quot; id=&quot;two&quot;&gt;Two&lt;/a&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;a href=&quot;/foo/bat&quot; id=&quot;three&quot;&gt;Three&lt;/a&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;a href=&quot;/foo/bla&quot; id=&quot;four&quot;&gt;Four&lt;/a&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/span&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;/div&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &lt;/td&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &lt;/tr&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;/table&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;/div&gt;</div></li></ol></div></div></div>
+
+            </li>
+        </ul>
+
+        <p class="para">
+            Выполнив запрос, вы можете работать с объектами результата для
+            получения информации об узлах и извлечения самих узлов либо их
+            содержимого для их исследования или манипуляций с ними.
+            <code class="code">Zend_Dom_Query_Result</code> реализует интерфейсы
+            <code class="code">Countable</code>, <code class="code">Iterator</code>, и
+            сохраняет результат как узлы DOMNode и элементы DOMElement.
+            Для примера рассмотрим следующий вызов, который производит выборку
+            из HTML-кода, приведенного выше:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$dom</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Dom_Query<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$html</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$results</span> = <span style="color: #0000ff;">$dom</span>-&gt;<span style="color: #006600;">query</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'.foo .bar a'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$count</span> = <a href="http://www.php.net/count"><span style="color: #000066;">count</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$results</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// получение числа соответствий: 4</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$results</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$result</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// переменная $result имеет тип DOMElement</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            <code class="code">Zend_Dom_Query</code> также позволяет применять запросы
+            XPath через метод <code class="code">queryXpath()</code>. Вы можете передавать
+            этому методу любые запросы XPath и в случае корректно составленного
+            запроса он будет возвращать объект
+            <code class="code">Zend_Dom_Query_Result</code>.
+        </p>
+    </div>
+
+    <div class="section" id="zend.dom.query.methods" name="zend.dom.query.methods"><div class="info"><h1 class="title">Доступные методы</h1></div>
+        
+
+        <p class="para">
+            Семейство классов <code class="code">Zend_Dom_Query</code> имеет следующие
+            доступные для использования методы.
+        </p>
+
+        <div class="section" id="zend.dom.query.methods.zenddomquery" name="zend.dom.query.methods.zenddomquery"><div class="info"><h1 class="title">Zend_Dom_Query</h1></div>
+            
+
+            <p class="para">
+                В классе <code class="code">Zend_Dom_Query</code> доступны следующие методы:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para">
+                    <code class="code">setDocumentXml($document)</code>: принимает строку
+                    с содержимым документа HTML, к которому должны производиться
+                    запросы.
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">setDocumentXhtml($document)</code>: принимает строку
+                    с содержимым документа XHTML, к которому должны
+                    производиться запросы.
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">setDocumentHtml($document)</code>: принимает строку
+                    с содержимым документа HTML, к которому должны производиться
+                    запросы.
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">setDocument($document)</code>: принимает строку без
+                    указания типа документа. В этом случае
+                    <code class="code">Zend_Dom_Query</code> сам попытается определить тип
+                    документа.
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">getDocument()</code>: возвращает исходный документ,
+                    переданный объекту.
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">getDocumentType()</code>: возвращает тип документа,
+                    переданного объекту. Это должна быть одна из
+                    следующих констант класса Zend_Dom_Query:
+                    <code class="code">DOC_XML</code>, <code class="code">DOC_XHTML</code> или
+                    <code class="code">DOC_HTML</code>.
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">query($query)</code>: производит запрос к документу
+                    с использованием нотации селекторов CSS.
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">queryXpath($xPathQuery)</code>: производит запрос
+                    к документу с использованием нотации XPath.
+                </p></li>
+            </ul>
+        </div>
+
+        <div class="section" id="zend.dom.query.methods.zenddomqueryresult" name="zend.dom.query.methods.zenddomqueryresult"><div class="info"><h1 class="title">Zend_Dom_Query_Result</h1></div>
+            
+
+            <p class="para">
+                Как было упомянуто ранее, <code class="code">Zend_Dom_Query_Result</code>
+                реализует интерфейсы <code class="code">Iterator</code> и
+                <code class="code">Countable</code>, поэтому может использоваться в
+                цикле <code class="code">foreach</code> и с функцией <code class="code">count()</code>.
+                Кроме того, он предоставляет следующие методы:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para">
+                    <code class="code">getCssQuery()</code>: возвращает запрос-селектор CSS,
+                    который использовался для получения результата (если был).
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">getXpathQuery()</code>: возвращает запрос XPath,
+                    который использовался для получения результата.
+                    <code class="code">Zend_Dom_Query</code> неявным образом преобразует
+                    запросы с селекторами CSS в запросы XPath, поэтому это
+                    значение всегда будет заполняться.
+                </p></li>
+
+                <li class="listitem"><p class="para">
+                    <code class="code">getDocument()</code>: возвращает объект DOMDocument,
+                    к которому производился запрос.
+                </p></li>
+            </ul>
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.dom.introduction.html">Введение</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.dom.html">Zend_Dom</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.exception.html">Zend_Exception</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.dom.html">Zend_Dom</a></li>
+  <li><a href="zend.dom.introduction.html">Введение</a></li>
+  <li class="active"><a href="zend.dom.query.html">Zend_Dom_Query</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

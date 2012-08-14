@@ -1,0 +1,233 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Open ID Authentifikation - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.auth.adapter.ldap.html">LDAP Authentifizierung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.auth.html">Zend_Auth</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.barcode.html">Zend_Barcode</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.auth.adapter.openid" class="section"><div class="info"><h1 class="title">Open ID Authentifikation</h1></div>
+    
+
+    <div class="section" id="zend.auth.adapter.openid.introduction" name="zend.auth.adapter.openid.introduction"><div class="info"><h1 class="title">Einführung</h1></div>
+        
+
+        <p class="para">
+            Der <span class="classname">Zend_Auth_Adapter_OpenId</span> Adapter kann verwendet werden um
+            Benutzer durch Verwendung eines entfernten OpenID Servers zu authentifizieren. Diese
+            Authentifizierungsmethode nimmt an das Benutzer nur ihre OpenID Identität an die Web
+            Anwendung übermitteln. Dann werden Sie zu Ihrem OpenID Anbieter umgeleitet um die
+            Eigentümerschaft der Identität mit Hilfe eines Passwortes oder einer anderen Methode zu
+            prüfen. Dieses Passwort wird der Web Anwendung nie bekannt gegeben.
+        </p>
+
+        <p class="para">
+            Die OpenID Identität ist nur eine <acronym class="acronym">URL</acronym> die auf eine Webseite mit
+            entsprechenden Informationen über den Benutzer und spezielle Tags verweist welche
+            beschreiben welcher Server verwendet werden soll und welche Identität dort zu
+            übermitteln ist. Mehr über OpenID kann auf der
+            <a href="http://www.openid.net/" class="link external">&raquo; offiziellen OpenID Site</a> nachgelesen werden.
+        </p>
+
+        <p class="para">
+            Die <span class="classname">Zend_Auth_Adapter_OpenId</span> Klasse umgibt die
+            <span class="classname">Zend_OpenId_Consumer</span> Komponente welche das OpenID
+            Authentifizierungs Protokoll selbst implementiert.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                <span class="classname">Zend_OpenId</span> hat Vorteile davon wenn die
+                <a href="http://php.net/gmp" class="link external">&raquo; GMP Erweiterung</a> vorhanden ist. Es sollte
+                Angedacht werden die <acronym class="acronym">GMP</acronym> Erweiterung für eine bessere
+                Performance einzuschalten wenn <span class="classname">Zend_Auth_Adapter_OpenId</span>
+                verwendet wird.
+            <br />
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.auth.adapter.openid.specifics" name="zend.auth.adapter.openid.specifics"><div class="info"><h1 class="title">Spezielles</h1></div>
+        
+
+        <p class="para">
+            Wie in diesem Fall für alle <span class="classname">Zend_Auth</span> Adapter, implementiert die
+            <span class="classname">Zend_Auth_Adapter_OpenId</span> Klasse das
+            <span class="classname">Zend_Auth_Adapter_Interface</span>, welches nur eine Methode definiert:
+             <span class="methodname">authenticate()</span>. Diese Methode führt die Authentifizierung
+            selbst durch, allerdings muß das Objekt vor dem Aufruf vorbereitet werden. So eine
+            Vorbereitung des Adapters beinhaltet das Setzen der OpenID Identität und einige andere
+            <span class="classname">Zend_OpenId</span> spezifische Optionen.
+        </p>
+
+        <p class="para">
+            Trotzdem, im Gegensatz zu anderen <span class="classname">Zend_Auth</span> Adaptern führt
+            <span class="classname">Zend_Auth_Adapter_OpenId</span> Authentifizierungen an einem externen
+            Server durch und das wird in zwei separaten <acronym class="acronym">HTTP</acronym> Anfragen getan.
+            Deswegen muß  <span class="methodname">Zend_Auth_Adapter_OpenId::authenticate()</span> zweimal
+            aufgerufen werden. Beim ersten Aufruf wird die Methode nichts zurückgeben, aber den
+            Benutzer zu seinem OpenID Server umleiten. Dann, nachdem der Benutzer auf dem
+            entfernten Server authentifiziert ist wird dieser wieder zurück umleiten und das Skript
+            muß für diese zweite Anfrage
+             <span class="methodname">Zend_Auth_Adapter_OpenId::authenticate()</span> nochmals aufrufen um
+            die Signatur zu prüfen, welche mit der umgeleiteten Anfrage vom Server geschickt wird,
+            und den Authentifikationsprozess zu beenden. Bei diesem zweiten Aufruf wird wie
+            erwartet ein <span class="classname">Zend_Auth_Result</span> Objekt zurückgegeben.
+        </p>
+
+        <p class="para">
+            Das folgende Beispiel zeigt die Verwendung von
+            <span class="classname">Zend_Auth_Adapter_OpenId</span>. Wie vorher erwähnt wird die
+             <span class="methodname">Zend_Auth_Adapter_OpenId::authenticate()</span> Methode zweimal
+            aufgerufen. Das erste Mal, ist nachdem der Benutzer das <acronym class="acronym">HTML</acronym>
+            Formular übermittelt hat und <var class="varname">$_POST[&#039;openid_action&#039;]</var> auf
+            <em class="emphasis">&quot;login&quot;</em> gesetzt wurde, und das zweite Mal nach der
+            <acronym class="acronym">HTTP</acronym> Umleitung vom OpenID Server wenn
+            <var class="varname">$_GET[&#039;openid_mode&#039;]</var> oder
+            <var class="varname">$_POST[&#039;openid_mode&#039;]</var> gesetzt wurde.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$status</span> = <span style="color: #ff0000;">&quot;&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$auth</span> = Zend_Auth::<span style="color: #006600;">getInstance</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_POST</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'openid_action'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> &amp;&amp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$_POST</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'openid_action'</span><span style="color: #66cc66;">&#93;</span> == <span style="color: #ff0000;">&quot;login&quot;</span> &amp;&amp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp;!<a href="http://www.php.net/empty"><span style="color: #000066;">empty</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_POST</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'openid_identifier'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> ||</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'openid_mode'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> ||</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_POST</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'openid_mode'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$result</span> = <span style="color: #0000ff;">$auth</span>-&gt;<span style="color: #006600;">authenticate</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_OpenId<span style="color: #66cc66;">&#40;</span>@<span style="color: #0000ff;">$_POST</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'openid_identifier'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$result</span>-&gt;<span style="color: #006600;">isValid</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$status</span> = <span style="color: #ff0000;">&quot;Sie sind angemeldet als &quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; . <span style="color: #0000ff;">$auth</span>-&gt;<span style="color: #006600;">getIdentity</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; . <span style="color: #ff0000;">&quot;&lt;br&gt;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$auth</span>-&gt;<span style="color: #006600;">clearIdentity</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$result</span>-&gt;<span style="color: #006600;">getMessages</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$message</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$status</span> .= <span style="color: #ff0000;">&quot;$message&lt;br&gt;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$auth</span>-&gt;<span style="color: #006600;">hasIdentity</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_POST</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'openid_action'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> &amp;&amp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$_POST</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'openid_action'</span><span style="color: #66cc66;">&#93;</span> == <span style="color: #ff0000;">&quot;logout&quot;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$auth</span>-&gt;<span style="color: #006600;">clearIdentity</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$status</span> = <span style="color: #ff0000;">&quot;Sie sind angemeldet als &quot;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; . <span style="color: #0000ff;">$auth</span>-&gt;<span style="color: #006600;">getIdentity</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; . <span style="color: #ff0000;">&quot;&lt;br&gt;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">?&gt;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;html&gt;&lt;body&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">&lt;?php</span> <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <a href="http://www.php.net/htmlspecialchars"><span style="color: #000066;">htmlspecialchars</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$status</span><span style="color: #66cc66;">&#41;</span>;?&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;form method=<span style="color: #ff0000;">&quot;post&quot;</span>&gt;&lt;fieldset&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;legend&gt;OpenID Login&lt;/legend&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;input type=<span style="color: #ff0000;">&quot;text&quot;</span> name=<span style="color: #ff0000;">&quot;openid_identifier&quot;</span> value=<span style="color: #ff0000;">&quot;&quot;</span>&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;input type=<span style="color: #ff0000;">&quot;submit&quot;</span> name=<span style="color: #ff0000;">&quot;openid_action&quot;</span> value=<span style="color: #ff0000;">&quot;login&quot;</span>&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;input type=<span style="color: #ff0000;">&quot;submit&quot;</span> name=<span style="color: #ff0000;">&quot;openid_action&quot;</span> value=<span style="color: #ff0000;">&quot;logout&quot;</span>&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;/fieldset&gt;&lt;/form&gt;&lt;/body&gt;&lt;/html&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">*/</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Man kann den OpenID Authentifizierungs Prozess auf verschiedenen Wegen anzupassen. Man
+            kann,zum Bespiel, die Umleitung des OpenID Servers auf eine eigene Seite erhalten, indem
+            der &quot;root&quot; der Webseite spezifiziert wird und ein eigener
+            <span class="classname">Zend_OpenId_Consumer_Storage</span> oder
+            <span class="classname">Zend_Controller_Response</span> verwendet wird. Man kann auch eine
+            einfache Registrierungserweiterung verwenden um Informationen über den Benutzer vom
+            OpenID Server zu erhalten. Alle diese Möglichkeiten werden detailierter im Kapitel
+            <span class="classname">Zend_OpenId_Consumer</span> beschrieben.
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.auth.adapter.ldap.html">LDAP Authentifizierung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.auth.html">Zend_Auth</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.barcode.html">Zend_Barcode</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.auth.html">Zend_Auth</a></li>
+  <li><a href="zend.auth.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.auth.adapter.dbtable.html">Datenbanktabellen Authentifizierung</a></li>
+  <li><a href="zend.auth.adapter.digest.html">Digest Authentication</a></li>
+  <li><a href="zend.auth.adapter.http.html">HTTP Authentication Adapter</a></li>
+  <li><a href="zend.auth.adapter.ldap.html">LDAP Authentifizierung</a></li>
+  <li class="active"><a href="zend.auth.adapter.openid.html">Open ID Authentifikation</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

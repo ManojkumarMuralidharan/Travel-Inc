@@ -1,0 +1,205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Db Performance - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="performance.classloading.html">Laden von Klassen</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="performance.html">Zend Framework Performance Guide</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="performance.localization.html">Internationalisierung (I18n) und Lokalisierung (L10n)</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="performance.database" class="section"><div class="info"><h1 class="title">Zend_Db Performance</h1></div>
+    
+
+    <p class="para">
+        <span class="classname">Zend_Db</span> ist ein Datenbank Abstraktion Layer und ist dazu gedacht
+        eine gemeinsame <acronym class="acronym">API</acronym> für <acronym class="acronym">SQL</acronym> Operationen zu bieten.
+        <span class="classname">Zend_Db_Table</span> ist ein Table Data Bateway, dazu gedacht übliche
+        Tabellen-artige Datenbank Operationen zu abstrahieren. Wegen Ihrer abstrakten Natur und der
+        &quot;Magie&quot; die Sie versteckt haben um Ihre Operationen durchführen zu können, können Sie
+        manchmal auch zu Geschwindigkeitsnachteilen führen.
+    </p>
+
+    <div class="section" id="performance.database.tableMetadata" name="performance.database.tableMetadata"><div class="info"><h1 class="title">
+            Wie kann ich den Overhead reduzieren der von Zend_Db_Table eingeführt wird um die
+            Metadaten der Tabelle zu erhalten?
+        </h1></div>
+        
+
+        <p class="para">
+            Um die Verwendung so einfach wie möglich zu halten, und auch sich konstant ändernde
+            Schemata wärend der Entwicklung zu unterstützen, macht
+            <span class="classname">Zend_Db_Table</span> einiges an Magie unter seinem Hut: bei der ersten
+            Verwendung, holt es das Tabellenschema und speichert es im Objekt. Diese Operation ist
+            normalerweise sehr teuer, unabhängig von der Datenbank -- das zu einer Schwachstelle in
+            der Produktion führen kann.
+        </p>
+
+        <p class="para">
+            Glücklicherweise gibt es Techniken um die Situation zu verbessern.
+        </p>
+
+        <div class="section" id="performance.database.tableMetadata.cache" name="performance.database.tableMetadata.cache"><div class="info"><h1 class="title">Den Metadaten Cache verwenden</h1></div>
+            
+
+            <p class="para">
+                <span class="classname">Zend_Db_Table</span> kann optional <span class="classname">Zend_Cache</span>
+                verwenden um die Metadaten der Tabelle zu cachen. Dieser ist typischerweise
+                schneller im Zugriff und nicht so teuer wie das holen der Metadaten von der Tabelle
+                selbst.
+            </p>
+
+            <p class="para">
+                Die Dokumentation von <a href="zend.db.table.html#zend.db.table.metadata.caching" class="link"><span class="classname">Zend_Db_Table</span>
+                    enthält Informationen über das Cachen der Metadaten</a>.
+            </p>
+        </div>
+
+        <div class="section" id="performance.database.tableMetadata.hardcoding" name="performance.database.tableMetadata.hardcoding"><div class="info"><h1 class="title">Die Metadaten in der Tabellendefinition fix codieren</h1></div>
+            
+
+            <p class="para">
+                Mit 1.7.0, bietet <span class="classname">Zend_Db_Table</span> auch
+                <a href="zend.db.table.html#zend.db.table.metadata.caching.hardcoding" class="link">Unterstützung für fix
+                kodierte Metadaten in der Tabellen Definition</a>. Das ist ein schwierigerer
+                Verwendungsfall, und sollte nur dann verwendet werden wenn man weiß das sich das
+                Tabellenschema nicht ändern wird, oder das man fähig ist die Definition immer
+                up-to-date zu halten.
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="performance.database.select" name="performance.database.select"><div class="info"><h1 class="title">
+            SQL die mit Zend_Db_Select erzeugt wurde greift nicht auf die Indezes zu; wie kann man
+            das besser machen?
+        </h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Db_Select</span> ist relativ gut in seinem Job. Trotzdem kann es,
+            wenn man komplexe Abfragen benötigt die Joins oder Unterabfragen enthalten, sehr naiv
+            sein.
+        </p>
+
+        <div class="section" id="performance.database.select.writeyourown" name="performance.database.select.writeyourown"><div class="info"><h1 class="title">Selbst getuntes SQL schreiben</h1></div>
+            
+
+            <p class="para">
+                Die einzige echte Antwort ist es eigenes <acronym class="acronym">SQL</acronym> zu schreiben;
+                <span class="classname">Zend_Db</span> erfordert nicht die Verwendung von
+                <span class="classname">Zend_Db_Select</span>, als ist die Verwendung von eigenen, getunten
+                <acronym class="acronym">SQL</acronym> Select Statements, eine perfekte und legitime Anwendung.
+            </p>
+
+            <p class="para">
+                Lasse <b><tt>EXPLAIN</tt></b> auf den Abfragen laufen, und teste eine Vielzahl
+                von Möglichkeiten bis man die eigenen Indezes auf dem besten und performantesten
+                Weg trifft -- und dann sollte dieses <acronym class="acronym">SQL</acronym> als Klasseneigenschaft
+                oder Konstante fix kodiert werden.
+            </p>
+
+            <p class="para">
+                Wenn das <acronym class="acronym">SQL</acronym> variable Argumente benötigt, können Platzhalter im
+                <acronym class="acronym">SQL</acronym> verwendet werden und in einer Kombination von
+                 <span class="methodname">vsprintf()</span> und  <span class="methodname">array_walk()</span>
+                verwendet werden um Werte in das <acronym class="acronym">SQL</acronym> zu injizieren:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $adapter ist der DB Adapter. In Zend_Db_Table ist es durch</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Verwendung von $this-&gt;getAdapter() zu empfangen.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$sql</span> = <a href="http://www.php.net/vsprintf"><span style="color: #000066;">vsprintf</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; self::<span style="color: #006600;">SELECT_FOO</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/array_walk"><span style="color: #000066;">array_walk</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$values</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$adapter</span>, <span style="color: #ff0000;">'quoteInto'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="performance.classloading.html">Laden von Klassen</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="performance.html">Zend Framework Performance Guide</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="performance.localization.html">Internationalisierung (I18n) und Lokalisierung (L10n)</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="performance.html">Zend Framework Performance Guide</a></li>
+  <li><a href="performance.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="performance.classloading.html">Laden von Klassen</a></li>
+  <li class="active"><a href="performance.database.html">Zend_Db Performance</a></li>
+  <li><a href="performance.localization.html">Internationalisierung (I18n) und Lokalisierung (L10n)</a></li>
+  <li><a href="performance.view.html">Darstellen der View</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>日付および時刻の扱い - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.locale.parsing.html">正規化および地域化</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.locale.html">Zend_Locale</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.locale.appendix.html">サポートするロケール</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.locale.date.datesandtimes" class="section"><div class="info"><h1 class="title">日付および時刻の扱い</h1></div>
+
+    
+
+    <p class="para">
+        <span class="classname">Zend_Locale_Format</span> では、日付や時刻を扱うためのメソッドを提供しています。
+        これらを使用して、さまざまなロケールのさまざまな書式間での変換や正規化を行います。
+        日付データや
+        <a href="zend.date.constants.html" class="link">
+          <span class="classname">Zend_Date</span> がサポートする、さまざまな標準書式や地域化された日付書式
+        </a>
+        を満たす日付文字列の操作には <span class="classname">Zend_Date</span> を使用します。
+        既存の定義済み書式を使用すると、「十分にテストされたコードが使用できる」
+        「(一般的な使用法に従う限り) 可搬性や相互運用性を保証できる」といった利点があります。
+        以下の例は、ここで推奨した内容に従っていません。しかし、
+        非標準の書式を使用することで、これらの例は不必要にわかりにくくなってしまっています。
+    </p>
+
+    <div class="section" id="zend.locale.date.normalize" name="zend.locale.date.normalize"><div class="info"><h1 class="title">日付および時刻の正規化</h1></div>
+
+        
+
+        <p class="para">
+             <span class="methodname">getDate()</span> メソッドは、地域化された書式の日付を含む文字列をパースします。
+            結果は構造化された配列で返されます。この配列のキーが、日付の各部分を表します。
+            さらに、この配列には &#039;date_format&#039; というキーがあり、
+            入力日付文字列をパースする際に使用する書式文字列がここに含まれます。
+            地域化された日付文字列が日付/時刻のすべての要素を含んでいるとは限らないので、
+            配列のすべてのキーが存在するとは限りません。
+            たとえば年月日のみが指定された場合は、時刻に関する情報は配列から取り除かれます。
+            逆に時分秒のみが指定された場合も同様です。
+            入力に日付や時刻が含まれない場合は、例外がスローされます。
+        </p>
+
+        <p class="para">
+             <span class="methodname">setOption(array(&#039;fix_date&#039; =&gt; true))</span> が設定されると、
+             <span class="methodname">getDate()</span> メソッドは
+            &#039;fixed&#039; というキーを追加します。ここには数値が格納され、
+            入力の日付文字列の年月日の順序を入れ替えたりして
+            使用する書式にあわせるための情報を表します。
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>getDate() のオプション &#039;fix_date&#039; のキーの値</b></caption></div>
+            
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>値</th>
+                        <th>意味</th>
+                    </tr>
+
+                </thead>
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left">0</td>
+                        <td align="left">なにも修正しません。</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">1</td>
+                        <td align="left">無効な月を修正します。</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">2</td>
+                        <td align="left">日付と年の位置を入れ替えます。</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">3</td>
+                        <td align="left">月と年の位置を入れ替えます。</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">4</td>
+                        <td align="left">月と日の位置を入れ替えます。</td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+
+        <p class="para">
+            日付文字列の書式を明示的に指定したい場合のために、次のような書式トークン指定子をサポートしています。
+            <span class="classname">Zend_Locale_Format</span> のメソッドでユーザ定義書式に対応しているものの中で無効な書式指定子を使用した場合、
+            たとえば <acronym class="acronym">ISO</acronym> モードで <acronym class="acronym">PHP</acronym> の &#039;i&#039; 指定子を使用した場合などには例外がスローされます。
+        </p>
+
+        <p class="para">
+            これらの (以下の) 指定子は、<span class="classname">Zend_Date</span> の  <span class="methodname">toString()</span> がサポートしている完全な &quot;<acronym class="acronym">ISO</acronym>&quot;
+            セットの一部です。<acronym class="acronym">PHP</acronym> の  <span class="methodname">date()</span> 関数と同じ形式の指定子を使用したい場合は、
+            まず最初に  <span class="methodname">setOptions(array(&#039;format_type&#039; =&gt; &#039;php&#039;))</span> をコールしてください。
+            特定のひとつの書式文字列だけを <acronym class="acronym">PHP</acronym> の  <span class="methodname">date()</span> 互換形式から
+            &quot;<acronym class="acronym">ISO</acronym>&quot; 形式に変換したい場合は  <span class="methodname">convertPhpToIsoFormat()</span>
+            を使用します。現時点では、分の形式のみが異なっています
+            (<acronym class="acronym">ISO</acronym> のデフォルトでは &#039;m&#039;、<acronym class="acronym">PHP</acronym> の date 関数では &#039;i&#039; を使用します)。
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>返り値</b></caption></div>
+            
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>getDate() 書式文字</th>
+                        <th>配列のキー</th>
+                        <th>返される値</th>
+                        <th>最小値</th>
+                        <th>最大値</th>
+                    </tr>
+
+                </thead>
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left">d</td>
+                        <td align="left">day</td>
+                        <td align="left">integer</td>
+                        <td align="left">1</td>
+                        <td align="left">31</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">M</td>
+                        <td align="left">month</td>
+                        <td align="left">integer</td>
+                        <td align="left">1</td>
+                        <td align="left">12</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">y</td>
+                        <td align="left">year</td>
+                        <td align="left">integer</td>
+                        <td align="left">無制限</td>
+                        <td align="left">PHP の整数型の最大値</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">h</td>
+                        <td align="left">hour</td>
+                        <td align="left">integer</td>
+                        <td align="left">0</td>
+                        <td align="left">PHP の整数型の最大値</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">m</td>
+                        <td align="left">minute</td>
+                        <td align="left">integer</td>
+                        <td align="left">0</td>
+                        <td align="left">PHP の整数型の最大値</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">s</td>
+                        <td align="left">second</td>
+                        <td align="left">integer</td>
+                        <td align="left">0</td>
+                        <td align="left">PHP の整数型の最大値</td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+
+        <div class="example"><div class="info"><p><b>Example #1 日付の正規化</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$dateString</span> = Zend_Locale_Format::<a href="http://www.php.net/getdate"><span style="color: #000066;">getDate</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'13.04.2006'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'date_format'</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'dd.MM.yyyy'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// この日付に対応する Zend_Date オブジェクトを作成します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$dateObject</span> = Zend_Date<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'13.04.2006'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'date_format'</span> =&gt; <span style="color: #ff0000;">'dd.MM.yyyy'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print_r"><span style="color: #000066;">print_r</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$dateString</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// 出力は、このようになります</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/array"><span style="color: #000066;">Array</span></a></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#91;</span>format<span style="color: #66cc66;">&#93;</span> =&gt; dd.MM.yyyy</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#91;</span>day<span style="color: #66cc66;">&#93;</span> =&gt; <span style="color: #cc66cc;">13</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#91;</span>month<span style="color: #66cc66;">&#93;</span> =&gt; <span style="color: #cc66cc;">4</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#91;</span>year<span style="color: #66cc66;">&#93;</span> =&gt; <span style="color: #cc66cc;">2006</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 入力値に何らかの問題がある場合に、自動的に修正します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date</span> = Zend_Locale_Format::<a href="http://www.php.net/getdate"><span style="color: #000066;">getDate</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'04.13.2006'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'date_format'</span> =&gt; <span style="color: #ff0000;">'dd.MM.yyyy'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'fix_date'</span> =&gt; <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print_r"><span style="color: #000066;">print_r</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$date</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// 出力は、このようになります</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/array"><span style="color: #000066;">Array</span></a></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#91;</span>format<span style="color: #66cc66;">&#93;</span> =&gt; dd.MM.yyyy</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#91;</span>day<span style="color: #66cc66;">&#93;</span> =&gt; <span style="color: #cc66cc;">13</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#91;</span>month<span style="color: #66cc66;">&#93;</span> =&gt; <span style="color: #cc66cc;">4</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#91;</span>year<span style="color: #66cc66;">&#93;</span> =&gt; <span style="color: #cc66cc;">2006</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#91;</span>fixed<span style="color: #66cc66;">&#93;</span> =&gt; <span style="color: #cc66cc;">4</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span></div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+             <span class="methodname">getDate()</span> は &quot;ロケール対応&quot; なので、
+            <code class="code">$locale</code> を指定することで
+            そのロケールの書式の日付文字列を使用できます。
+            オプション &#039;<code class="code">fix_date</code>&#039; は、簡単なテストを行って
+            日付や月の妥当性を確認します。問題が見つかったら、
+            経験則によってそれを何とか修正しようとします。
+            &#039;<b><tt>Zend_Locale_Format::STANDARD</tt></b>&#039; を &#039;<code class="code">date_format</code>&#039;
+            の値として指定すると、 <span class="methodname">setOptions()</span>
+            で設定されているクラス全体のデフォルト日付書式を使用しないようにできます。
+            これにより、getDate は <code class="code">$locale</code>
+            のデフォルトの日付書式を使用するようになります。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #2 ロケールを指定した日付の正規化</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$locale</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Locale<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'de_AT'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date</span> = Zend_Locale_Format::<a href="http://www.php.net/getdate"><span style="color: #000066;">getDate</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'13.04.2006'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'date_format'</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Locale_Format::<span style="color: #006600;">STANDARD</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'locale'</span> =&gt; <span style="color: #0000ff;">$locale</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print_r"><span style="color: #000066;">print_r</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$date</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            入力に日付と時刻の両方が含まれている場合に、
+            完全な日付と時刻が返されます。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #3 日付と時刻の正規化</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$locale</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Locale<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'de_AT'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date</span> = Zend_Locale_Format::<a href="http://www.php.net/getdate"><span style="color: #000066;">getDate</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'13.04.2005 22:14:55'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'date_format'</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Locale_Format::<span style="color: #006600;">STANDARD</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'locale'</span> =&gt; <span style="color: #0000ff;">$locale</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print_r"><span style="color: #000066;">print_r</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$date</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            書式を指定したい場合は、
+            <code class="code">$locale</code> ではなく <code class="code">$format</code> 引数を指定します。
+            <code class="code">$format</code> としてサポートされるのは、一文字のコード
+            (H, m, s, y, M, d) および MMMM、EEEE だけです。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #4 ユーザ定義の日付書式への正規化</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date</span> = Zend_Locale_Format::<a href="http://www.php.net/getdate"><span style="color: #000066;">getDate</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'13200504T551422'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'date_format'</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'ddyyyyMM ssmmHH'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print_r"><span style="color: #000066;">print_r</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$date</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            書式には次の記号が使用できます。
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>書式定義</b></caption></div>
+            
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>書式指定文字</th>
+                        <th>説明</th>
+                    </tr>
+
+                </thead>
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left">d あるいは dd</td>
+                        <td align="left">1 桁あるいは 2 桁の日</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">M あるいは MM</td>
+                        <td align="left">1 桁あるいは 2 桁の月</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">y あるいは yy</td>
+                        <td align="left">1 桁あるいは 2 桁の年</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">yyyy</td>
+                        <td align="left">4 桁の年</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">h</td>
+                        <td align="left">1 桁あるいは 2 桁の時</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">m</td>
+                        <td align="left">1 桁あるいは 2 桁の分</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">s</td>
+                        <td align="left">1 桁あるいは 2 桁の秒</td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+
+        <p class="para">
+            適切な書式の例は、次のようになります。
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>書式の例</b></caption></div>
+            
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>書式</th>
+                        <th>入力</th>
+                        <th>出力</th>
+                    </tr>
+
+                </thead>
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left">dd.MM.yy</td>
+                        <td align="left">1.4.6</td>
+                        <td align="left">[&#039;day&#039;] =&gt; 1,
+                                   [&#039;month&#039;] =&gt; 4,
+                                   [&#039;year&#039;] =&gt; 6</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">dd.MM.yy</td>
+                        <td align="left">01.04.2006</td>
+                        <td align="left">[&#039;day&#039;] =&gt; 1, [&#039;month&#039;] =&gt; 4, [&#039;year&#039;] =&gt; 2006</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">yyyyMMdd</td>
+                        <td align="left">1.4.6</td>
+                        <td align="left">[&#039;day&#039;] =&gt; 6, [&#039;month&#039;] =&gt; 4, [&#039;year&#039;] =&gt; 1</td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>データベースの日付書式</b><br /></span>
+            
+            
+                データベース (たとえば MySql や MsSql など) の日付値をパースするには、
+                getDate() のかわりに <span class="classname">Zend_Date</span> の ISO_8601 書式を使用します。
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            オプション &#039;<code class="code">fix_date</code>&#039; は、簡単なテストを行って
+            日付や月の妥当性を確認します。問題が見つかったら、
+            経験則によってそれを何とか修正しようとします。
+             <span class="methodname">getDate()</span> は、
+            入力に問題がある場合にそれを自動で検出し、訂正します。
+            たとえば年の位置が違っている場合などがこれにあたります。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #5 入力された日付の訂正処理</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date</span> = Zend_Locale_Format::<a href="http://www.php.net/getdate"><span style="color: #000066;">getDate</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'41.10.20'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'date_format'</span> =&gt; <span style="color: #ff0000;">'ddMMyy'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'fix_date'</span> =&gt; <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 41 は、日付ではなく年として返されます</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print_r"><span style="color: #000066;">print_r</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$date</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+    </div>
+
+    <div class="section" id="zend.locale.date.test" name="zend.locale.date.test"><div class="info"><h1 class="title">日付かどうかの確認</h1></div>
+
+        
+
+        <p class="para">
+             <span class="methodname">checkDateFormat($inputString, array(&#039;date_format&#039; =&gt; $format, $locale))</span> を使用して、
+            指定した文字列が期待通りの日付を含むかどうかを調べます。
+             <span class="methodname">checkDateFormat()</span> メソッドは  <span class="methodname">getDate()</span> を使用します。
+            しかし、オプション <code class="code">&#039;fixdate&#039;</code> は使用しません。これを使用すると、
+            入力が日付書式を満たしていない場合にも <b><tt>TRUE</tt></b> を返してしまうからです。
+            月と日の位置が入れ替わっているなどのエラーが入力で検出された場合、
+            オプション <code class="code">&#039;fixdate&#039;</code> は
+            経験則によってそれを &quot;修正&quot; してから検証します。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #6 日付かどうかの確認</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$locale</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Locale<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'de_AT'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>Zend_Locale_Format::<span style="color: #006600;">checkDateFormat</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'13.Apr.2006'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'date_format'</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Locale_Format::<span style="color: #006600;">STANDARD</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$locale</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #ff0000;">&quot;日付です&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #ff0000;">&quot;日付ではありません&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+
+    </div>
+
+    <div class="section" id="zend.locale.time.normalizing" name="zend.locale.time.normalizing"><div class="info"><h1 class="title">時刻の正規化</h1></div>
+
+        
+
+        <p class="para">
+            通常、入力に日付と時刻が両方含まれている場合は、
+            時刻は日付とともに返されます。
+            適切な書式はわからないが、ユーザの入力のロケールがわかるという場合に
+             <span class="methodname">getTime()</span> を使用します。
+            これは、選択したロケールに対するデフォルトの時刻書式を使用するからです。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #7 未知の時刻の正規化</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$locale</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Locale<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'de_AT'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>Zend_Locale_Format::<span style="color: #006600;">getTime</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'13:44:42'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'date_format'</span> =&gt;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Zend_Locale_Format::<span style="color: #006600;">STANDARD</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'locale'</span> =&gt; <span style="color: #0000ff;">$locale</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #ff0000;">&quot;時刻です&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #ff0000;">&quot;時刻ではありません&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+
+    </div>
+
+    <div class="section" id="zend.locale.time.test" name="zend.locale.time.test"><div class="info"><h1 class="title">時刻かどうかの確認</h1></div>
+
+        
+
+        <p class="para">
+             <span class="methodname">checkDateFormat()</span> を使用して、
+            指定した文字列が有効な時刻を含むかどうかを調べます。
+            使用法は、日付の確認の場合と同じです。ただし、
+            <code class="code">date_format</code> には期待するパーツを指定しなければなりません。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #8 時刻かどうかの確認</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$locale</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Locale<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'de_AT'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>Zend_Locale_Format::<span style="color: #006600;">checkDateFormat</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'13:44:42'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'date_format'</span> =&gt; <span style="color: #ff0000;">'HH:mm:ss'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'locale'</span> =&gt; <span style="color: #0000ff;">$locale</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #ff0000;">&quot;時刻です&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #ff0000;">&quot;時刻ではありません&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </div>
+
+    </div>
+
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.locale.parsing.html">正規化および地域化</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.locale.html">Zend_Locale</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.locale.appendix.html">サポートするロケール</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.locale.html">Zend_Locale</a></li>
+  <li><a href="zend.locale.introduction.html">導入</a></li>
+  <li><a href="zend.locale.functions.html">Zend_Locale の使用法</a></li>
+  <li><a href="zend.locale.parsing.html">正規化および地域化</a></li>
+  <li class="active"><a href="zend.locale.date.datesandtimes.html">日付および時刻の扱い</a></li>
+  <li><a href="zend.locale.appendix.html">サポートするロケール</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

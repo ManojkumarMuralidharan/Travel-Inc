@@ -1,0 +1,526 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>AutoDiscovery - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.soap.wsdl.html">WSDL Zugriffsmethoden</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.soap.html">Zend_Soap</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.tag.html">Zend_Tag</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.soap.autodiscovery" class="section"><div class="info"><h1 class="title">AutoDiscovery</h1></div>
+    
+
+    <div class="section" id="zend.soap.autodiscovery.introduction" name="zend.soap.autodiscovery.introduction"><div class="info"><h1 class="title">AutoDiscovery Einführung</h1></div>
+        
+
+        <p class="para">
+            Die <acronym class="acronym">SOAP</acronym> Funktionalität die im Zend Framework implementiert ist, ist
+            dazu gedacht alle benötigten Schritte für die <acronym class="acronym">SOAP</acronym> Kommunikation
+            einfacher zu gestalten.
+        </p>
+
+        <p class="para">
+            <acronym class="acronym">SOAP</acronym> ist ein von der Sprache unabhängiges Protokoll. Deshalb kann es
+            nicht nur für <acronym class="acronym">PHP</acronym>-zu-PHP Kommunikation verwendet werden.
+        </p>
+
+        <p class="para">
+            Es gibt drei Konfigurationen für <acronym class="acronym">SOAP</acronym> Anwendungen wo Zend Framework
+            verwendet werden kann:
+
+            <ol type="1">
+                <li class="listitem">
+                    <span class="simpara">
+                        SOAP Server <acronym class="acronym">PHP</acronym> Anwendung &lt;---&gt;
+                        <acronym class="acronym">SOAP</acronym> Client <acronym class="acronym">PHP</acronym> Anwendung
+                    </span>
+                </li>
+
+                <li class="listitem">
+                    <span class="simpara">
+                        <acronym class="acronym">SOAP</acronym> Server nicht-PHP Anwendung &lt;---&gt;
+                        <acronym class="acronym">SOAP</acronym> Client <acronym class="acronym">PHP</acronym> Anwendung
+                    </span>
+                </li>
+
+                <li class="listitem">
+                    <span class="simpara">
+                        SOAP Server <acronym class="acronym">PHP</acronym> Anwendung &lt;---&gt;
+                        <acronym class="acronym">SOAP</acronym> Client nicht-PHP Anwendung
+                    </span>
+                </li>
+            </ol>
+        </p>
+
+        <p class="para">
+            Wir müssen immer wissen, welche Funktionalität vom <acronym class="acronym">SOAP</acronym> Server
+            angeboten wird um mit Ihm zu arbeiten. <a href="http://www.w3.org/TR/wsdl" class="link external">&raquo; WSDL</a> wird verwendet um die Netzwerk Service
+            <acronym class="acronym">API</acronym> im Detail zu beschreiben.
+        </p>
+
+        <p class="para">
+            Die WSDL Sprache ist komplex genug (siehe <a href="http://www.w3.org/TR/wsdl" class="link external">&raquo; http://www.w3.org/TR/wsdl</a> für die Details).
+            Es ist also kompliziert genug die richtige WSDL Beschreibung vorzubereiten.
+        </p>
+
+        <p class="para">
+            Ein anderes Problem ist die Synchronisation von Änderungen in der Netzwerk Service
+            <acronym class="acronym">API</acronym> mit schon existierendem WSDL.
+        </p>
+
+        <p class="para">
+            Aber dieses Problem kann durch WSDL Autogeneration gelöst werden. Eine Vorbedingung
+            dafür ist ein <acronym class="acronym">SOAP</acronym> Server Autodiscovery. Es erzeugt ein Objekt
+            ähnlich dem Objekt das in der <acronym class="acronym">SOAP</acronym> Server Anwendung verwendet wird,
+            extrahiert notwendige Informationen und erzeugt ein korrektes WSDL indem es die
+            Information verwendet.
+        </p>
+
+        <p class="para">
+            Es gibt zwei Wege für die Verwendung des Zend Framworks für <acronym class="acronym">SOAP</acronym>
+            Server Anwendungen:
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">Verwendung von eigenen Klassen.</p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">Verwendung eines Sets von Funktionen</p>
+                </li>
+            </ul>
+        </p>
+
+        <p class="para">
+            Beide Methoden werden von der Zend Framework Autodiscovery Funktionalität unterstützt.
+        </p>
+
+        <p class="para">
+            Die <span class="classname">Zend_Soap_AutoDiscovery</span> Klasse unterstützt auch das Mapping
+            von Datentypen von <acronym class="acronym">PHP</acronym> zu <a href="http://www.w3.org/TR/xmlschema-2/" class="link external">&raquo; XSD Typen</a>.
+        </p>
+
+        <p class="para">
+            Hier ist ein Beispiel einer üblichen Verwendung der Autodiscovery Funktionalität. Die
+            Funktion  <span class="methodname">handle()</span> erzeugt die WSDL Datei und postet Sie an den
+            Browser.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> My_SoapServer_Class <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Soap_AutoDiscover<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">setClass</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'My_SoapServer_Class'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Wenn man auf die erzeugte WSDL Datei zugreifen muß um Sie in eine Datei oder als
+            <acronym class="acronym">XML</acronym> String abzuspeichern, kann man die Funktionen
+             <span class="methodname">dump($filename)</span> oder  <span class="methodname">toXml()</span> verwenden
+            welche die AutoDiscovery Klasse anbietet.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Zend_Soap_Autodiscover ist kein Soap Server</b><br /></span>
+            
+
+            
+                Es ist wichtig anzumerken, das die Klasse
+                <span class="classname">Zend_Soap_Autodiscover</span> nicht für sich selbst als
+                <acronym class="acronym">SOAP</acronym> Server agiert. Sie erzeugt nur den WSDL und bietet Ihn jedem
+                an der auf die URL zugreift auf die geschaut wird.
+            <br />
+
+            
+                Als Endpunkt der <acronym class="acronym">SOAP</acronym> URI verwendet es den Standard
+                <code class="code">&#039;http://&#039; .$_SERVER[&#039;HTTP_HOST&#039;] . $_SERVER[&#039;SCRIPT_NAME&#039;]</code>, der aber
+                mit der  <span class="methodname">setUri()</span> Funktion oder dem Contructor Parameter der
+                <span class="classname">Zend_Soap_AutoDiscover</span> Klasse verändert werden kann. Der
+                Endpunkt muß an einen <span class="classname">Zend_Soap_Server</span> übergeben werden der
+                auf die Anfragen hört.
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_GET</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'wsdl'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$autodiscover</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Soap_AutoDiscover<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">setClass</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'HelloWorldService'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// zeigt auf diese aktuelle Datei</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$soap</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Soap_Server<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;http://example.com/soap.php?wsdl&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$soap</span>-&gt;<span style="color: #006600;">setClass</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'HelloWorldService'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$soap</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.soap.autodiscovery.class" name="zend.soap.autodiscovery.class"><div class="info"><h1 class="title">Automatische Erkennung von Klassen</h1></div>
+        
+
+        <p class="para">
+            Wenn eine Klasse verwendet wird um SOAP Server Funktionalitäten anzubieten, dann sollte
+            die selbe Klasse an <span class="classname">Zend_Soap_AutoDiscover</span> für die WSDL Erzeugung
+            übergeben werden:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Soap_AutoDiscover<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">setClass</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'My_SoapServer_Class'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Die folgenden Regeln werden wärend der WSDL Erzeugung verwendet:
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">Erzeugtes WSDL beschreibt einen RPC srtigen Web Service.</p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        Klassen Namen werden als Name des Web Services verwendet der beschrieben
+                        wird.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <code class="code">&#039;http://&#039; .$_SERVER[&#039;HTTP_HOST&#039;] . $_SERVER[&#039;SCRIPT_NAME&#039;]</code>
+                        wird als <acronym class="acronym">URI</acronym> verwendet wenn das WSDL standardmäßig
+                        vorhanden ist und kann über die  <span class="methodname">setUri()</span> Methode
+                        überschrieben werden.
+                    </p>
+
+                    <p class="para">
+                         Es wird auch als Ziel Namespace für alle Service bezogenen Namen verwendet
+                         (inklusive der beschriebenen komplexen Typen).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        Klassen Methoden werden in einen <a href="http://www.w3.org/TR/wsdl#_porttypes" class="link external">&raquo; Port Typ</a> übernommen.
+                    </p>
+
+                    <p class="para">
+                        <code class="code">$className . &#039;Port&#039;</code> wird als Port Typ Name verwendet.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        Jede Klassen Methode wird als korrespondierende Port Operation registriert.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        Jeder Methoden Prototyp erzeugt korrespondierende Anfrage/Antwort
+                        Nachrichten.
+                    </p>
+
+                    <p class="para">
+                        Eine Methode kann verschiedene Prototypen haben wenn einige Parameter der
+                        Methode optional sind.
+                    </p>
+                </li>
+            </ul>
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Wichtig!</b><br /></span>
+            
+
+            
+                WSDL Autodiscovery verwendet <acronym class="acronym">PHP</acronym> Docblocks die vom Entwickler
+                angeboten werden um die Parameter und Return Typen zu erkennen. Faktisch ist das,
+                für skalare Typen, der einzige Weg um die Parameter Typen zu erkennen und für Return
+                Typen ist das der einzige Weg um Sie zu erkennen.
+            <br />
+
+            
+                Das bedeutet, das Anbieten von richtigen und komplett detailierten Docblocks ist
+                nicht nur beste Praxis, sondern wird für das erkunden der Klasse benötigt.
+            <br />
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.soap.autodiscovery.functions" name="zend.soap.autodiscovery.functions"><div class="info"><h1 class="title">Funktionen für Autodiscovery</h1></div>
+        
+
+        <p class="para">
+            Wenn ein Set von Funktionen verwendet wird um SOAP Server Funktionalität anzubieten,
+            dann sollte das selbe Set mit <span class="classname">Zend_Soap_AutoDiscovery</span> für die
+            WSDL Erzeugung verwendet werden:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Soap_AutoDiscover<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">addFunction</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'function1'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">addFunction</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'function2'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">addFunction</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'function3'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Die folgenden Regeln werden wärend der WSDL Erzeugung verwendet:
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">Ein erstelltes WSDL beschreibt einen RPC artigen Web Service.</p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        Der aktuelle Skriptname wird als Name des Web Services verwendet der
+                        beschrieben wird.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <code class="code">&#039;http://&#039; .$_SERVER[&#039;HTTP_HOST&#039;] . $_SERVER[&#039;SCRIPT_NAME&#039;]</code>
+                        wird als <acronym class="acronym">URI</acronym> verwendet wo WSDL vorhanden ist.
+                    </p>
+
+                    <p class="para">
+                        Wird als Ziel Namespace für alle Service bezogenen Namen verwendet
+                        (inklusive der beschriebenen komplexen Typen).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        Funktionen werden in einem <a href="http://www.w3.org/TR/wsdl#_porttypes" class="link external">&raquo; Port Typ</a> verbunden.
+                    </p>
+
+                    <p class="para">
+                        <code class="code">$functionName . &#039;Port&#039;</code> wird als Port Typ Name verwendet.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        Jede Funktion wird als korrespondierende Port Operation registriert.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        Jeder Funktions Prototyp erzeugt eine korrespondierende Anfrage/Antwort
+                        Nachricht.
+                    </p>
+
+                    <p class="para">
+                        Funktionen können verschiedene Prototypen haben wenn einige Parameter der
+                        Methode optional sind.
+                    </p>
+                </li>
+            </ul>
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Wichtig!</b><br /></span>
+            
+
+            
+                WSDL Autodiscovery verwendet <acronym class="acronym">PHP</acronym> Docblocks die vom Entwickler
+                angeboten werden um die Parameter und Return Typen zu erkennen. Faktisch ist das,
+                für skalare Typen, der einzige Weg um die Parameter Typen zu erkennen und für Return
+                Typen ist das der einzige Weg um Sie zu erkennen.
+            <br />
+
+            
+                Das bedeutet, das Anbieten von richtigen und komplett detailierten Docblocks ist
+                nicht nur beste Praxis, sondern wird für das erkunden der Klasse benötigt.
+            <br />
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.soap.autodiscovery.datatypes" name="zend.soap.autodiscovery.datatypes"><div class="info"><h1 class="title">Automatische Erkennung. Datentypen</h1></div>
+        
+
+        <p class="para">
+            Eingabe/Ausgabe Datentypen werden in Netzwerk Service Typen konvertiert indem das
+            folgende Mapping verwendet wird:
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para">PHP Strings &lt;-&gt; <code class="code">xsd:string</code>.</p></li>
+                <li class="listitem"><p class="para">PHP Integer &lt;-&gt; <code class="code">xsd:int</code>.</p></li>
+
+                <li class="listitem">
+                    <p class="para">PHP Float und Double &lt;-&gt; <code class="code">xsd:float</code>.</p>
+                </li>
+
+                <li class="listitem"><p class="para">PHP Boolean &lt;-&gt; <code class="code">xsd:boolean</code>.</p></li>
+                <li class="listitem"><p class="para">PHP Arrays &lt;-&gt; <code class="code">soap-enc:Array</code>.</p></li>
+                <li class="listitem"><p class="para">PHP Objekt &lt;-&gt; <code class="code">xsd:struct</code>.</p></li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <acronym class="acronym">PHP</acronym> Klasse &lt;-&gt; basierend auf der Strategie der
+                        komplexen Typen (Siehe <a href="zend.soap.wsdl.html#zend.soap.wsdl.types.add_complex" class="link">diesen Abschnitt</a>)
+
+                        <a href="#fnid1" name="fn1"><sup>[1]</sup></a>
+                            
+                                <span class="classname">Zend_Soap_AutoDiscover</span><span class="classname">Zend_Soap_Wsdl_Strategy_DefaultComplexType</span><span class="classname">Zend_Soap_Wsdl_Strategy_Interface</span><var class="varname">$extractComplexType</var><span class="classname">Zend_Soap_Wsdl</span><a href="zend.soap.wsdl.html#zend.soap.wsdl.types.add_complex" class="link"><span class="classname">Zend_Soap_Wsdl</span>
+                                    Manual über das Hinzufügen von komplexen</a>
+                        .
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        type[] oder object[] (z.B. int[]) &lt;-&gt; basieren auf der Strategie der
+                        komplexen Typen
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">PHP Void &lt;-&gt; Leerer Typ.</p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">Wenn der Typ aus irgendeinem Grund keinem dieser Typen entspricht, dann
+                    wird <code class="code">xsd:anyType</code> verwendet.</p>
+                </li>
+            </ul>
+
+            Wo <code class="code">xsd:</code> ein &quot;http://www.w3.org/2001/XMLSchema&quot; Namespace ist, ist
+            <code class="code">soap-enc:</code> ein &quot;http://schemas.xmlsoap.org/soap/encoding/&quot; Namespace, und
+            <code class="code">tns:</code> ist ein &quot;Ziel Namespace&quot; für einen Service.
+        </p>
+    </div>
+
+    <div class="section" id="zend.soap.autodiscovery.wsdlstyles" name="zend.soap.autodiscovery.wsdlstyles"><div class="info"><h1 class="title">Stile für das Binden von WSDL</h1></div>
+        
+
+        <p class="para">
+            WSDL bietet verschiedene Transport Mechanismen und Stile. Das beeinträchtigt die
+            <code class="code">soap:binding</code> und <code class="code">soap:body</code> Tags in der Binding Sektion von
+            WSDL. Unterschiedliche Clients haben unterschiedliche Anforderungen wie diese Optionen
+            wirklich arbeiten. Hierfür kann man die Stile setzen bevor man eine
+            <code class="code">setClass</code> oder <code class="code">addFunction</code> Methode auf der AutoDiscovery Klasse
+            ausführt.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Soap_AutoDiscover<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Standard ist 'use' =&gt; 'encoded' und</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 'encodingStyle' =&gt; 'http://schemas.xmlsoap.org/soap/encoding/'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">setOperationBodyStyle</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'use'</span> =&gt; <span style="color: #ff0000;">'literal'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'namespace'</span> =&gt; <span style="color: #ff0000;">'http://framework.zend.com'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Standard ist 'style' =&gt; 'rpc' und</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 'transport' =&gt; 'http://schemas.xmlsoap.org/soap/http'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">setBindingStyle</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'style'</span> =&gt; <span style="color: #ff0000;">'document'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'transport'</span> =&gt; <span style="color: #ff0000;">'http://framework.zend.com'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">addFunction</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'myfunc1'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$autodiscover</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+<div class="footnote"><a name="fnid1" href="#fn1"><sup>[1]</sup></a><span class="para footnote"> wird mit der
+                                
+                                Klasse als Erkennungsalgorithmus für komplexe Typen erstellt. Der
+                                erste Parameter des AutoDiscover Constructors nimmt jede Strategie
+                                für komplexe Typen die
+                                
+                                implementieren oder einen String mit dem Nmaen der Klasse. Um
+                                Backwards Compatibility mit 
+                                zu gewährleisten werden boolsche Variablen wie in
+                                 geparst. Siehe das  Typen für
+                                weitere Informationen.
+                            </span></div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.soap.wsdl.html">WSDL Zugriffsmethoden</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.soap.html">Zend_Soap</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.tag.html">Zend_Tag</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.soap.html">Zend_Soap</a></li>
+  <li><a href="zend.soap.server.html">Zend_Soap_Server</a></li>
+  <li><a href="zend.soap.client.html">Zend_Soap_Client</a></li>
+  <li><a href="zend.soap.wsdl.html">WSDL Zugriffsmethoden</a></li>
+  <li class="active"><a href="zend.soap.autodiscovery.html">AutoDiscovery</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

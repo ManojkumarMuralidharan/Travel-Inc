@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>ClientLogin による認証 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.gdata.books.html">Using the Book Search Data API</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.gdata.html">Zend_Gdata</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.gdata.calendar.html">Google Calendar の使用法</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.gdata.clientlogin" class="section"><div class="info"><h1 class="title">ClientLogin による認証</h1></div>
+    
+
+    <p class="para">
+        ClientLogin を使用すると、<acronym class="acronym">PHP</acronym> アプリケーションで
+        Google Data サービスへのアクセスのための認証ができるようになります。
+        ユーザの認証情報を、 <acronym class="acronym">HTTP</acronym> クライアントに指定します。
+    </p>
+
+    <p class="para">
+        Google Data ClientLogin 認証についての詳細は、
+        <a href="http://code.google.com/apis/accounts/AuthForInstalledApps.html" class="link external">&raquo;  http://code.google.com/apis/accounts/AuthForInstalledApps.html </a>
+        を参照ください。
+    </p>
+
+    <p class="para">
+        Google のドキュメントでは、ClientLogin 方式は
+        &quot;インストールするアプリケーション&quot; に適しており、一方 AuthSub は
+        &quot;ウェブアプリケーション&quot; に適しているとされています。
+        これらの違いは、AuthSub はユーザとのやりとりが発生するということです。
+        ブラウザのインターフェイスを用いて、リクエストのリダイレクトを行います。
+        ClientLogin では <acronym class="acronym">PHP</acronym> のコードでアカウント情報を提供します。
+        ユーザが直接認証情報を入力する必要がなくなります。
+    </p>
+
+    <p class="para">
+        ClientLogin で使用する認証情報は、Google サービスの正当な認証情報でなければなりません。
+        しかし、それは <acronym class="acronym">PHP</acronym> アプリケーションを使用するユーザ自身のものである必要はありません。
+    </p>
+
+    <div class="section" id="zend.gdata.clientlogin.login" name="zend.gdata.clientlogin.login"><div class="info"><h1 class="title">ClientLogin 認証済みの Http クライアントの作成</h1></div>
+        
+
+        <p class="para">
+            ClientLogin を使用した認証済みの <acronym class="acronym">HTTP</acronym> クライアントを作成するには、
+            静的関数  <span class="methodname">Zend_Gdata_ClientLogin::getHttpClient()</span>
+            をコールし、Google アカウントの認証情報をプレーンテキストで渡します。
+            この関数の返り値は、<span class="classname">Zend_Http_Client</span> クラスのオブジェクトとなります。
+        </p>
+
+        <p class="para">
+            オプションの三番目のパラメータには、Google Data
+            サービスの名前が指定できます。たとえば、&#039;cl&#039;
+            は Google Calendar を表します。デフォルトは &#039;xapi&#039; で、
+            これは Google Data サーバの汎用的なサービス名を表します。
+        </p>
+
+        <p class="para">
+            オプションの四番目のパラメータには <span class="classname">Zend_Http_Client</span>
+            のインスタンスを指定できます。これによって、
+            たとえばプロキシサーバなどのクライアント設定を行うことができます。
+            このパラメータに <b><tt>NULL</tt></b> を渡すと、
+            汎用的な <span class="classname">Zend_Http_Client</span> オブジェクトが作成されます。
+        </p>
+
+        <p class="para">
+            オプションの五番目のパラメータには、Google Data
+            サーバがクライアントアプリケーションを識別するための短い文字列
+            (これはログ記録の際に使用します) を指定できます。
+            デフォルトでは、これは &quot;Zend-ZendFramework&quot; となります。
+        </p>
+
+        <p class="para">
+          オプションの六番目のパラメータには、サーバが発行する
+          <span_trademark class="trademark">CAPTCHA</span_trademark> チャレンジ用の文字列 ID を設定します。
+          これが必要となるのは、一度ログインを試みた際にサーバから
+          <span_trademark class="trademark">CAPTCHA</span_trademark> チャレンジを受け取った後の再ログイン時のみです。
+        </p>
+
+        <p class="para">
+          オプションの七番目のパラメータには、サーバが発行する
+          <span_trademark class="trademark">CAPTCHA</span_trademark> チャレンジに対するユーザからの応答を設定します。
+          これが必要となるのは、一度ログインを試みた際にサーバから
+          <span_trademark class="trademark">CAPTCHA</span_trademark> チャレンジを受け取った後の再ログイン時のみです。
+        </p>
+
+        <p class="para">
+            以下の例は、<acronym class="acronym">PHP</acronym> のウェブアプリケーションのコードです。
+            Google Calendar サービスに対する認証を行い、
+            認証済みの <span class="classname">Zend_Http_Client</span> を使用して <span class="classname">Zend_Gdata</span>
+            クライアントオブジェクトを作成します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Google アカウントの情報を指定します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$email</span> = <span style="color: #ff0000;">'johndoe@gmail.com'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$passwd</span> = <span style="color: #ff0000;">'xxxxxxxx'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp;<span style="color: #0000ff;">$client</span> = Zend_Gdata_ClientLogin::<span style="color: #006600;">getHttpClient</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$email</span>, <span style="color: #0000ff;">$passwd</span>, <span style="color: #ff0000;">'cl'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_CaptchaRequiredException <span style="color: #0000ff;">$cre</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">'CAPTCHA 画像の URL: '</span> . <span style="color: #0000ff;">$cre</span>-&gt;<span style="color: #006600;">getCaptchaUrl</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> . <span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">'トークン ID: '</span> . <span style="color: #0000ff;">$cre</span>-&gt;<span style="color: #006600;">getCaptchaToken</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> . <span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_Gdata_App_AuthException <span style="color: #0000ff;">$ae</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp;<a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">'認証に失敗: '</span> . <span style="color: #0000ff;">$ae</span>-&gt;<span style="color: #006600;">exception</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> . <span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cal</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Gdata_Calendar<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$client</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+    </div>
+
+    <div class="section" id="zend.gdata.clientlogin.terminating" name="zend.gdata.clientlogin.terminating"><div class="info"><h1 class="title">Http クライアントの ClientLogin 認証の解除</h1></div>
+        
+
+        <p class="para">
+            ClientLogin 認証を解除する方法はありません。というのは、これは
+            AuthSub のようにトークンを使用した認証ではないからです。
+            ClientLogin 認証に使用する情報は Google アカウントのユーザ名とパスワードであり、
+            これらは将来も繰り返し使用できます。
+        </p>
+
+    </div>
+
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.gdata.books.html">Using the Book Search Data API</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.gdata.html">Zend_Gdata</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.gdata.calendar.html">Google Calendar の使用法</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.gdata.html">Zend_Gdata</a></li>
+  <li><a href="zend.gdata.introduction.html">導入</a></li>
+  <li><a href="zend.gdata.authsub.html">AuthSub による認証</a></li>
+  <li><a href="zend.gdata.books.html">Using the Book Search Data API</a></li>
+  <li class="active"><a href="zend.gdata.clientlogin.html">ClientLogin による認証</a></li>
+  <li><a href="zend.gdata.calendar.html">Google Calendar の使用法</a></li>
+  <li><a href="zend.gdata.docs.html">Google Documents List Data API の使用法</a></li>
+  <li><a href="zend.gdata.health.html">Using Google Health</a></li>
+  <li><a href="zend.gdata.spreadsheets.html">Google Spreadsheets の使用法</a></li>
+  <li><a href="zend.gdata.gapps.html">Google Apps Provisioning の使用法</a></li>
+  <li><a href="zend.gdata.gbase.html">Google Base の使用法</a></li>
+  <li><a href="zend.gdata.photos.html">Picasa Web Albums の使用法</a></li>
+  <li><a href="zend.gdata.youtube.html">YouTube Data API の使用法</a></li>
+  <li><a href="zend.gdata.exception.html">Gdata の例外処理</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

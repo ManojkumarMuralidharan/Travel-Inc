@@ -1,0 +1,1101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Date API の概要 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.date.basic.html">基本メソッド</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.date.html">Zend_Date</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.date.creation.html">日付の作成</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.date.overview" class="section"><div class="info"><h1 class="title">Zend_Date API の概要</h1></div>
+
+    
+
+    <p class="para">
+        <span class="classname">Zend_Date</span> の <acronym class="acronym">API</acronym> はシンプルで統一性がありますが、
+        非常に柔軟で強力な設計になっており、
+        さまざまな操作や演算ができます。
+    </p>
+
+    <div class="section" id="zend.date.options" name="zend.date.options"><div class="info"><h1 class="title">Zend_Date のオプション</h1></div>
+        
+
+        <div class="section" id="zend.date.options.formattype" name="zend.date.options.formattype"><div class="info"><h1 class="title">日付の書式の型の選択</h1></div>
+            
+
+            <p class="para">
+                いくつかのメソッドでは、<acronym class="acronym">PHP</acronym> の  <span class="methodname">date()</span> 関数と似た形式の日付書式文字列を使用します。
+                <acronym class="acronym">PHP</acronym> の日付書式指定子のほうが <acronym class="acronym">ISO</acronym> 書式指定子よりなじみがあるという場合は、
+                 <span class="methodname">Zend_Date::setOptions(array(&#039;format_type&#039; =&gt; &#039;php&#039;))</span>
+                とできます。こうすると、<var class="varname">$format</var>
+                パラメータを持つすべての関数で <acronym class="acronym">PHP</acronym> の日付書式指定子が使用できるようになります。
+                 <span class="methodname">Zend_Date::setOptions(array(&#039;format_type&#039; =&gt; &#039;iso&#039;))</span>
+                とすると、デフォルトのモードに戻ります。このモードは、
+                <acronym class="acronym">ISO</acronym> 日付書式トークンのみをサポートするものです。
+                サポートする書式コードの一覧は、
+                <a href="zend.date.constants.html#zend.date.constants.phpformats" class="link">PHP の date() 関数の書式指定子を使用して
+                自分で定義する出力フォーマット</a> を参照ください。
+            </p>
+        </div>
+
+        <div class="section" id="zend.date.options.fixdst" name="zend.date.options.fixdst"><div class="info"><h1 class="title">夏時間と月</h1></div>
+            
+
+            <p class="para">
+                日付を処理する際には、夏時間の適用前後をまたがってしまうこともあります。
+                通常は、そのような場合は結果が一時間増えたり減ったりします。
+                たとえば、夏時間の適用前の日付に何ヶ月か追加してその結果が夏時間適用後になった場合、
+                結果の日付は一時間ずれます。月末や月初の深夜 0 時のような境界上で、
+                それをまたがった月の加算を行うと、結果から 1 時間引かれることで
+                前月末日の日付になってしまい &quot;off by 1&quot; エラーが発生します。
+                このような状況になることを避けるためには、夏時間の変更を無視するためのオプション
+                <code class="code">fix_dst</code> を使用します。夏時間/冬時間の境界をまたぐ際に、
+                通常は 1 時間分足したり引いたりします。
+                たとえば、春の夏時間適用日をまたがる日付計算の結果は、
+                時刻部分が 00:00:00 のままの場合は予期したものより 1 日少なくなります。というのも、
+                <span class="classname">Zend_Date</span> は日付部分ではなくタイムスタンプに基づいて計算を行うからです。
+                タイムスタンプが 1 時間少なくなるので、日付も予期したものより 1 日少なくなってしまいます。
+                これを避けるためにはオプション <code class="code">fix_dst</code> を使用します。
+                このオプションのデフォルトは <b><tt>TRUE</tt></b> で、この場合は夏時間が
+                &quot;月&quot; の計算 ( <span class="methodname">addMonth()</span>、
+                 <span class="methodname">subMonth()</span>) に影響を与えなくなります。
+                 <span class="methodname">Zend_Date::setOptions(array(&#039;fix_dst&#039; =&gt; false))</span> とすると、
+                夏時間にあわせた時間の加減算を &quot;月&quot; の計算時にも適用します。
+            </p>
+
+            <p class="para">
+                <em class="emphasis"><span class="classname">Zend_Date</span>
+                インスタンスの実際のタイムゾーンが <acronym class="acronym">UTC</acronym> あるいは <acronym class="acronym">GMT</acronym> の場合、
+                オプション <code class="code">&#039;fix_dst&#039;</code> は用いられません</em>。
+                これらのタイムゾーンには DST は適用されないからです。
+                このインスタンスのタイムゾーンを <acronym class="acronym">UTC</acronym> あるいは <acronym class="acronym">GMT</acronym> 以外のものに変更すると、
+                その前に設定されていた &#039;fix_dst&#039; オプションの値を
+                &quot;月&quot; の計算時に適用します。
+            </p>
+        </div>
+
+        <div class="section" id="zend.date.options.extendmonth" name="zend.date.options.extendmonth"><div class="info"><h1 class="title">月の計算</h1></div>
+            
+
+            <p class="para">
+                ある日付に対して月を足したり引いたりすると、
+                もとの日付が月の最後のほうだった場合に予期せぬ結果となることがあります。
+                たとえば「1月31日」に一ヶ月足すことを考えてみましょう。
+                <acronym class="acronym">SQL</acronym> に慣れている人なら、この結果は「2月28日」になるものと思われるでしょう。
+                一方、Excel や OpenOffice を使っている人は、この結果が「3月3日」
+                になるものと考えるのではないでしょうか。
+                この問題は、計算結果の月の日数が元の日付の月の日数より少ない場合に起こりえます。
+                Zend Framework の開発者向けには、どちらの方式かを選択できるようにしました。
+                <code class="code">extend_month</code> オプションを <b><tt>FALSE</tt></b> にすると
+                <acronym class="acronym">SQL</acronym> 風の挙動になり、<b><tt>TRUE</tt></b> にすると表計算ソフト風の挙動になります。
+                <code class="code">extend_month</code> のデフォルトは <b><tt>FALSE</tt></b> なので、
+                <span class="classname">Zend_Date</span> は <acronym class="acronym">SQL</acronym> 互換の計算をします。
+                デフォルトでは、<span class="classname">Zend_Date</span> は月の計算をする際に
+                (必要に応じて) 日を切り詰めます。計算した結果に該当する日がその月に存在しなかった場合に、
+                翌月にまたがることはありません。
+                 <span class="methodname">Zend_Date::setOptions(array(&#039;extend_month&#039; =&gt; true))</span>
+                とすると、表計算ソフトと同様の方式で計算することになります。
+            </p>
+        </div>
+
+        <div class="section" id="zend.date.options.cache" name="zend.date.options.cache"><div class="info"><h1 class="title">日付の地域化や正規化の、Zend_Cache による高速化</h1></div>
+            
+
+            <p class="para">
+                <span class="classname">Zend_Date</span> を高速に動作させるには <span class="classname">Zend_Cache</span>
+                アダプタを使用します。これを使用すると、地域化したデータを扱う際の
+                <span class="classname">Zend_Date</span> のすべてのメソッドが高速化します。
+                たとえば、定数 <b><tt>Zend_Date::DATE</tt></b> や
+                <b><tt>Zend_Date::TIME</tt></b> を扱うメソッドは、すべてこの影響を受けます。
+                <span class="classname">Zend_Cache</span> アダプタを <span class="classname">Zend_Date</span> に設定するには、
+                 <span class="methodname">Zend_Date::setOptions(array(&#039;cache&#039; =&gt; $adapter))</span>
+                とするだけです。
+            </p>
+        </div>
+
+        <div class="section" id="zend.date.options.timesync" name="zend.date.options.timesync"><div class="info"><h1 class="title">Zend_TimeSync による同期したタイムスタンプの取得</h1></div>
+            
+
+            <p class="para">
+                通常は、サーバやコンピュータの時刻はそれぞれ異なります。
+                <span class="classname">Zend_Date</span> は、この問題を
+                <span class="classname">Zend_TimeSync</span> で解決できます。
+                タイムサーバを  <span class="methodname">Zend_Date::setOptions(array(&#039;timesync&#039; =&gt; $timeserver))</span>
+                で設定すると、すべての <span class="classname">Zend_Date</span> インスタンスについて、
+                そのタイムスタンプと実際のタイムスタンプを間のオフセットを設定します。
+                このオプションを使用しても、既存のインスタンスのタイムスタンプは変わりません。
+                そこで、これを用いる場合は起動ファイルで設定することをおすすめします。
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="zend.date.values" name="zend.date.values"><div class="info"><h1 class="title">日付の値の操作</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Date</span> オブジェクトの作成によって入力が正規化されると、
+            このオブジェクトはタイムゾーンに関連付けられます。しかし、内部的な形式としては通常の
+            <a href="http://en.wikipedia.org/wiki/Unix_Time" class="link external">&raquo; UNIX タイムスタンプ</a>を使用します。
+            各地域固有の方式で日付を表示するには、まずタイムゾーンを知る必要があります。
+            デフォルトのタイムゾーンは常に <acronym class="acronym">GMT</acronym>/UTC です。オブジェクトのタイムゾーンを調べるには
+             <span class="methodname">getTimeZone()</span> を使用します。オブジェクトのタイムゾーンを変更するには
+             <span class="methodname">setTimeZone()</span> を使用します。
+            これらのオブジェクトに対するすべての操作は、このタイムゾーンを想定して行われます。
+        </p>
+
+        <p class="para">
+            異なるタイムゾーンの日付オブジェクトを混在させないよう注意しましょう。
+            タイムスタンプにのみかかわる操作しかしないのならよいのですが、
+            それ以外の場合には期待通りの結果が得られなくなるでしょう。
+            異なるタイムゾーンの <span class="classname">Zend_Date</span> に対する操作は、
+            たいていの場合はうまく動作します。というのも <span class="classname">Zend_Date</span>
+            のインスタンスを作成する際に、値が UNIX タイムスタンプに正規化されるからです。
+        </p>
+
+        <p class="para">
+            ほとんどのメソッドで、引数 <var class="varname">$part</var> に定数を指定できます。
+            これにより、日付のどの部分を選択するかを指定します。この定数は、
+            たとえば <b><tt>Zend_Date::HOUR</tt></b> のようになります。
+            これらの定数は、以下のすべての関数で使用できます。使用可能なすべての定数の一覧は
+            <a href="zend.date.constants.html#zend.date.constants.list" class="link">全定数の一覧</a> にあります。
+            <var class="varname">$part</var> を省略した場合は、<b><tt>Zend_Date::TIMESTAMP</tt></b>
+            が指定されたものとみなします。また、ユーザ定義の書式を
+            <var class="varname">$part</var> で使用することもできます。ここには、
+            <a href="zend.locale.date.datesandtimes.html#zend.locale.date.normalize" class="link"> <span class="methodname">Zend_Locale_Format::getDate()</span>
+            </a>
+            と同様のコードを使用します。
+            日付オブジェクトが明らかに無効な値を用いて作成された場合 (たとえば月が 12 より大きいなど) は、
+            <span class="classname">Zend_Date</span> は例外をスローします。ただし、特定の日付フォーマットが指定されている場合、
+            つまり <var class="varname">$part</var> が <b><tt>NULL</tt></b> あるいは <b><tt>Zend_Date::DATES</tt></b> (&quot;あいまいな&quot; フォーマット)
+            のいずれかである場合は別です。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #1 ユーザ定義の入力日付書式</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date1</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Date<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Feb 31, 2007'</span>, <span style="color: #000000; font-weight: bold;">null</span>, <span style="color: #ff0000;">'en_US'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$date1</span>, <span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>; <span style="color: #808080; font-style: italic;">// 出力は &quot;Mar 3, 2007 12:00:00 AM&quot; となります</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date2</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Date<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Feb 31, 2007'</span>, Zend_Date::<span style="color: #006600;">DATES</span>, <span style="color: #ff0000;">'en_US'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$date2</span>, <span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>; <span style="color: #808080; font-style: italic;">// 出力は &quot;Mar 3, 2007 12:00:00 AM&quot; となります</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 指定したフォーマットで解釈するように強制します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date3</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Date<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Feb 31, 2007'</span>, <span style="color: #ff0000;">'MM.dd.yyyy'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$date3</span>, <span style="color: #ff0000;">&quot;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span>; <span style="color: #808080; font-style: italic;">// 出力は &quot;Mar 3, 2007 12:00:00 AM&quot; となります</span></div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            オプションのパラメータ <var class="varname">$locale</var> を指定すると、
+            その <var class="varname">$locale</var> をもとに <var class="varname">$date</var> オペランドを解決します。
+            つまり、日付文字列に含まれる月名や曜日名などを、そのロケールにあわせて適切に解釈します
+            (<code class="code">
+            <a href="zend.locale.date.datesandtimes.html#zend.locale.date.normalize" class="link">Zend_Locale_Format::getDate()</a>
+            </code> を参照ください)。
+            各地域固有の形式の文字列で <var class="varname">$date</var> オペランドが指定された際に
+            自動で正規化が行われるのは、<var class="varname">$part</var> が
+            定数 <b><tt>Zend_Date::DATE*</tt></b> あるいは <b><tt>Zend_Date::TIME*</tt></b> のいずれかであるときです。
+            <var class="varname">$date</var> が日付を含む文字列の場合は、
+            月名や曜日名をパースする際に使用する言語はロケールをもとに決定します。
+            入力パラメータ <var class="varname">$date</var> が指定されなかった場合は、
+            <var class="varname">$locale</var> パラメータの内容をもとにして地域化した結果
+            (日付書式を文字列で表したもの) を出力します。
+            入力パラメータ <var class="varname">$date</var> に具体的な型が指定されている場合もあります
+            (たとえば  <span class="methodname">addHour()</span> では <var class="varname">$hour</var> です)。
+            このような場合でも、引数として <span class="classname">Zend_Date</span>
+            オブジェクトを使用できることに注意しましょう。
+            <var class="varname">$locale</var> を指定しなかった場合は、
+            現在のオブジェクトのロケールを使用して
+            <var class="varname">$date</var> を解釈します。あるいは出力用書式を選択します。
+        </p>
+
+        <p class="para">
+            Zend Framework 1.7.0 以降では、<span class="classname">Zend_Date</span>
+            はアプリケーション単位でのロケールの使用にも対応します。
+            そのためには、<span class="classname">Zend_Locale</span>
+            のインスタンスを以下のようにレジストリに登録します。
+            このようにすれば、同じロケールを何度も使用したいときに
+            各インスタンスで毎回ロケールを設定する手間を省けます。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 起動ファイルで</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$locale</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Locale<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'de_AT'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Registry::<span style="color: #006600;">set</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Zend_Locale'</span>, <span style="color: #0000ff;">$locale</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// アプリケーションのどこかで</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Date<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'31.Feb.2007'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="id.date.basic" name="id.date.basic"><div class="info"><h1 class="title">多くの日付要素で共通に使用できる、Zend_Date の基本操作</h1></div>
+        
+
+        <p class="para">
+            メソッド  <span class="methodname">add()</span>,  <span class="methodname">sub()</span>,
+             <span class="methodname">compare()</span>,  <span class="methodname">get()</span> および
+             <span class="methodname">set()</span>
+            は、日付全般に対して使用できます。それぞれのメソッドは、
+            そのインスタンスが保持する日付の値を操作します。
+            これらのメソッドのうち、 <span class="methodname">get()</span>
+            以外ではすべて <var class="varname">$date</var> オペランドが必要となります。
+            ここには <span class="classname">Zend_Date</span> のインスタンスか
+            数値文字列、あるいは整数値を指定します。
+            これらのメソッドで <var class="varname">$date</var> にオブジェクト以外を指定した場合、
+            それはタイムスタンプであるとみなされます。
+            しかし、<var class="varname">$part</var> オペランドを使用すると、
+            ふたつの日付データが日付のどの部分を表すものなのかを指定できます。
+            たとえば &quot;年&quot;、&quot;分&quot; などが指定できます。それだけではなく、
+            &quot;December 31, 2007 23:59:59&quot; のような長い形式の文字列も
+            <var class="varname">$date</var> に指定できます。
+             <span class="methodname">compare()</span> および  <span class="methodname">get()</span>
+            以外のメソッドは、処理の結果としてオブジェクト内の日付が変更されます。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #2 日付要素の操作</b></p></div>
+            
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Date<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// $date のタイムスタンプは time() の返す値と等しくなります</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $date に 12 時間足します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$date</span>-&gt;<span style="color: #006600;">add</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'12'</span>, Zend_Date::<span style="color: #006600;">HOUR</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #0000ff;">$date</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <p class="para">
+            基本的な操作について、一般的な日付要素と組み合わせて使用する際に
+            便利なメソッドが用意されています。
+            これらのメソッドを使用すると、上で説明したメソッドのように
+            <a href="zend.date.constants.html#zend.date.constants.list" class="link">日付要素の定数</a>
+            をいちいちタイプする必要がなくなります。
+            好都合なことに、これらのメソッドの名前は
+            プレフィックス (基本操作の名前) とサフィックス (日付要素の名前)
+            を組み合わせた形式、たとえば  <span class="methodname">addYear()</span>
+            のようになっています。以下の一覧における、すべての
+            &quot;日付要素&quot; と &quot;基本操作&quot; の組み合わせが存在します。
+            たとえば &quot;add&quot; は、各要素について
+             <span class="methodname">addDay()</span> や  <span class="methodname">addYear()</span>
+            などといったメソッドが存在します。
+        </p>
+
+        <p class="para">
+            これらの便利なメソッドの機能は、基本操作メソッドと同等です。
+            しかし、<var class="varname">$date</var> オペランドに文字列や整数値を使用する場合は、
+            メソッド名のサフィックスが指す日付要素以外を指定することはできません。
+            つまり、<var class="varname">$date</var> が文字列あるいは整数値の場合は、
+            <var class="varname">$date</var> オペランドの単位が
+            メソッド名によって (&quot;Year&quot; や &quot;Minute&quot; などに) 決まるということです。
+        </p>
+
+        <div class="section" id="id.date.basic.parts" name="id.date.basic.parts"><div class="info"><h1 class="title">日付要素の一覧</h1></div>
+
+            
+
+            <table class="doctable table"><div class="info"><caption><b>日付要素</b></caption></div>
+                
+                
+                    <thead valign="middle">
+                        <tr valign="middle">
+                            <th>日付要素</th>
+                            <th>説明</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody valign="middle" class="tbody">
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://en.wikipedia.org/wiki/Unix_Time" class="link external">&raquo; Timestamp (タイムスタンプ)</a>
+                            </td>
+                            <td align="left">
+                            UNIX タイムスタンプ。January 1st, 1970 00:00:00 <acronym class="acronym">GMT</acronym>/UTC
+                            からの経過秒数です。
+                        </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%AC%E3%82%B4%E3%83%AA%E3%82%AA%E6%9A%A6" class="link external">&raquo; Year (年)</a>
+                            </td>
+                            <td align="left">グレゴリオ暦の年 (例: 2006)。</td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://ja.wikipedia.org/wiki/%E6%9C%88_%28%E6%9A%A6%29#.E5.A4.AA.E9.99.BD.E6.9A.A6" class="link external">&raquo; Month (月)</a>
+                            </td>
+                            <td align="left">グレゴリオ暦の月 (1-12、各地域固有の名前もサポートしています)。</td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://en.wikipedia.org/wiki/24-hour_clock" class="link external">&raquo; 24 hour clock (24 時間の時間)</a>
+                            </td>
+                            <td align="left">その日の時間 (0-23)。これは、その日がはじまってからの経過時間数を表します。</td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://ja.wikipedia.org/wiki/%E5%88%86" class="link external">&raquo; minute (分)</a>
+                            </td>
+                            <td align="left">時間内の分 (0-59)。これは、その時間がはじまってからの経過分数を表します。</td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://ja.wikipedia.org/wiki/%E7%A7%92" class="link external">&raquo; Second (秒)</a>
+                            </td>
+                            <td align="left">分内の秒 (0-59)。これは、その分が始まってからの経過秒数を表します。</td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://en.wikipedia.org/wiki/Millisecond" class="link external">&raquo; millisecond (ミリ秒)</a>
+                            </td>
+                            <td align="left">
+                             ミリ秒 (0-999)。これは、千分の一秒を表します。
+                             <span class="classname">Zend_Date</span> では、秒未満の単位を扱うために
+                             二つのメソッドを用意しています。デフォルトでは、
+                             <span class="classname">Zend_Date</span> のインスタンスはミリ秒単位の精度を使用します。
+                             これは  <span class="methodname">getFractionalPrecision()</span> を使用して取得します。
+                             精度を変更するには  <span class="methodname">setFractionalPrecision($precision)</span>
+                             を使用します。しかし、精度は事実上ミリ秒までに制限されます。
+                             というのも、<span class="classname">Zend_Date</span> は <code class="code">
+                             <a href="http://php.net/microtime" class="link external">&raquo; microtime()</a></code>
+                             を使用しているからです。
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://ja.wikipedia.org/wiki/%E6%97%A5" class="link external">&raquo; Day (日)</a>
+                            </td>
+                            <td align="left">
+                             <b><tt>Zend_Date::DAY_SHORT</tt></b> は <var class="varname">$date</var>
+                             から抽出します。これは、<var class="varname">$date</var> オペランドが
+                             <span class="classname">Zend_Date</span> のインスタンスであるか、
+                             あるいは数値文字列である場合に行われます。
+                             それ以外の場合は、以下の定数によって指定した規約に基づいて抽出します。
+                             <b><tt>Zend_Date::WEEKDAY_NARROW</tt></b>、<b><tt>Zend_Date::WEEKDAY_NAME</tt></b>、
+                             <b><tt>Zend_Date::WEEKDAY_SHORT</tt></b>、
+                             <b><tt>Zend_Date::WEEKDAY</tt></b> (グレゴリオ暦とみなして処理します)。
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://ja.wikipedia.org/wiki/%E9%80%B1" class="link external">&raquo; Week (週)</a>
+                            </td>
+                            <td align="left">
+                             <b><tt>Zend_Date::WEEK</tt></b> は <var class="varname">$date</var>
+                             から抽出します。これは、<var class="varname">$date</var> オペランドが
+                             <span class="classname">Zend_Date</span> のインスタンスであるか、
+                             あるいは数値文字列である場合に行われます。
+                             それ以外の場合は例外が発生します (グレゴリオ暦とみなして処理します)。
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">Date (日)</td>
+                            <td align="left">
+                             <b><tt>Zend_Date::DAY_MEDIUM</tt></b> は <var class="varname">$date</var>
+                             から抽出します。これは、<var class="varname">$date</var> オペランドが
+                             <span class="classname">Zend_Date</span> のインスタンスである場合に行われます。
+                             それ以外の場合は、文字列 <var class="varname">$date</var>
+                             を正規化して Zend_Date::DATE_MEDIUM 形式の日付にしようとします。
+                             <b><tt>Zend_Date::DAY_MEDIUM</tt></b> の書式は、
+                             そのオブジェクトのロケールに依存します。
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">Weekday (曜日)</td>
+                            <td align="left">
+                             曜日は、0 (日曜日) から 6 (土曜日) までの数字で表されます。
+                             <b><tt>Zend_Date::WEEKDAY_DIGIT</tt></b> は <var class="varname">$date</var>
+                             から抽出します。これは、<var class="varname">$date</var> オペランドが
+                             <span class="classname">Zend_Date</span> のインスタンスであるか、
+                             あるいは数値文字列である場合に行われます。
+                             それ以外の場合は、以下の定数によって指定した規約に基づいて抽出します。
+                             <b><tt>Zend_Date::WEEKDAY_NARROW</tt></b>、<b><tt>Zend_Date::WEEKDAY_NAME</tt></b>、
+                             <b><tt>Zend_Date::WEEKDAY_SHORT</tt></b>、
+                             <b><tt>Zend_Date::WEEKDAY</tt></b> (グレゴリオ暦とみなして処理します)。
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">DayOfYear (年内の日数)</td>
+                            <td align="left">
+                             <span class="classname">Zend_Date</span> では、これは年初からの経過日数
+                             (0-365) を表します。これまでの他の単位と同様、
+                             端数は切り捨てられます (グレゴリオ暦とみなして処理します)。
+                        </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://www.faqs.org/rfcs/rfc822.html" class="link external">&raquo; Arpa</a>
+                            </td>
+                            <td align="left">
+                             Arpa 日付 (つまり <acronym class="acronym">RFC</acronym> 822 形式の日付) をサポートしています。
+                             出力形式は、&quot;GMT&quot; あるいは &quot;地方時 + 時差&quot; 形式になります
+                             (<acronym class="acronym">RFC</acronym> 822 の section 5 を参照ください)。
+                             <acronym class="acronym">PHP</acronym> 5.2.2 より前のバージョンでは、定数 DATE_RFC822 を
+                             <acronym class="acronym">PHP</acronym> の日付関数で使用したときに
+                             <a href="http://bugs.php.net/bug.php?id=40308" class="link external">&raquo; おかしな結果</a>
+                             となる場合がありました。<span class="classname">Zend_Date</span> は、正しい結果を返します。
+                             例: <code class="code">Mon, 31 Dec 06 23:59:59 GMT</code>
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left">
+                                <a href="http://ja.wikipedia.org/wiki/ISO_8601" class="link external">&raquo; Iso</a>
+                            </td>
+                            <td align="left">
+                             出力形式として、完全な <acronym class="acronym">ISO</acronym> 8601 日付のみをサポートしています。
+                             例: <code class="code">2009-02-14T00:31:30+01:00</code>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                
+            </table>
+
+        </div>
+
+        <div class="section" id="id.date.basic.operations" name="id.date.basic.operations"><div class="info"><h1 class="title">日付操作の一覧</h1></div>
+            
+
+            <p class="para">
+                便利なメソッド群ではなく以下の基本操作を使用する場合には、
+                <a href="zend.date.constants.html#zend.date.constants.list" class="link">適切な定数</a>
+                を <var class="varname">$part</var> パラメータで指定します。
+            </p>
+
+            <table class="doctable table"><div class="info"><caption><b>基本操作</b></caption></div>
+                
+                
+                    <thead valign="middle">
+                        <tr valign="middle">
+                            <th>基本操作</th>
+                            <th>説明</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody valign="middle" class="tbody">
+                        <tr valign="middle">
+                            <td align="left"> <span class="methodname">get()</span></td>
+                            <td align="left">
+                                <p class="para">
+                                    <em class="emphasis"> <span class="methodname">get($part = null, $locale =
+                                        null)</span></em>
+                                </p>
+                                <p class="para">
+                                     <span class="methodname">get($part)</span> を使用して、このオブジェクトの日付の
+                                    <var class="varname">$part</var> の部分を取得します。
+                                    結果は、<var class="varname">$locale</var>
+                                    にもとづいて地域化された書式の文字列か整数値となります。
+                                    BCMath 拡張モジュールを使用している場合は、
+                                    大きな値の場合に整数ではなく数値文字列が返されるかもしれません。
+                                    <em class="emphasis">注意:</em>  <span class="methodname">get()</span>
+                                    とは異なり、その他の get*() 系のメソッドは
+                                    <span class="classname">Zend_Date</span> のインスタンスのみを返します。
+                                    その中身は、選択された時刻/日付となります。
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left"> <span class="methodname">set()</span></td>
+                            <td align="left">
+                                <p class="para">
+                                    <em class="emphasis"> <span class="methodname">set($date, $part = null, $locale =
+                                        null)</span></em>
+                                </p>
+                                <p class="para">
+                                    ロケール <var class="varname">$locale</var> の入力データ <var class="varname">$date</var>
+                                    から、 <var class="varname">$part</var> に対応する部分の値を
+                                    現在のオブジェクトに設定します。
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left"> <span class="methodname">add()</span></td>
+                            <td align="left">
+                                <p class="para">
+                                    <em class="emphasis"> <span class="methodname">add($date, $part = null, $locale =
+                                        null)</span></em>
+                                </p>
+                                <p class="para">
+                                    ロケール <var class="varname">$locale</var> の入力データ <var class="varname">$date</var>
+                                    から、 <var class="varname">$part</var> に対応する部分の値を
+                                    現在のオブジェクトに加えます。
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left"> <span class="methodname">sub()</span></td>
+                            <td align="left">
+                                <p class="para">
+                                    <em class="emphasis"> <span class="methodname">sub($date, $part = null, $locale =
+                                        null)</span></em>
+                                </p>
+                                <p class="para">
+                                    ロケール <var class="varname">$locale</var> の入力データ <var class="varname">$date</var>
+                                    から、 <var class="varname">$part</var> に対応する部分の値を
+                                    現在のオブジェクトから引きます。
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left"> <span class="methodname">copyPart()</span></td>
+                            <td align="left">
+                                <p class="para">
+                                    <em class="emphasis"> <span class="methodname">copyPart($part, $locale =
+                                        null)</span></em>
+                                </p>
+                                <p class="para">
+                                    オブジェクトの複製を返します。もとのオブジェクトの日付のうち
+                                    <var class="varname">$part</var> の部分のみがコピーされます。
+                                    複製のロケールは、<var class="varname">$locale</var> で任意のものに指定できます。
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr valign="middle">
+                            <td align="left"> <span class="methodname">compare()</span></td>
+                            <td align="left">
+                                <p class="para">
+                                    <em class="emphasis"> <span class="methodname">compare($date, $part = null, $locale =
+                                        null)</span></em>
+                                </p>
+                                <p class="para">
+                                    <var class="varname">$date</var> の <var class="varname">$part</var> 部分を
+                                    このオブジェクトのタイムスタンプと比較します。等しい場合は 0、
+                                    このオブジェクトの値のほうが $date の内容より新しい場合に 1、
+                                    それ以外の場合に -1 を返します。
+                                </p>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                
+            </table>
+
+        </div>
+    </div>
+
+    <div class="section" id="zend.date.others.comparison" name="zend.date.others.comparison"><div class="info"><h1 class="title">日付の比較</h1></div>
+        
+
+        <p class="para">
+            以下の基本操作については、
+            <a href="zend.date.overview.html" class="link">Zend_Date API の概要</a>
+            の一覧にある各日付要素に特化した便利なメソッドは存在しません。
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>日付の比較用メソッド</b></caption></div>
+            
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>メソッド</th>
+                        <th>説明</th>
+                    </tr>
+
+                </thead>
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">equals()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">equals($date, $part = null, $locale =
+                                    null)</span></em>
+                            </p>
+                            <p class="para">
+                                ロケール <var class="varname">$locale</var> で格納されている日付 <var class="varname">$date</var>
+                                の要素 <var class="varname">$part</var> がこのオブジェクトの日付要素と等しい場合に <b><tt>TRUE</tt></b>、
+                                それ以外の場合に <b><tt>FALSE</tt></b> を返します。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">isEarlier()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">isEarlier($date, $part = null, $locale =
+                                    null)</span></em>
+                            </p>
+                            <p class="para">
+                                このオブジェクトの日付要素 <var class="varname">$part</var> が、
+                                ロケール <var class="varname">$locale</var> で格納されている日付 <var class="varname">$date</var>
+                                の要素 <var class="varname">$part</var> より前である場合に <b><tt>TRUE</tt></b> を返します。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">isLater()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">isLater($date, $part = null, $locale =
+                                    null)</span></em>
+                            </p>
+                            <p class="para">
+                                このオブジェクトの日付要素 <var class="varname">$part</var> が、
+                                ロケール <var class="varname">$locale</var> で格納されている日付 <var class="varname">$date</var>
+                                の要素 <var class="varname">$part</var> より後である場合に <b><tt>TRUE</tt></b> を返します。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">isToday()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">isToday()</span></em>
+                            </p>
+                            <p class="para">
+                                今日の年月日が、このオブジェクトの日付と一致するかどうかを調べます
+                                (このオブジェクトのタイムゾーンを用いて判断します)。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">isTomorrow()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">isTomorrow()</span></em>
+                            </p>
+                            <p class="para">
+                                明日の年月日が、このオブジェクトの日付と一致するかどうかを調べます
+                                (このオブジェクトのタイムゾーンを用いて判断します)。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">isYesterday()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">isYesterday()</span></em>
+                            </p>
+                            <p class="para">
+                                昨日の年月日が、このオブジェクトの日付と一致するかどうかを調べます
+                                (このオブジェクトのタイムゾーンを用いて判断します)。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">isLeapYear()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">isLeapYear()</span></em>
+                            </p>
+                            <p class="para">
+                                 <span class="methodname">isLeapYear()</span> を使用して、
+                                そのオブジェクトが閏年であるかどうかを調べます。あるいは
+                                 <span class="methodname">Zend_Date::checkLeapYear($year)</span> を使用すると、
+                                <var class="varname">$year</var>
+                                (文字列、整数値 あるいは <span class="classname">Zend_Date</span> のインスタンス)
+                                が閏年かどうかを知ることができます。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">isDate()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">isDate($date, $format = null, $locale =
+                                    null)</span></em>
+                            </p>
+                            <p class="para">
+                                このメソッドは、指定した日付が本当に日付であるかどうかを調べ、
+                                すべてのチェックを通過したときに <b><tt>TRUE</tt></b> を返します。
+                                <acronym class="acronym">PHP</acronym> の checkdate() 関数と似たような働きですが、各地域固有の月名にも対応しており、
+                                また checkdate() の対象範囲外の日付でも正しく判定できます。
+                            </p>
+                        </td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+    </div>
+
+    <div class="section" id="zend.date.others.gettingparts" name="zend.date.others.gettingparts"><div class="info"><h1 class="title">日付および日付要素の取得</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Date</span> インスタンスに関する情報の取得をサポートするメソッド群について説明します。
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>日付出力用のメソッド</b></caption></div>
+            
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>メソッド</th>
+                        <th>説明</th>
+                    </tr>
+
+                </thead>
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">toString()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">toString($format = null, $locale =
+                                    null)</span></em>
+                            </p>
+                            <p class="para">
+                                直接実行することもできますし、マジックメソッド  <span class="methodname">__toString()</span>
+                                から間接的にコールされることもあります。
+                                 <span class="methodname">toString()</span> メソッドは、自動的にオブジェクトの値の書式を設定します。
+                                この書式は、オブジェクトのロケールか、あるいはオプションで指定した
+                                <var class="varname">$locale</var> にもとづいて決まります。
+                                サポートする書式コードの一覧は、<a href="zend.date.constants.html#zend.date.constants.selfdefinedformats" class="link">ISO
+                                書式指定子を使用して自分で定義する出力フォーマット</a>を参照ください。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">toArray()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">toArray()</span></em>
+                            </p>
+                            <p class="para">
+                                選択した日付を、そのオブジェクトのロケールにもとづいて配列形式で返します。
+                                返される配列は
+                                <acronym class="acronym">PHP</acronym> の <a href="http://php.net/getdate" class="link external">&raquo; getdate()</a>
+                                関数が返すものと同じ形式で、次のような要素を含みます。
+                            </p>
+                            <p class="para">
+                                <ul class="itemizedlist">
+                                    <li class="listitem">
+                                        <p class="para">
+                                            日を表す &#039;<em class="emphasis">day</em>&#039; (<b><tt>Zend_Date::DAY_SHORT</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            月を表す &#039;<em class="emphasis">month</em>&#039; (<b><tt>Zend_Date::MONTH_SHORT</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            年を表す &#039;<em class="emphasis">year</em>&#039; (<b><tt>Zend_Date::YEAR</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            時間を表す &#039;<em class="emphasis">hour</em>&#039; (<b><tt>Zend_Date::HOUR_SHORT</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            分を表す &#039;<em class="emphasis">minute</em>&#039; (<b><tt>Zend_Date::MINUTE_SHORT</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            秒を表す &#039;<em class="emphasis">second</em>&#039; (<b><tt>Zend_Date::SECOND_SHORT</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            タイムゾーンの略称を表す &#039;<em class="emphasis">timezone</em>&#039; (<b><tt>Zend_Date::TIMEZONE</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            Unix タイムスタンプを表す &#039;<em class="emphasis">timestamp</em>&#039; (<b><tt>Zend_Date::TIMESTAMP</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            曜日番号を表す &#039;<em class="emphasis">weekday</em>&#039; (<b><tt>Zend_Date::WEEKDAY_DIGIT</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            年初からの日数を表す &#039;<em class="emphasis">dayofyear</em>&#039; (<b><tt>Zend_Date::DAY_OF_YEAR</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            週を表す &#039;<em class="emphasis">week</em>&#039; (<b><tt>Zend_Date::WEEK</tt></b>)
+                                        </p>
+                                    </li>
+                                    <li class="listitem">
+                                        <p class="para">
+                                            <acronym class="acronym">GMT</acronym> からの時差を表す &#039;<em class="emphasis">gmtsecs</em>&#039; (<b><tt>Zend_Date::GMT_SECS</tt></b>)
+                                        </p>
+                                    </li>
+                                </ul>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">toValue()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">toValue($part = null)</span></em>
+                            </p>
+                            <p class="para">
+                                指定した日付要素 <var class="varname">$part</var> の、
+                                そのオブジェクトのロケールにもとづいた整数表現を返します。
+                                <var class="varname">$part</var> で <b><tt>Zend_Date::MONTH_NAME_SHORT</tt></b>
+                                のような非数値要素を選択した場合は、
+                                <b><tt>FALSE</tt></b> を返します。
+                                <em class="emphasis">注意:</em> このメソッドは
+                                <a href="zend.date.overview.html#id.date.basic.operations" class="link"> <span class="methodname">get()</span></a>
+                                をコールし、結果を <acronym class="acronym">PHP</acronym> の integer 型にキャストします。つまり、
+                                 <span class="methodname">get()</span> の返す結果が非常に大きな数値を表す数値表現となり、
+                                それが <acronym class="acronym">PHP</acronym> の integer 型の制限をこえた場合には予期せぬ結果となります。
+                                そのような場合は、かわりに  <span class="methodname">get()</span> を使用します。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">
+                            <a href="zend.date.overview.html#id.date.basic.operations" class="link">get()</a>
+                        </td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">get($part = null, $locale =
+                                    null)</span></em>
+                            </p>
+                            <p class="para">
+                                このメソッドは、オブジェクトの日付要素 <var class="varname">$part</var>
+                                をロケール <var class="varname">$locale</var> に変換したものを、
+                                文字列あるいは整数値で返します。
+                                詳細な情報は <a href="zend.date.overview.html#id.date.basic.operations" class="link">get()</a>
+                                を参照ください。
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left"> <span class="methodname">now()</span></td>
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">now($locale = null)</span></em>
+                            </p>
+                            <p class="para">
+                                この関数は、<strong class="command">new Zend_Date()</strong> と同等です。
+                                これは、現在の日付を表す <span class="classname">Zend_Date</span>
+                                オブジェクトに、ロケール <var class="varname">$locale</var>
+                                を指定して返します。
+                            </p>
+                        </td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+    </div>
+
+    <div class="section" id="zend.date.others.fractions" name="zend.date.others.fractions"><div class="info"><h1 class="title">一秒未満の単位の扱い</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Date</span> インスタンスに関する情報の取得をサポートするメソッド群について説明します。
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>日付の出力用メソッド</b></caption></div>
+            
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>メソッド</th>
+                        <th>説明</th>
+                    </tr>
+
+                </thead>
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">getFractionalPrecision()</span></em>
+                            </p>
+                        </td>
+                        <td align="left">一秒未満の値の精度を返します。</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">setFractionalPrecision()</span></em>
+                            </p>
+                        </td>
+                        <td align="left">一秒未満の値の精度を設定します。</td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+    </div>
+
+    <div class="section" id="zend.date.other.sun" name="zend.date.other.sun"><div class="info"><h1 class="title">日の出 / 日の入り</h1></div>
+        
+
+        <p class="para">
+            これらの三つのメソッドにより、各地域に特化した太陽の情報を取得できます。
+            たとえば日の出や日の入りの時刻などが得られます。
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>雑多なメソッド</b></caption></div>
+            
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>メソッド</th>
+                        <th>説明</th>
+                    </tr>
+
+                </thead>
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">getSunrise($location)</span></em>
+                            </p>
+                        </td>
+                        <td align="left">日の出時刻を返します。</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">getSunset($location)</span></em>
+                            </p>
+                        </td>
+                        <td align="left">日の入り時刻を返します。</td>
+                    </tr>
+
+                    <tr valign="middle">
+                        <td align="left">
+                            <p class="para">
+                                <em class="emphasis"> <span class="methodname">getSunInfo($location)</span></em>
+                            </p>
+                        </td>
+                        <td align="left">日の出/日の入り情報を含む配列を返します。</td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.date.basic.html">基本メソッド</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.date.html">Zend_Date</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.date.creation.html">日付の作成</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.date.html">Zend_Date</a></li>
+  <li><a href="zend.date.introduction.html">導入</a></li>
+  <li><a href="zend.date.definition.theory.html">動作原理</a></li>
+  <li><a href="zend.date.basic.html">基本メソッド</a></li>
+  <li class="active"><a href="zend.date.overview.html">Zend_Date API の概要</a></li>
+  <li><a href="zend.date.creation.html">日付の作成</a></li>
+  <li><a href="zend.date.constants.html">日付関数全般用の定数</a></li>
+  <li><a href="zend.date.additional.html">動作例</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

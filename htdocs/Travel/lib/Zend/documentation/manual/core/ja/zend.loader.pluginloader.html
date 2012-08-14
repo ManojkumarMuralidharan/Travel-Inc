@@ -1,0 +1,351 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>プラグインのロード - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.loader.autoloader-resource.html">Resource Autoloaders</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.loader.html">Zend_Loader</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.locale.html">Zend_Locale</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.loader.pluginloader" class="section"><div class="info"><h1 class="title">プラグインのロード</h1></div>
+    
+
+    <p class="para">
+        Zend Framework の多くのコンポーネントはプラグイン方式を採用しており、
+        クラスのプレフィックスとクラスファイルへのパスを指定して動的に機能を読み込むことができます。
+        このファイルは <code class="code">include_path</code> にある必要がなく、
+        また標準の命名規約に従っている必要もありません。
+        <span class="classname">Zend_Loader_PluginLoader</span> は、この処理のための共通機能を提供します。
+    </p>
+
+    <p class="para">
+        <code class="code">PluginLoader</code> の基本的な使用法は Zend Framework
+        の命名規約に従った形式です。各クラスを個別のファイルに分けて、
+        アンダースコアをディレクトリ区切り文字としてパスを解決します。
+        オプションのクラスプレフィックスを指定して、
+        特定のプラグインクラスをロードする際の先頭にそれを付加できます。
+        また、パスの検索は LIFO (後入れ先出し) 方式で行います。
+        LIFO 方式の検索とクラスプレフィックスを用いることで、
+        プラグインに独自の名前空間を指定できます。
+        そして、事前に登録されているプラグインを上書きできるようになります。
+    </p>
+
+    <div class="section" id="zend.loader.pluginloader.usage" name="zend.loader.pluginloader.usage"><div class="info"><h1 class="title">基本的な使用例</h1></div>
+        
+
+        <p class="para">
+            次のようなディレクトリ構造とクラスファイル群の構成を考えてみましょう。
+            トップディレクトリと library ディレクトリは
+            include_path に含まれているものとします。
+        </p>
+
+        <div class="programlisting txt"><div class="txtcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">application/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; modules/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; foo/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; views/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; helpers/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormLabel.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormSubmit.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; bar/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; views/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; helpers/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormSubmit.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">library/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; View/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Helper/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormLabel.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormSubmit.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; FormText.php</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            では、プラグインローダーを作成してビューヘルパー群の場所を指定しましょう。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$loader</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Loader_PluginLoader<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Zend_View_Helper'</span>, <span style="color: #ff0000;">'Zend/View/Helper/'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Foo_View_Helper'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'application/modules/foo/views/helpers'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Bar_View_Helper'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'application/modules/bar/views/helpers'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            こうしておけば、クラス名のプレフィックスを除いた部分を指定するだけで
+            ビューヘルパーをロードできるようになります。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 'FormText' ヘルパーをロードします</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$formTextClass</span> = <span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">load</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'FormText'</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// 'Zend_View_Helper_FormText';</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 'FormLabel' ヘルパーをロードします</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$formLabelClass</span> = <span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">load</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'FormLabel'</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// 'Foo_View_Helper_FormLabel'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 'FormSubmit' ヘルパーをロードします</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$formSubmitClass</span> = <span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">load</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'FormSubmit'</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// 'Bar_View_Helper_FormSubmit'</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            クラスを読み込めたら、次はそのインスタンスを作成します。
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                時には、同じプレフィックスを複数のパスで使用することもあるかもしれません。
+                <span class="classname">Zend_Loader_PluginLoader</span>
+                は、実際には各プレフィックスに対応するパスを配列で管理しています。
+                そして、最後に登録されたパスから順に検索を行います。
+                これは、incubator のコンポーネントを使用する場合などに便利です。
+            <br />
+        </p></blockquote>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>インスタンス作成時のパスの定義</b><br /></span>
+            
+
+            
+                プレフィックスとパス
+                (あるいはプレフィックスと複数のパス) のペアの配列を、
+                オプションのパラメータとしてコンストラクタに渡すことができます。
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$loader</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Loader_PluginLoader<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Zend_View_Helper'</span> =&gt; <span style="color: #ff0000;">'Zend/View/Helper/'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Foo_View_Helper'</span>&nbsp; =&gt; <span style="color: #ff0000;">'application/modules/foo/views/helpers'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Bar_View_Helper'</span>&nbsp; =&gt; <span style="color: #ff0000;">'application/modules/bar/views/helpers'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p></blockquote>
+
+        <p class="para">
+            <span class="classname">Zend_Loader_PluginLoader</span> には、
+            複数のプラグインの間でオブジェクトを共有する機能もあります。
+            その際にシングルトンインスタンスを作成する必要はありません。
+            この機能は、静的レジストリを用いて実現しています。
+            インスタンスを作成する際に、
+            コンストラクタの 2 番目のパラメータでレジストリを指定します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// プラグインを静的レジストリ 'foobar' に保存します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$loader</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Loader_PluginLoader<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #ff0000;">'foobar'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            <code class="code">PluginLoader</code> がインスタンス化したその他のコンポーネントで
+            このレジストリ名を使用すると、すでに読み込まれているパスやプラグインを使用できます。
+        </p>
+    </div>
+
+    <div class="section" id="zend.loader.pluginloader.paths" name="zend.loader.pluginloader.paths"><div class="info"><h1 class="title">プラグインのパスの操作</h1></div>
+        
+
+        <p class="para">
+            先ほどのセクションの例では、プラグインローダーでパスを追加する方法を示しました。
+            では、すでに読み込まれているパスを調べたりそれを削除したりしたい場合は、
+            いったいどうすればいいのでしょうか?
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                     <span class="methodname">getPaths($prefix = null)</span> は、
+                    <code class="code">$prefix</code> を省略した場合は
+                    すべてのパスをプレフィックス / パスのペアで返します。
+                    <code class="code">$prefix</code> を指定した場合は、
+                    そのプレフィックスに対応するパスのみを返します。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                     <span class="methodname">clearPaths($prefix = null)</span> は、
+                    デフォルトですべての登録済みパスをクリアします。
+                    <code class="code">$prefix</code> を指定した場合は、
+                    そのプレフィックスに関連づけられたパスが登録されている場合にそれだけをクリアします。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                     <span class="methodname">removePrefixPath($prefix, $path = null)</span> は、
+                    指定したプレフィックスに関連づけられた特定のパスを削除します。
+                    <code class="code">$path</code> を省略した場合は、
+                    そのプレフィックスのすべてのパスを削除します。
+                    <code class="code">$path</code> を指定した場合は、
+                    そのパスが存在すればそのパスだけを削除します。
+            </p></li>
+        </ul>
+    </div>
+
+    <div class="section" id="zend.loader.pluginloader.checks" name="zend.loader.pluginloader.checks"><div class="info"><h1 class="title">プラグインの確認とクラス名の取得</h1></div>
+        
+
+        <p class="para">
+            時には、プラグインクラスがロードされているかどうかを調べてから何かを行いたいこともあるでしょう。
+             <span class="methodname">isLoaded()</span> は、プラグイン名を受け取ってその状態を返します。
+        </p>
+
+        <p class="para">
+            <code class="code">PluginLoader</code> の使用法としてもうひとつよくあるのが、
+            読み込まれているクラスの完全なクラス名を調べることです。
+             <span class="methodname">getClassName()</span> がこの機能を実現しています。
+            一般に、これは  <span class="methodname">isLoaded()</span> と組み合わせて使用します。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">isLoaded</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Adapter'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$class</span>&nbsp; &nbsp;= <span style="color: #0000ff;">$loader</span>-&gt;<span style="color: #006600;">getClassName</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Adapter'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$adapter</span> = <a href="http://www.php.net/call_user_func"><span style="color: #000066;">call_user_func</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$class</span>, <span style="color: #ff0000;">'getInstance'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.loader.pluginloader.performance" name="zend.loader.pluginloader.performance"><div class="info"><h1 class="title">プラグインのパフォーマンスの向上</h1></div>
+        
+
+        <p class="para">
+            プラグインの読み込みは、非常に重い操作となりえます。
+            まず各プレフィックスについてループ処理をする必要があり、
+            各プレフィックス上のパスをすべて調べ、
+            期待通りのクラスに対応するファイルを探すという操作になるからです。
+            ファイルは存在するもののそこでクラスが定義されていないといった場合は
+            <acronym class="acronym">PHP</acronym> のエラースタックにエラーが追加されますが、
+            これもまた負荷のかかる操作です。
+            ここで問題となるのが「プラグイン機能の柔軟性を保ちつつ
+            パフォーマンスも向上させるにはどうすればいいか？」ということです。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Loader_PluginLoader</span>
+            では、このような場合のためのオプトイン機能として
+            ファイルインクルードキャッシュを提供しています。
+            これを有効にすると、インクルードに成功したすべてのファイルを含む
+            単一のファイルを作成します。起動ファイルからこれをコールできます。
+            この方式を使用すると、実運用サーバ上でのパフォーマンスが劇的に向上します。
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #1 PluginLoader クラスのファイルインクルードキャッシュの使用法</b></p></div>
+            
+
+            <div class="example-contents"><p>
+                クラスファイルのインクルードキャッシュを使用するには、
+                次のコードを起動ファイルに追加します。
+            </p></div>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$classFileIncCache</span> = APPLICATION_PATH .&nbsp; <span style="color: #ff0000;">'/../data/pluginLoaderCache.php'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/file_exists"><span style="color: #000066;">file_exists</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$classFileIncCache</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">include_once</span> <span style="color: #0000ff;">$classFileIncCache</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Loader_PluginLoader::<span style="color: #006600;">setIncludeFileCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$classFileIncCache</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <div class="example-contents"><p>
+                もちろん、パスやファイル名は必要に応じて変更することになります。
+                このコードはできるだけ早い段階で実行されるようにしなければなりません。
+                そうすることで、プラグイン機構をもつコンポーネントが確実にキャッシュを使用できるようにします。
+            </p></div>
+
+            <div class="example-contents"><p>
+                開発段階ではキャッシュを無効にしたいこともあるでしょう。
+                その方法のひとつとしては、ある設定項目を切り替えることで
+                プラグインローダーがキャッシュするかしないかを指定するというものがあります。
+            </p></div>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$classFileIncCache</span> = APPLICATION_PATH .&nbsp; <span style="color: #ff0000;">'/../data/pluginLoaderCache.php'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/file_exists"><span style="color: #000066;">file_exists</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$classFileIncCache</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">include_once</span> <span style="color: #0000ff;">$classFileIncCache</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$config</span>-&gt;<span style="color: #006600;">enablePluginLoaderCache</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Loader_PluginLoader::<span style="color: #006600;">setIncludeFileCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$classFileIncCache</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <div class="example-contents"><p>
+                これを使えば、コードを直接変更しなくても設定ファイルだけの変更だけですませることができます。
+            </p></div>
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.loader.autoloader-resource.html">Resource Autoloaders</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.loader.html">Zend_Loader</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.locale.html">Zend_Locale</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.loader.html">Zend_Loader</a></li>
+  <li><a href="zend.loader.load.html">ファイルやクラスの動的な読み込み</a></li>
+  <li><a href="zend.loader.autoloader.html">The Autoloader</a></li>
+  <li><a href="zend.loader.autoloader-resource.html">Resource Autoloaders</a></li>
+  <li class="active"><a href="zend.loader.pluginloader.html">プラグインのロード</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

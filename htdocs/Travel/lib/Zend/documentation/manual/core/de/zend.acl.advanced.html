@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Fortgeschrittene Verwendung - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.acl.refining.html">Verfeinern der Zugriffskontrolle</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.acl.html">Zend_Acl</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.amf.html">Zend_Amf</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.acl.advanced" class="section"><div class="info"><h1 class="title">Fortgeschrittene Verwendung</h1></div>
+    
+
+    <div class="section" id="zend.acl.advanced.storing" name="zend.acl.advanced.storing"><div class="info"><h1 class="title">Dauerhafte Speicherung von ACL-Daten</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Acl</span> wurde so entwickelt, dass keine spezielle Backend
+            Technologie benötigt wird, wie z.B. eine Datenbank oder ein Cache Server, um die
+            <acronym class="acronym">ACL</acronym>-Daten zu speichern. Ihre vollständige
+            <acronym class="acronym">PHP</acronym>-Implementation ermöglicht angepasste Administrationstools, die relativ
+            einfach und flexibel auf <span class="classname">Zend_Acl</span> aufbauen. Viele Situationen erfordern
+            eine interaktive Wartung der <acronym class="acronym">ACL</acronym> und <span class="classname">Zend_Acl</span>
+            stellt Methoden für das Einrichten und Abfragen der Zugriffskontrolle einer Anwendung.
+        </p>
+
+        <p class="para">
+            Die Speicherung der <acronym class="acronym">ACL</acronym>-Daten ist deshalb die Aufgabe des
+            Entwicklers, da sich die Anwendungsfälle für verschiedene Situationen erwartungsgemäß
+            stark unterscheiden. Da <span class="classname">Zend_Acl</span> serialisierbar ist, können
+            <acronym class="acronym">ACL</acronym>-Objekte mit der <acronym class="acronym">PHP</acronym>-Funktion <a href="http://php.net/serialize" class="link external">&raquo;  <span class="methodname">serialize()</span></a>
+            serialisiert werden und das Ergebnis kann überall gespeichert werden, wo es der
+            Entwickler möchte, wie z.B. in einer Datei, in einer Datenbank oder mit einem
+            Cache-Mechanismus.
+        </p>
+    </div>
+
+    <div class="section" id="zend.acl.advanced.assertions" name="zend.acl.advanced.assertions"><div class="info"><h1 class="title">Schreiben von bedingten ACL-Regeln mit Zusicherungen</h1></div>
+        
+
+        <p class="para">
+            Manchmal soll eine Regel für das Erlauben oder Verbieten des Zugriffs auf eine
+            Ressource nicht absolut sein, sondern von verschiedenen Kriterien abhängen. Nehmen
+            wir zum Beispiel an, dass ein bestimmter Zugriff erlaubt sei, aber nur zwischen
+            08:00 und 17:00 Uhr. Ein anderes Beispiel könnte sein, dass der Zugriff verboten wird,
+            weil eine Anfrage von einer bestimmten IP-Adresse kommt, die als Missbrauchsquelle
+            markiert worden ist. <span class="classname">Zend_Acl</span> bietet eine eingebaute
+            Unterstützung für die Implementierung von Regeln, die auf Bedingungen basieren, die der
+            Entwickler benötigt.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Acl</span> bietet Unterstützung für bedingte Regeln mit dem
+            <span class="classname">Zend_Acl_Assert_Interface</span>. Um das Regelzusicherungsinterface
+            benutzen zu können, schreibt der Entwickler eine Klasse, welche die
+            Methode  <span class="methodname">assert()</span> des Interfaces implementiert:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> CleanIPAssertion implements Zend_Acl_Assert_Interface</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> <a href="http://www.php.net/assert"><span style="color: #000066;">assert</span></a><span style="color: #66cc66;">&#40;</span>Zend_Acl <span style="color: #0000ff;">$acl</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Zend_Acl_Role_Interface <span style="color: #0000ff;">$role</span> = <span style="color: #000000; font-weight: bold;">null</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Zend_Acl_Resource_Interface <span style="color: #0000ff;">$resource</span> = <span style="color: #000000; font-weight: bold;">null</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #0000ff;">$privilege</span> = <span style="color: #000000; font-weight: bold;">null</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$this</span>-&gt;_isCleanIP<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'REMOTE_ADDR'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; protected <span style="color: #000000; font-weight: bold;">function</span> _isCleanIP<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$ip</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// ...</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Sobald eine Zusicherungsklasse verfügbar ist, muss der Entwickler eine Instanz dieser
+            Zusicherungsklasse bei der Zuordnung bedingter Regeln übergeben. Eine Regel, die mit
+            einer Zusicherung angelegt wird, wird nur angewendet, wenn die Zusicherungsmethode
+            <b><tt>TRUE</tt></b> zurück gibt.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$acl</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Acl<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$acl</span>-&gt;<span style="color: #006600;">allow</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">null</span>, <span style="color: #000000; font-weight: bold;">null</span>, <span style="color: #000000; font-weight: bold;">null</span>, <span style="color: #000000; font-weight: bold;">new</span> CleanIPAssertion<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Der obige Code legt eine bedingte Erlaubnisregel an, die den Zugriff für alle Rechte
+            auf alles und von jedem erlaubt, außer wenn die anfordernde IP auf einer &quot;Blacklist&quot;
+            ist. Wenn die Anfrage von einer IP kommt, die nicht als &quot;sauber&quot; betrachtet wird, wird
+            die Erlaubnisregel nicht angewandt. Da die Regel auf alle Rollen, alle Ressourcen und
+            alle Rechte zutrifft, würde eine &quot;unsaubere&quot; IP zu einem Zugriffsverbot führen. Dies
+            ist ein besonderer Fall und es sollte verstanden werden, dass in allen anderen Fällen
+            (d.h. wenn eine spezielle Rolle, Ressource oder Recht für die Regel spezifiziert wird)
+            eine fehlerhafte Zusicherung dazu führt, dass die Regel nicht angewandt wird und andere
+            Regeln verwendet werden um zu ermitteln, ob der Zugriff erlaubt oder verboten ist.
+        </p>
+
+        <p class="para">
+            Der Methode  <span class="methodname">assert()</span> eines Zusicherungsobjektes werden die
+            <acronym class="acronym">ACL</acronym>, Rolle, Ressource und die Rechte übergeben, auf welche die
+            Autorisierungsabfrage (d.h.,  <span class="methodname">isAllowed()</span>) passt, um den
+            Kontext für die Zusicherungsklasse bereit zu stellen, um die Bedingungen zu ermitteln wo
+            erforderlich.
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.acl.refining.html">Verfeinern der Zugriffskontrolle</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.acl.html">Zend_Acl</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.amf.html">Zend_Amf</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.acl.html">Zend_Acl</a></li>
+  <li><a href="zend.acl.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.acl.refining.html">Verfeinern der Zugriffskontrolle</a></li>
+  <li class="active"><a href="zend.acl.advanced.html">Fortgeschrittene Verwendung</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

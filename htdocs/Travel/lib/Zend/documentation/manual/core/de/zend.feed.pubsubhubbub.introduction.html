@@ -1,0 +1,818 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Feed_Pubsubhubbub - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.feed.writer.html">Zend_Feed_Writer</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.feed.html">Zend_Feed</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.file.html">Zend_File</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.feed.pubsubhubbub.introduction" class="section"><div class="info"><h1 class="title">Zend_Feed_Pubsubhubbub</h1></div>
+    
+
+    <p class="para">
+        <span class="classname">Zend_Feed_Pubsubhubbub</span> ist eine Implementation der PubSubHubbub Core
+        0.2 Spezifikation (Working Draft). Sie bietet eine Implementation eines Pubsubhubbub
+        Publizisten und Abonnenten geeignet für den Zend Framework und andere <acronym class="acronym">PHP</acronym>
+        Anwendungen.
+    </p>
+
+    <div class="section" id="zend.feed.pubsubhubbub.what.is.pubsubhubbub" name="zend.feed.pubsubhubbub.what.is.pubsubhubbub"><div class="info"><h1 class="title">Was ist Pubsubhubbub?</h1></div>
+        
+
+        <p class="para">
+            Pubsubhubbub ist ein offenes, einfaches Web-skalierbares Pubsub Protokoll. Der normale
+            Anwendungsfall ist es Blogs (Publizist) zu erlauben Aktualisierungen von deren
+            <acronym class="acronym">RSS</acronym> oder Atom Feeds (Themen) an Abonnenten zu &quot;senden&quot;. Diese
+            Abonenten müssen dem <acronym class="acronym">RSS</acronym> oder Atom Feed des Blogs über einen Hub
+            abonniert haben. Das ist ein zentraler Server der benachrichtigt wird wenn es
+            Aktualisierungen des Publizisten gibt und diese anschließend an alle Abonnenten
+            verteilt. Jeder Feed kann bekanntgeben das er ein oder mehrere Hubs unterstützen indem
+            ein Atom Namespaced Linkelement mit dem Rel Attribut &quot;hub&quot; verwendet wird.
+        </p>
+
+        <p class="para">
+            Pubsubhubbub hat Aufmerksamkeit erlangt weil es ein Pubsub Protokoll ist das einfach zu
+            implementieren ist und über <acronym class="acronym">HTTP</acronym> arbeitet. Seine Philosophie ist es
+            das traditionelle Modell zu ersetzen indem Blog Feeds mit einem regulären Interfall
+            abgefragt werden um Aktualisierungen zu erkennen und zu empfangen. Abhängig von der
+            Frequenz der Abfrage kann es viel Zeit in Anspruch nehmen Aktualisierungen an
+            interessierte Menschen bei Sammelstellen bis zu Desktop Lesern, bekannt zu machen. Mit
+            der Verwendung eines Pubsub Systems werden Aktualisierungen nicht einfach von Abonnenten
+            abgefragt sondern an die Abonnenten geschickt, was jegliche Verzögerung ausschaltet. Aus
+            diesem Grund fungiert Pubsubhubbub als Teil von dem was als Echt-Zeit Web bekannt ist.
+        </p>
+
+        <p class="para">
+            Das Protokoll existiert nicht isoliert. PubSub Systems gibt es schon seit einiger Zeit,
+            wie auch das übliche Jabber Publish-Subscribe Protokoll, <acronym class="acronym">XEP-0060</acronym>,
+            oder das nicht so bekannte rssCloud (beschrieben 2001). Trotzdem haben diese keine keine
+            breite Anwendung gefunden weil Sie entweder komplex sind, ein schlechtes Timing haben,
+            oder nicht für Web Anwendungen verwendbar sind. Bei rssCloud, welches zuletzt als
+            Antwort auf das Erscheinen von Pubsubhubbub revidiert wurde, wurde auch eine
+            signifikante Steigerung gesehen obwohl es an einer formalen Spezifikation fehlt und es
+            aktuell keine Atom 1.0 Feeds unterstützt.
+        </p>
+
+        <p class="para">
+            Warscheinlich überraschend weil es noch relativ Jung ist, ist Pubsubhubbub trotzdem
+            bereits in Verwendung unter anderem bei Google Reader, Feedburner und es sind Plugins
+            für Wordpress Blogs vorhanden.
+        </p>
+    </div>
+
+    <div class="section" id="zend.feed.pubsubhubbub.architecture" name="zend.feed.pubsubhubbub.architecture"><div class="info"><h1 class="title">Architektur</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Feed_Pubsubhubbub</span> implementiert zwei Seiten der Pubsubhubbub
+            0.2 Spezifikation: einen Publizisten und einen Abonnenten. Es implementiert aktuell
+            keinen Hub Server. Dieser ist aber in Arbeit für ein zukünftiges Zend Framework Release.
+        </p>
+
+        <p class="para">
+            Ein Publizist ist verantwortlich für die Mitteilung aller Aktualisierungen seines Feeds
+            an alle unterstützten Hubs (es können viele unterstützt werden um Redundanz zu einem
+            System hinzuzufügen), egal ob es sich um Atom oder <acronym class="acronym">RSS</acronym> basierte
+            handelt. Das wird getan indem die unterstützten Hub Server mit der
+            <acronym class="acronym">URL</acronym> des aktualisierten Feeds gepingt werden. In der Pubsubhubbub
+            Terminologie wird jede aktualisierbare Ressource welche in der Lage ist abonniert zu
+            werden als Thema bezeichnet. Sobald ein Ping empfangen wird, frägt der Hub den
+            aktualisierten Feed ab, bearbeitet die aktualisierten Elemente, und leitet alle
+            Aktualisierungen an alle Abonnenten weiter die diesen Feed abonniert haben.
+        </p>
+
+        <p class="para">
+            Ein Abonnent ist jedes Mitglied oder jede Anwendung welche einen oder mehrere Hubs
+            abonniert um Aktuslisierungen von einem Thema zu empfangen welches von einem Publizisten
+            gehostet wird. Der Abonnent kommuniziert niemals direkt mit dem Publizisten da der Hub
+            als Zwischenglied fungiert welches Abos akzeptiert und Aktualisierungen an Abonnenten
+            sendet. Der Abonnent kommuniziert seinerseits nur mit dem Hub um Themen entweder zu
+            abonnieren und Abos zu entfernen, oder wenn er Aktualisierungen vom Hub empfängt. Dieses
+            Design der Kommunikation (&quot;Fat Pings&quot;) entfernt effektiverweise die Möglichkeit eines
+            &quot;Thundering Herd&quot; Problems. Dieses findet in einem Pubsub System statt in dem der Hub
+            Abonnenten über eine vorhandene Aktualisierung informiert, und alle Abonnenten dazu
+            auffordert den Feed sofort vom Publizisten zu empfangen, was zu einer Verkehrsspitze
+            führt. In Pubsubhubbub verteilt der Hub das aktuelle Update in einem &quot;Fat Ping&quot; so dass
+            der Publizist keine Verkehrsspitze aushalten muss.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Feed_Pubsubhubbub</span> implementiert Pubsubhubbub Publizisten und
+            Abonnenten mit den Klassen <span class="classname">Zend_Feed_Pubsubhubbub_Publisher</span> und
+            <span class="classname">Zend_Feed_Pubsubhubbub_Subscriber</span>. Zusätzlich kann die
+            Implementation des Abonnenten alle Feed Aktualisierungen behandeln die von einem Hub
+            weitergeleitet werden indem
+            <span class="classname">Zend_Feed_Pubsubhubbub_Subscriber_Callback</span> verwendet wird. Diese
+            Klassen, deren Verwendungszweck, und die <acronym class="acronym">API</acronym>s werden in den
+            weiterführenden Abschnitten behandelt.
+        </p>
+    </div>
+
+    <div class="section" id="zend.feed.pubsubhubbub.zend.feed.pubsubhubbub.publisher" name="zend.feed.pubsubhubbub.zend.feed.pubsubhubbub.publisher"><div class="info"><h1 class="title">Zend_Feed_Pubsubhubbub_Publisher</h1></div>
+        
+
+        <p class="para">
+            In Pubsubhubbub ist der Publizist der Teilnehmer welcher einen lebenden Feed
+            veröffentlicht und Ihn regelmäßig mit neuem Inhalt aktualisiert. Das kann ein Blog, eine
+            Sammlung, oder sogar ein Webservice mit einer öffentlichen Feed basierenden
+            <acronym class="acronym">API</acronym> sein. Damit diese Aktualisierungen zu den Abonnenten geschickt
+            werden können, muss der Publizist alle seine unterstützten Hubs darüber informieren das
+            eine Aktualisierung stattgefunden hat, indem eine einfache <acronym class="acronym">HTTP</acronym>
+            <acronym class="acronym">POST</acronym> Anfrage verwendet wird, welche die <acronym class="acronym">URI</acronym> oder
+            das aktualisierte Thema enthält (z.B. den aktualisierten <acronym class="acronym">RSS</acronym> oder
+            Atom Feed). Der Hub bestätigt den Empfang der Benachrichtigung, holt den aktualisierten
+            Feed, und leitet alle Aktualisierungen an alle Abonnenten weiter welche sich bei diesem
+            Hub für Aktualisierungen für den relevanten Feed angemeldet haben.
+        </p>
+
+        <p class="para">
+            Vom Design her bedeutet dies dass der Publizist sehr wenig zu tun hat ausser diese Hub
+            Pings jedesmal zu senden wenn sich seine Feeds ändern. Als Ergebnis hiervon ist die
+            Implementation des Publizisten extrem einfach zu verwenden und benötigt sehr wenig
+            Arbeit für die Einrichtung und Verwendung wenn Feeds aktualisiert werden.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Feed_Pubsubhubbub_Publisher</span> implementiert einen kompletten
+            Pubsubhubbub Publizisten. Sein Setup ist sehr einfach und hauptsächlich müssen bei Ihm
+            nur die <acronym class="acronym">URI</acronym> Endpunkte für alle Hubs konfiguriert werden welche bei
+            Aktualisierungen benachrichtigt werden müssen, und die <acronym class="acronym">URI</acronym>s aller
+            Themen die in Benachrichtigungen einzubinden sind.
+        </p>
+
+        <p class="para">
+            Das folgende Beispiel zeigt einen Publizisten der eine Sammlung von Hubs über
+            Aktualisierungen zu einem Paar von lokalen <acronym class="acronym">RSS</acronym> und Atom Feeds
+            benachrichtigt. Die Klasse enthält eine Anzahl von Fehlern welche die
+            <acronym class="acronym">URL</acronym>s des Hubs enthalten, damit Benachrichtigungen stäter wieder
+            ausgeführt oder protokolliert werden können wenn irgendeine Benachrichtigung
+            fehlschlägt. Jedes resultierende Fehlerarray enthält auch einen &quot;response&quot; Schlüssel
+            welche das betreffende <acronym class="acronym">HTTP</acronym> Antwortobjekt enthält. In Falle
+            irgendeines Fehlers wird empfohlen die Operation für den fehlgeschlagenen Hub Endpunkt
+            in Zukunft zumindest noch einmal zu versuchen. Das kann die Verwendung einer geplanten
+            Aufgabe für diesen Zweck oder einer Job Queue wenn solche extra Schritte optional sind.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$publisher</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Feed_Pubsubhubbub_Publisher;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$publisher</span>-&gt;<span style="color: #006600;">addHubUrls</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'http://pubsubhubbub.appspot.com/'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'http://hubbub.example.com'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$publisher</span>-&gt;<span style="color: #006600;">addUpdatedTopicUrls</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'http://www.example.net/rss'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'http://www.example.net/atom'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$publisher</span>-&gt;<span style="color: #006600;">notifyAll</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<span style="color: #0000ff;">$publisher</span>-&gt;<span style="color: #006600;">isSuccess</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Auf Fehler prüfen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$errors</span>&nbsp; &nbsp; &nbsp;= <span style="color: #0000ff;">$publisher</span>-&gt;<span style="color: #006600;">getErrors</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$failedHubs</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$errors</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$error</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$failedHubs</span><span style="color: #66cc66;">&#91;</span><span style="color: #66cc66;">&#93;</span> = <span style="color: #0000ff;">$error</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'hubUrl'</span><span style="color: #66cc66;">&#93;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Benachrichtigung für fehlgeschlagene Hubs in $failedHubs nochmals planen</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Wenn man eine konkretere Kontrolle über den Publizisten bevorzugt, gibt es die Methoden
+             <span class="methodname">addHubUrls()</span> und  <span class="methodname">addUpdatedTopicUrls()</span>
+            welche jeden Arraywert an die einzelnen öffentlichen Methoden
+             <span class="methodname">addHubUrl()</span> und  <span class="methodname">addUpdatedTopicUrl()</span>
+            übergeben. Es gibt auch passende  <span class="methodname">removeUpdatedTopicUrl()</span> und
+             <span class="methodname">removeHubUrl()</span> Methoden.
+        </p>
+
+        <p class="para">
+            Man kann das Setzen der Hub <acronym class="acronym">URI</acronym>s auch überspringen und jeden in Folge
+            benachrichtigen indem die Methode  <span class="methodname">notifyHub()</span> verwendet wird
+            welche die <acronym class="acronym">URI</acronym> eines Hub Endpunkts als sein einziges Argument
+            akzeptiert.
+        </p>
+
+        <p class="para">
+            Es gibt keine anderen Aufgaben die abzudecken sind. Die Implementation des Publizisten
+            ist sehr einfach da das meiste der Feedbearbeitung und Verteilung von den ausgewählten
+            Hubs durchgeführt wird. Es ist trotzdem wichtig Fehler zu erkennen und
+            Benachrichtigungen wieder so früh wie möglich zu planen (mit einer vernünftigen
+            maximalen Anzahl an Versuchen) um sicherzustellen das Benachrichtigungen alle
+            Abonnenten erreichen. In vielen Fällen können Hubs, als endgültige Alternative, den
+            eigenen Feed regelmäßig abfragen um zusätzliche Toleranzen bei Fehlern anzubieten
+            sowohl wegen deren eigenen temporären Downtime als auch den Fehlern und der Downtime
+            des Publizisten.
+        </p>
+    </div>
+
+    <div class="section" id="zend.feed.pubsubhubbub.zend.feed.pubsubhubbub.subscriber" name="zend.feed.pubsubhubbub.zend.feed.pubsubhubbub.subscriber"><div class="info"><h1 class="title">Zend_Feed_Pubsubhubbub_Subscriber</h1></div>
+        
+
+        <p class="para">
+            In Pubsubhubbub ist der Abonnent ein Teilnehmer welcher Aktualisierungen zu irgendeinem
+            Thema (einem <acronym class="acronym">RSS</acronym> oder Atom Feed) empfangen will. Er kann dass
+            bewerkstelligen indem er einen oder mehrere Hubs abonniert welche von diesem Thema
+            beworben werden, normalerweise als ein Set von ein oder mehreren Atom 1.0 Links mit dem
+            Rel Attribut &quot;hub&quot;. Ab diesem Punkt sendet der Hub, wenn er eine Benachrichtigung über
+            eine Aktualisierung des Publizisten empfängt, einen Atom oder <acronym class="acronym">RSS</acronym>
+            Feed, welcher alle Aktualisierungen enthält, zur Callback <acronym class="acronym">URL</acronym> des
+            Abonnenten. Über diesen Weg muss der Abonnent niemals den originalen Feed besuchen
+            (obwohl es trotzdem empfohlen wird um sicherzustellen das Aktualisierungen empfangen
+            werden wenn ein Hub jemals offline geht). Alle Anfragen für Abos müssen die
+            <acronym class="acronym">URI</acronym> des Themas enthalten welches abonniert werden soll, und eine
+            Callback <acronym class="acronym">URL</acronym> welche der Hub verwendet um das Abo zu bestätigen und um
+            Aktualisierungen weiterzuleiten.
+        </p>
+
+        <p class="para">
+            Der Abonnent hat deswegen zwei Rollen. Abos zu erstellen und zu managen, inklusive der
+            Abonnierung von neuen Themen mit einem Hub, dem kündigen von Abos (wenn notwendig), und
+            periodisch Abos zu erneuern da diese eine begrenzte Gültigkeit haben können was durch
+            den Hub gesetzt wird. Dies wird von
+        </p>
+
+        <p class="para">
+            Die zweite Rolle ist es Aktualisierungen zu akzeptieren welche vom Hub zur Callback
+            <acronym class="acronym">URL</acronym> des Abonnenten gesendet werden, wenn z.B. die
+            <acronym class="acronym">URI</acronym> des Abonnenten zugeordnet wurde um Aktualisierungen zu
+            behandeln. Die Callback <acronym class="acronym">URL</acronym> behandelt auch Events wenn der Hub den
+            Abonnenten kontaktiert um alle Abos zu das Löschen von Abos zu bestätigen. Dies wird
+            behandelt indem eine Instanz von
+            <span class="classname">Zend_Feed_Pubsubhubbub_Subscriber_Callback</span> verwendet wird wenn
+            auf die Callback <acronym class="acronym">URL</acronym> zugegriffen wird.
+        </p>
+
+        <div class="important"><b class="important">Important</b>
+            <p class="para">
+                <span class="classname">Zend_Feed_Pubsubhubbub_Subscriber</span> implementiert die
+                Pubsubhubbub Spezifikation 0.2. Da dies eine Version der Spezifikation ist
+                implementieren Sie aktuell nicht alle Hubs. Die neue Spezifikation erlaubt der
+                Callback <acronym class="acronym">URL</acronym> einen Abfragestring einzubinden welcher von dieser
+                Klasse verwendet, aber nicht von allen Hubs unterstützt wird. Im Interesse einer
+                maximalen Kompatibilität wird deshalb empfohlen die Komponente des Abfragestrings
+                der Callback <acronym class="acronym">URI</acronym> des Abonnenten als Pfadelement darzustellen,
+                z.B. als Parameter in der Route erkannt und mit der Callback <acronym class="acronym">URI</acronym>
+                assoziiert und vom Router der Anwendung verwendet.
+            </p>
+        </div>
+
+        <div class="section" id="zend.feed.pubsubhubbub.zend.feed.pubsubhubbub.subscriber.subscribing.and.unsubscribing" name="zend.feed.pubsubhubbub.zend.feed.pubsubhubbub.subscriber.subscribing.and.unsubscribing"><div class="info"><h1 class="title">Abonnieren und Abos löschen</h1></div>
+            
+
+            <p class="para">
+                <span class="classname">Zend_Feed_Pubsubhubbub_Subscriber</span> implementiert einen
+                kompletten Pubsubhubbub Abonnenten der in der Lage ist jedes Thema über jeden Hub
+                der von diesem Thema vermittelt wird zu abonnieren und Abos zu löschen. Er arbeitet
+                in Verbindung mit <span class="classname">Zend_Feed_Pubsubhubbub_Subscriber_Callback</span>
+                welcher Anfragen von einem Hub akzeptiert um alle Aboanfragen und das Löschen von
+                Abos zu bestätigen (um Missbrauch durch andere zu verhindern).
+            </p>
+
+            <p class="para">
+                Jedes Abo (oder Löschen eines Abos) benötigt die betreffende Information bevor
+                es bearbeitet werden kann, z.B. die <acronym class="acronym">URI</acronym> des Themas (Atom oder
+                <acronym class="acronym">RSS</acronym> Feed) das für Aktualisierungen abonniert werden soll, und die
+                <acronym class="acronym">URI</acronym> des Endpunkts für den Hub welcher die Anmeldung auf das Abo
+                bearbeitet und die Aktualisierungen weiterleitet. Die Lebenszeit eines Abos kann
+                durch den Hub ermittelt werden, aber die meisten Hubs sollten die automatische
+                Auffrischung des Abos unterstützen indem der Abonnenten geprüft wird. Das wird von
+                <span class="classname">Zend_Feed_Pubsubhubbub_Subscriber_Callback</span> unterstützt und
+                benötigt keine weitere Arbeit. Es wird trotzdem empfohlen dass man die vom Hub
+                kommende Lebenszeit des Abos (time to live, ttl) verwendet um die Erstellung neuer
+                Abos zu planen (der Prozess ist identisch mit dem eines neuen Abos) um es beim Hub
+                zu aktualisieren. Wärend das per se nicht notwendig ist, deckt es Fälle ab in denen
+                ein Hub die automatische Aktualisierung des Abos nicht unterstützt und deckt damit
+                Fehler des Hubs mit zusätzlicher Redundanz ab.
+            </p>
+
+            <p class="para">
+                Mit der relevanten Information an der Hand kann eine Abonnierung wie anbei gezeigt
+                versucht werden:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$storage</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Feed_Pubsubhubbub_Model_Subscription;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$subscriber</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Feed_Pubsubhubbub_Subscriber;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$subscriber</span>-&gt;<span style="color: #006600;">setStorage</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$storage</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$subscriber</span>-&gt;<span style="color: #006600;">addHubUrl</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://hubbub.example.com'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$subscriber</span>-&gt;<span style="color: #006600;">setTopicUrl</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.example.net/rss.xml'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$subscriber</span>-&gt;<span style="color: #006600;">setCallbackUrl</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.mydomain.com/hubbub/callback'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$subscriber</span>-&gt;<span style="color: #006600;">subscribeAll</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Um Abos zu speichern und Zugriff auf dessen Daten für eine generelle Verwendung zu
+                Speichern benötigt die Komponente eine Datenbank (ein Schema wird später in diesem
+                Abschnitt angeboten). Standardmäßig wird angenommen das der Name der Tabelle
+                &quot;subscription&quot; ist und im Hintergrund <span class="classname">Zend_Db_Table_Abstract</span>
+                anwendet, was bedeutet das der Standardadapter verwendet wird welcher in der
+                Anwendung gesetzt ist. Man kann auch eine eigene spezielle Instanz von
+                <span class="classname">Zend_Db_Table_Abstract</span> in das assoziierte Modell von
+                <span class="classname">Zend_Feed_Pubsubhubbub_Model_Subscription</span> übergeben. Dieser
+                eigene Adapter kann so einfach wie gewünscht sein indem der Name der Tabelle welche
+                zu verwenden ist geändert wird, oder so komplex wie es notwendig ist.
+            </p>
+
+            <p class="para">
+                Wärend das Modell als standardmäßige bereits verwendbare Lösung angeboten wird, kann
+                man sein eigenes Modell verwenden indem irgendein anderes Backend oder
+                Datenbanklayer (z.B. Doctrine) verwendet wird, solange die resultierende Klasse das
+                Interface <span class="classname">Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface</span>
+                implementiert.
+            </p>
+
+            <p class="para">
+                Ein Beispielschema (MySQL) für eine Abotabelle auf welche vom angebotenen Modell aus
+                zugegriffen werden kann, könnte wie folgt aussehen:
+            </p>
+
+            <div class="programlisting sql"><div class="sqlcode"><div class="sql" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #993333; font-weight: bold;">CREATE</span> <span style="color: #993333; font-weight: bold;">TABLE</span> <span style="color: #993333; font-weight: bold;">IF</span> <span style="color: #993333; font-weight: bold;">NOT</span> <span style="color: #993333; font-weight: bold;">EXISTS</span> <span style="color: #ff0000;">`subscription`</span> <span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #ff0000;">`id`</span> varchar<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">32</span><span style="color: #66cc66;">&#41;</span> COLLATE utf8_unicode_ci <span style="color: #993333; font-weight: bold;">NOT</span> <span style="color: #993333; font-weight: bold;">NULL</span> <span style="color: #993333; font-weight: bold;">DEFAULT</span> <span style="color: #ff0000;">''</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #ff0000;">`topic_url`</span> varchar<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">255</span><span style="color: #66cc66;">&#41;</span> COLLATE utf8_unicode_ci <span style="color: #993333; font-weight: bold;">DEFAULT</span> <span style="color: #993333; font-weight: bold;">NULL</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #ff0000;">`hub_url`</span> varchar<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">255</span><span style="color: #66cc66;">&#41;</span> COLLATE utf8_unicode_ci <span style="color: #993333; font-weight: bold;">DEFAULT</span> <span style="color: #993333; font-weight: bold;">NULL</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #ff0000;">`created_time`</span> datetime <span style="color: #993333; font-weight: bold;">DEFAULT</span> <span style="color: #993333; font-weight: bold;">NULL</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #ff0000;">`lease_seconds`</span> bigint<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">20</span><span style="color: #66cc66;">&#41;</span> <span style="color: #993333; font-weight: bold;">DEFAULT</span> <span style="color: #993333; font-weight: bold;">NULL</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #ff0000;">`verify_token`</span> varchar<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">255</span><span style="color: #66cc66;">&#41;</span> COLLATE utf8_unicode_ci <span style="color: #993333; font-weight: bold;">DEFAULT</span> <span style="color: #993333; font-weight: bold;">NULL</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #ff0000;">`secret`</span> varchar<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">255</span><span style="color: #66cc66;">&#41;</span> COLLATE utf8_unicode_ci <span style="color: #993333; font-weight: bold;">DEFAULT</span> <span style="color: #993333; font-weight: bold;">NULL</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #ff0000;">`expiration_time`</span> datetime <span style="color: #993333; font-weight: bold;">DEFAULT</span> <span style="color: #993333; font-weight: bold;">NULL</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #ff0000;">`subscription_state`</span> varchar<span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">12</span><span style="color: #66cc66;">&#41;</span> COLLATE utf8_unicode_ci <span style="color: #993333; font-weight: bold;">DEFAULT</span> <span style="color: #993333; font-weight: bold;">NULL</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; <span style="color: #993333; font-weight: bold;">PRIMARY</span> <span style="color: #993333; font-weight: bold;">KEY</span> <span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">`id`</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span> ENGINE=InnoDB <span style="color: #993333; font-weight: bold;">DEFAULT</span> CHARSET=utf8 COLLATE=utf8_unicode_ci;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Im Hintergrund sendet der Abonnent eine Anfrage an den Endpunkt des Hubs welche die
+                folgenden Parameter enthält (basierend auf dem vorhergehenden Beispiel):
+            </p>
+
+            <table class="doctable table"><div class="info"><caption><b>Anfrageparameter beim Abonnieren</b></caption></div>
+                
+
+                
+                    <thead valign="middle">
+                        <tr valign="middle">
+                            <th>Parameter</th>
+                            <th>Wert</th>
+                            <th>Beschreibung</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody valign="middle" class="tbody">
+                        <tr valign="middle">
+                            <td align="left"><span class="property">hub.callback</span></td>
+                            <td align="left">http://www.mydomain.com/hubbub/callback?xhub.subscription=5536df06b5dcb966edab3a4c4d56213c16a8184</td>
+
+                            <td align="left">
+                                <p class="para">
+                                    Die <acronym class="acronym">URI</acronym> welche von einem Hub verwendet wird
+                                    um den Abonnenten zu kontaktieren und entweder eine Bestätigung
+                                    für eine Anfrage oder das Löschen eines Abos abzufragen oder
+                                    Aktualisierungen für abonnierte Feeds zu senden. Der angehängte
+                                    Abfragestring enthält einen eigenen Parameter (demzufolge der
+                                    Zweck von xhub). Es ist ein Parameter für einen Abfragestring
+                                    welcher vom Hub aufbewahrt um mit allen Anfragen des Abonnenten
+                                    wieder versendet wird. Sein Zweck ist es dem Abonnenten zu
+                                    erlauben sich zu identifizieren und die Abos zu betrachten
+                                    welche mit einer beliebigen Hubanfrage in einem
+                                    Backend-Speichermedium assoziiert sind. Das ist kein
+                                    Standardparameter welcher von dieser Komponente verwendet wird
+                                    statt einen Aboschlüssel im <acronym class="acronym">URI</acronym> Pfad zu
+                                    kodieren, was in einer Zend Framework Anwendung viel
+                                    komplizierter zu implementieren wäre.
+                                </p>
+
+                                <p class="para">
+                                    Trotzdem, da nicht alle Hubs Parameter für den Abfragestring
+                                    unterstützen wird empfohlen den Aboschlüssel als Pfadkomponente
+                                    in der Form von
+                                    http://www.mydomain.com/hubbub/callback/5536df06b5dcb966edab3a4c4d56213c16a8184
+                                    hinzuzufügen. Um das zu bewerkstelligen, wird die Definition
+                                    einer Route benötigt welche in der Lage ist den endgültigen
+                                    Wert des Schlüssels herauszuparsen den Wert zu erhalten und Ihn
+                                    an das Callback Objekt des Abonnenten zu übergeben. Der Wert
+                                    würde an die Methode
+                                     <span class="methodname">Zend_Pubsubhubbub_Subscriber_Callback::setSubscriptionKey()</span>
+                                    übergeben. Ein detailiertes Beispiel wird später gezeigt.
+                                </p>
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="property">hub.lease_seconds</span></td>
+                            <td align="left">2592000</td>
+
+                            <td align="left">
+                                <p class="para">
+                                    Die Anzahl an Sekunden für welche der Abonnenten will dass
+                                    ein neues Abo gültig bleibt (z.B. ein <acronym class="acronym">TTL</acronym>).
+                                    Hubs können Ihre eigene maximale Abodauer erzwingen. Alle Abos
+                                    sollten erneuert werden indem einfach erneut abonniert wird
+                                    bevor die Abodauer endet um die Kontinuierlichkeit der
+                                    Aktualisierungen zu gewährleisten. Hubs sollten zusätzlich
+                                    versuchen Abos automatisch zu aktualisieren bevor diese
+                                    auslaufen indem die Abonnenten kontaktiert werden (dies wird
+                                    automatisch von der Callback Klasse behandelt).
+                                </p>
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="property">hub.mode</span></td>
+                            <td align="left">subscribe</td>
+
+                            <td align="left">
+                                <p class="para">
+                                    Ein einfacher Wert welche anzeigt das dies eine Aboanfrage ist.
+                                    Anfragen für das Löschen von Abos würden den Wert
+                                    &quot;unsubscribe&quot; verwenden.
+                                </p>
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="property">hub.topic</span></td>
+                            <td align="left">http://www.example.net/rss.xml</td>
+
+                            <td align="left">
+                                <p class="para">
+                                    Die <acronym class="acronym">URI</acronym> des Themas (z.B. Atom oder
+                                    <acronym class="acronym">RSS</acronym> Feed) welche der Abonnent zu abonnieren
+                                    wünscht damit er Aktualisierungen bekommt.
+                                </p>
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="property">hub.verify</span></td>
+                            <td align="left">sync</td>
+
+                            <td align="left">
+                                <p class="para">
+                                    Zeigt dem Hub die bevorzugte Methode der Prüfung von Abos und
+                                    dem Löschen von Abos. Sie wird im Normalfall zwei mal
+                                    wiederholt. Technisch gesehen unterscheidet diese Komponente
+                                    nicht zwischen den zwei Modi und behandelt beide gleich.
+                                </p>
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="property">hub.verify</span></td>
+                            <td align="left">async</td>
+
+                            <td align="left">
+                                <p class="para">
+                                    Zeigt dem Hub die bevorzugte Methode der Prüfung von Abos und
+                                    dem Löschen von Abos. Sie wird im Normalfall zwei mal
+                                    wiederholt. Technisch gesehen unterscheidet diese Komponente
+                                    nicht zwischen den zwei Modi und behandelt beide gleich.
+                                </p>
+                            </td>
+                        </tr>
+
+
+                        <tr valign="middle">
+                            <td align="left"><span class="property">hub.verify_token</span></td>
+                            <td align="left">3065919804abcaa7212ae89.879827871253878386</td>
+
+                            <td align="left">
+                                <p class="para">
+                                    Ein Prüftoken welcher dem Abonnenten vom Hub zurückgegeben wird
+                                    wenn er ein Abos oder das Löschen eines Abos bestätigt. Bietet
+                                    ein Maß an Vertrauen dass die Bestätigung der Anfrage vom
+                                    aktuellen Hub kommt um Missbrauch zu vermeiden.
+                                </p>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                
+            </table>
+
+
+            <p class="para">
+                Man kann verschiedene dieser Parameter verändern um eine andere Vorliebe anzuzeigen.
+                Zum Beispiel kann man eine anderen Wert der Gültigkeit in Sekunden setzen indem man
+                 <span class="methodname">Zend_Pubsubhubbub_Subscriber::setLeaseSeconds()</span> verwendet,
+                oder eine Vorliebe für eine asynchrone Prüfung zeigen indem
+                 <span class="methodname">setPreferredVerificationMode(Zend_Feed_Pubsubhubbub::VERIFICATION_MODE_ASYNC)</span>
+                verwendet wird. Trotzdem bleiben die Hubs in der Lage Ihre eigenen Vorlieben zu
+                erzwingen, und aus diesem Grund wurde die Komponente so designt dass Sie mit fast
+                jedem Set an Optionen arbeitet und eine minimale Konfiguration des End-Benutzers
+                erfordert. Konventionen sind toll wenn Sie funktionieren!
+            </p>
+
+            <blockquote><p><b class="note">Note</b>: 
+                
+                    Wärend Hubs die Verwendung eines spezifischen Prüfmodus benötigen können (beide
+                    werden von <span class="classname">Zend_Pubsubhubbub</span> unterstützt), kann eine
+                    spezifische die zu bevorzugen ist durch Verwendung der Method
+                    <span class="classname">Zend_Pubsubhubbub</span> angezeigt werden. Im Modus &quot;sync&quot;
+                    (synchron) versucht der Hub eine Aboanfrage sofort zu bestätigen sobald diese
+                    empfangen, und noch bevor auf die Aboanfrage geantwortet wird. Im Modus &quot;async&quot;
+                    (asynchron) gibt der Hub sofort eine Antwort auf die Aboanfrage zurück, und die
+                    Prüfanfrage kann später stattfinden. Da <span class="classname">Zend_Pubsubhubbub</span>
+                    die Rolle der Aboprüfung als eigene Callback Klasse implementiert, und die
+                    Verwendung eines Backend Speichermediums, unterstützt Sie beide transparent im
+                    Sinne der Geschwindigkeit des Endbenutzers. Die acynchrone Prüfung ist stark zu
+                    bevorzugen um die Nachteile eines schlecht performenden Hubs zu eliminieren,
+                    und die Server Ressourcen des End-Benutzers und die Verbindungen nicht zu lange
+                    zu binden.
+                <br />
+            </p></blockquote>
+
+            <p class="para">
+                Das Löschen eines Abos folgt exakt dem gleichen Pattern wie im vorherigen Beispiel,
+                mit der Ausnahme das stattdessen  <span class="methodname">unsubscribeAll()</span>
+                aufgerufen wird. Die enthaltenen Parameter sind identisch mit einer Aboanfrage mit
+                der Ausnahme das &quot;<span class="property">hub.mode</span>&quot; auf &quot;unsubscribe&quot; gesetzt wird.
+            </p>
+
+            <p class="para">
+                Standardmäßig versucht eine neue Instanz von
+                <span class="classname">Zend_Pubsubhubbub_Subscriber</span> ein Datenbank Backend
+                Speichermedium zu verwenden mit Standardwerten um den standardmäßigen
+                <span class="classname">Zend_Db</span> Adapter mit dem Tabellennamen &quot;subscription&quot; zu
+                verwenden. Es wird empfohlen eine eigene Speicherlösung zu setzen welche diese
+                Standardwerte nicht verwendet, entweder duch übergabe eines neuen Modells welches
+                das benötigte Interface unterstützt, oder durch Übergabe einer neuen Instanz von
+                <span class="classname">Zend_Db_Table_Abstract</span> an dem Constructor des standardmäßigen
+                Modells um den verwendeten Tabellennamen zu verändern.
+            </p>
+        </div>
+
+        <div class="section" id="zend.feed.pubsubhubbub.zend.feed.pubsubhubbub.subscriber.handling.hub.callbacks" name="zend.feed.pubsubhubbub.zend.feed.pubsubhubbub.subscriber.handling.hub.callbacks"><div class="info"><h1 class="title">Callbacks von Abonnenten behandeln</h1></div>
+            
+
+            <p class="para">
+                Wann auch immer eine Aboanfrage oder eine Anfrage auf Löschen eines Abos gemacht
+                wird muss der Hub die Anfrage prüfen indem er eine neue Prüfanfrage an die Callback
+                <acronym class="acronym">URL</acronym> weiterleitet welche in den Abo or Abo löschen Parametern
+                gesetzt ist. Um diese Hub Anfragen zu behandeln, welche alle zukünftigen
+                Kommunikationen enthalten können wie z.B. Themenaktualisierungen (Feed), sollte die
+                Callback <acronym class="acronym">URL</acronym> die Ausführung einer Instanz von
+                <span class="classname">Zend_Pubsubhubbub_Subscriber_Callback</span> auslösen um die Anfrage
+                zu behandeln.
+            </p>
+
+            <p class="para">
+                Die Callback Klasse sollte konfiguriert werden dass Sie das selbe Speichermedium wie
+                die Subscriber Klasse verwendet. Ihre Verwendung ist sehr einfach da die meiste
+                Arbeit intern erledigt wird.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$storage</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Feed_Pubsubhubbub_Model_Subscription;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$callback</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Feed_Pubsubhubbub_Subscriber_Callback;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">setStorage</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$storage</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">sendResponse</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Prüfe ob der resultierende Callback das Ergebnis eines Feed Updates ist.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Andernfalls war es entweder eine (De-)Abo-Prüfanfrage oder ungültig.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Typischerweise müssen wir nicht mehr tun als die Behandlung der</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Aktualisierungen vom Feed hinzuzufügen - der Rest wird intern von der</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Klasse behandelt.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">hasFeedUpdate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$feedString</span> = <span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">getFeedUpdate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* Die Aktualisierung des Feeds asynchron bearbeiten um ein Timeout</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* des Hubs zu vermeiden.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <blockquote><p><b class="note">Note</b>: 
+                
+                    Es sollte beachtet werden dass
+                    <span class="classname">Zend_Feed_Pubsubhubbub_Subscriber_Callback</span> jeden
+                    hereinkommenden Anfragestring und andere Parameter unabhängig parsen kann. Dies
+                    ist notwendig da <acronym class="acronym">PHP</acronym> die Struktur und Schlüssel eines
+                    Abfragestrings ändert wenn diese in die Superglobals <var class="varname">$_GET</var>
+                    oder <var class="varname">$_POST</var> geparst wird. Zum Beispiel werden alle doppelten
+                    Schlüssel ignoriert und Punkte werden in Unterstriche konvertiert.
+                    Pubsubhubbub unterstützt beide in den Abfragestring die es erzeugt.
+                <br />
+            </p></blockquote>
+
+            <div class="important"><b class="important">Important</b>
+                <p class="para">
+                    Es ist wichtig das Entwickler erkennen das Hubs nur mit dem Senden von Anfragen
+                    und dem Empfangen einer Antwort beschäftigt sind welche den Empfang prüft. Wenn
+                    eine Feedaktualisierung empfangen wird sollte Sie niemals nachfolgend bearbeitet
+                    werden da Sie den Hub auf eine Antwort warten lässt. Stattdessen sollte jede
+                    Bearbeitung auf einen anderen Prozess ausgelagert werden oder verzögert bis eine
+                    Antwort zum Hub zurückgesendet wird. Ein Symptom des Fehlers Hubanfragen sofort
+                    zu komplettieren besteht darin das ein Hub weitere Versuche durchführen kann die
+                    Aktualisierungs- oder Prüfanfrage zuzustellen was zu doppelten
+                    Aktualisierungsversuchen führen kann die vom Abonnenten bearbeitet werden. Das
+                    scheint problematisch zu sein -- aber in Wirklichkeit kann ein Hub ein Timeout
+                    von ein paar Sekunden anwenden, und wenn keine Antwort in dieser Zeit empfangen
+                    wird kann er trennen (in der annahme eines Zustellfehlers) und es später nochmal
+                    versuchen. Es ist zu beachten das von Hubs erwartet wird das Wie große Mengen an
+                    Aktualisierungen verteilen und Ihre Ressources deswegen gestreckt sind - bitte
+                    bearbeiten Sie Feeds asynchron (z.B. in einem separaten Prozess oder einer Job
+                    Queue oder sogar in einem geplanten Cron Task) soweit das möglich ist.
+                </p>
+            </div>
+        </div>
+
+        <div class="section" id="zend.feed.pubsubhubbub.zend.feed.pubsubhubbub.subscriber.setting.up.and.using.a.callback.url.route" name="zend.feed.pubsubhubbub.zend.feed.pubsubhubbub.subscriber.setting.up.and.using.a.callback.url.route"><div class="info"><h1 class="title">Eine Callback URL Route einstellen und verwenden</h1></div>
+            
+
+            <p class="para">
+                Wie vorher erwähnt empfängt die Klasse
+                <span class="classname">Zend_Feed_Pubsubhubbub_Subscriber_Callback</span> den kombinierten
+                Schlüssel welche mit jedem Abo assoziiert ist vom Hub über eine oder zwei Methoden.
+                Die technisch bevorzugte Methode ist das Hinzufügen dieses Schlüssels zur Callback
+                <acronym class="acronym">URL</acronym> welcher für den Hub in allen zukünftigen Anfragen tätig ist
+                indem ein Stringparameter in der Abfrage mit dem Schlüssel &quot;xhub.subscription&quot;
+                verwendet wird. Trotzdem, aus historischen Gründen, weil es in Pubsubhubbub 0.1
+                nicht unterstützt wurde (es wurde kürzlich nur in 0.2 hinzugefügt) ist es stärkstens
+                empfohlen das kompatibelste zu verwenden und den Schlüssel der Callback
+                <acronym class="acronym">URL</acronym> hinzuzugefügen indem er den <acronym class="acronym">URL</acronym> Pfaden
+                angehängt wird.
+            </p>
+
+            <p class="para">
+                Deshalb würde die <acronym class="acronym">URL</acronym>
+                http://www.example.com/callback?xhub.subscription=key zu
+                http://www.example.com/callback/key werden.
+            </p>
+
+            <p class="para">
+                Da die Abfragestring Methode der Standard in der Vermeidung eines größeren Levels
+                der zukünftigen Unterstützung der kompletten 0.2 Spezifikation ist, benötigt es
+                etwas zusätzliche Arbeit um Sie zu implementieren.
+            </p>
+
+            <p class="para">
+                Der erste Schritt besteht darin der Klasse
+                <span class="classname">Zend_Feed_Pubsubhubbub_Subscriber_Callback</span> dem Pfad bewusst
+                zu machen welcher den Aboschlüssel enthält. Er wird hierfür manuell injiziert, da
+                man für diesen Zweck auch eine Route manuell definieren muss. Das wird erzielt indem
+                einfach die Methode
+                 <span class="methodname">Zend_Feed_Pubsubhubbub_Subscriber_Callback::setSubscriptionKey()</span>
+                mit dem Parameter aufgerufen wird welcher der Schlüsselwert ist der vom Router
+                kommt. Das folgende Beispiel zeigt dies durch Verwendung eines Zend Framework
+                Controllers.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> CallbackController <span style="color: #000000; font-weight: bold;">extends</span> Zend_Controller_Action</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> indexAction<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$storage</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Feed_Pubsubhubbub_Model_Subscription;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$callback</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Feed_Pubsubhubbub_Subscriber_Callback;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">setStorage</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$storage</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Injiziert den Aboschlüssel welcher er vom URL Pfad geparst wird</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* indem ein Parameter vom Router verwendet wird</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$subscriptionKey</span> = <span style="color: #0000ff;">$this</span>-&gt;_getParam<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'subkey'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">setSubscriptionKey</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$subscriptionKey</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">sendResponse</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Prüfen ob der Callback als Ergebnis den Empfang eines Feed Updates</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* enthält. Anderfalls war es entweder eine De-Aboprüfungsanfrage oder</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* eine ungültige Anfrage. Typischerweise muss nichts anderes getan</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* werden als das Handling der Feedaktualisierungen hinzuzufügen - der</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Rest wird intern von der Klasse behandelt.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">hasFeedUpdate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #0000ff;">$feedString</span> = <span style="color: #0000ff;">$callback</span>-&gt;<span style="color: #006600;">getFeedUpdate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Die Aktualisierung des Feeds asynchron behandeln um Hub</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;* Timeouts zu vermeiden.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Aktuell kann das Hinzufügen der Route zu einem Parameter welcher den Schlüssel der
+                an den Pfad angehängt wird mappen würde durchgeführt werden indem eine
+                Routenkonfiguration wie im kommenden <acronym class="acronym">INI</acronym> formatierten Beispiel
+                für die Verwendung mit dem Bootstrapping von <span class="classname">Zend_Application</span>
+                verwendet wird.
+            </p>
+
+            <div class="programlisting dosini"><div class="dosinicode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">; Callback Route fürs Hinzufügen einer PuSH Aboschlüssel Abfrage zu aktivieren</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">resources.router.routes.callback.route = &quot;callback/:subkey&quot;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">resources.router.routes.callback.defaults.module = &quot;default&quot;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">resources.router.routes.callback.defaults.controller = &quot;callback&quot;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">resources.router.routes.callback.defaults.action = &quot;index&quot;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.feed.writer.html">Zend_Feed_Writer</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.feed.html">Zend_Feed</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.file.html">Zend_File</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.feed.html">Zend_Feed</a></li>
+  <li><a href="zend.feed.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.feed.importing.html">Feeds importieren</a></li>
+  <li><a href="zend.feed.findFeeds.html">Feeds von Websites abrufen</a></li>
+  <li><a href="zend.feed.consuming-rss.html">Einen RSS Feed konsumieren</a></li>
+  <li><a href="zend.feed.consuming-atom.html">Einen Atom Feed konsumieren</a></li>
+  <li><a href="zend.feed.consuming-atom-single-entry.html">Einen einzelnen Atom Eintrag konsumieren</a></li>
+  <li><a href="zend.feed.modifying-feed.html">Ver&auml;ndern der Feed- und Eintragsstruktur</a></li>
+  <li><a href="zend.feed.custom-feed.html">Eigene Klassen f&uuml;r Feeds und Eintr&auml;ge</a></li>
+  <li><a href="zend.feed.reader.html">Zend_Feed_Reader</a></li>
+  <li><a href="zend.feed.writer.html">Zend_Feed_Writer</a></li>
+  <li class="active"><a href="zend.feed.pubsubhubbub.introduction.html">Zend_Feed_Pubsubhubbub</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

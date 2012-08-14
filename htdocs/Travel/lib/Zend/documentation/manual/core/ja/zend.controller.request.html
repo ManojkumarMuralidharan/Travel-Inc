@@ -1,0 +1,529 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>リクエストオブジェクト - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.controller.front.html">フロントコントローラ</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.controller.html">Zend_Controller</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.controller.router.html">標準のルータ</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.controller.request" class="section"><div class="info"><h1 class="title">リクエストオブジェクト</h1></div>
+    
+    <div class="section" id="zend.controller.request.introduction" name="zend.controller.request.introduction"><div class="info"><h1 class="title">導入</h1></div>
+        
+        <p class="para">
+            リクエストオブジェクトとは <span class="classname">Zend_Controller_Front</span> とルータ、
+            ディスパッチャそしてコントローラクラスの間でやり取りされる単純なバリューオブジェクトです。
+            これはコントローラ、アクションそして環境 (<acronym class="acronym">HTTP</acronym>、<acronym class="acronym">CLI</acronym>、<acronym class="acronym">PHP</acronym>-GTK など)
+            に応じたその他のパラメータの内容をまとめたものです。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                モジュール名にアクセスするには
+                 <span class="methodname">getModuleName()</span> および
+                 <span class="methodname">setModuleName()</span> を使用します。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                コントローラ名にアクセスするには
+                 <span class="methodname">getControllerName()</span> および
+                 <span class="methodname">setControllerName()</span> を使用します。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                コントローラ内でコールするアクションの名前にアクセスするには
+                 <span class="methodname">getActionName()</span> および
+                 <span class="methodname">setActionName()</span> を使用します。
+            </p></li>
+
+            <li class="listitem"><p class="para">
+                アクションからアクセスできるパラメータは
+                キー/値 の組み合わせの連想配列となります。これらを取得するには
+                 <span class="methodname">getParams()</span> を、そして設定するには
+                 <span class="methodname">setParams()</span> を使用します。各パラメータを個別に扱うには
+                 <span class="methodname">getParam()</span> および  <span class="methodname">setParam()</span> を使用します。
+            </p></li>
+        </ul>
+
+        <p class="para">
+            リクエストの型によっては、その他のメソッドが使用できることもあります。
+            たとえば、デフォルトのリクエストで使用する
+            <span class="classname">Zend_Controller_Request_Http</span> の場合は、
+            リクエストされた <acronym class="acronym">URI</acronym> やパス情報、
+            <var class="varname">$_GET</var> パラメータや <var class="varname">$_POST</var>
+            パラメータを取得するメソッドが使用可能となります。
+        </p>
+
+        <p class="para">
+            リクエストオブジェクトはフロントコントローラに渡されます。
+            もしリクエストオブジェクトがなかった場合は、
+            ディスパッチ処理の最初 (ルーティングが発生する前)
+            にインスタンスが作成されます。これは、
+            ディスパッチチェインのすべてのオブジェクトに渡されていきます。
+        </p>
+
+        <p class="para">
+            さらに、リクエストオブジェクトはテストの際にも有用です。
+            開発者がリクエストを作成し、コントローラやアクション、
+            パラメータや <acronym class="acronym">URI</acronym> などを指定してそれをフロントコントローラに渡すことで、
+            アプリケーションの流れをテストできます。
+            <a href="zend.controller.response.html" class="link">レスポンスオブジェクト</a>
+            と組み合わせて使用すると、
+            <acronym class="acronym">MVC</acronym> アプリケーションの精密で正確な単体テストが可能となります。
+        </p>
+    </div>
+
+    <div class="section" id="zend.controller.request.http" name="zend.controller.request.http"><div class="info"><h1 class="title">HTTP リクエスト</h1></div>
+        
+
+        <div class="section" id="zend.controller.request.http.dataacess" name="zend.controller.request.http.dataacess"><div class="info"><h1 class="title">リクエストデータへのアクセス</h1></div>
+            
+
+            <p class="para">
+                <span class="classname">Zend_Controller_Request_Http</span> は、関連する値へのアクセスをカプセル化します。
+                たとえばコントローラやアクションルータの変数のキー名や値、
+                <acronym class="acronym">URI</acronym> からパースした追加のパラメータの値などにアクセスできます。
+                <span class="classname">Zend_Controller_Request_Http</span> のプロキシとして動作することで、
+                スーパーグローバルの値にパブリックメンバとしてアクセスしたり、
+                現在のベース <acronym class="acronym">URL</acronym> やリクエスト <acronym class="acronym">URI</acronym> を管理することもできます。
+                スーパーグローバルの値はリクエストオブジェクトに設定することはできません。
+                そのかわりに  <span class="methodname">setParam()</span> および  <span class="methodname">getParam()</span> メソッドを使用して、
+                パラメータを設定あるいは取得します。
+            </p>
+
+            <blockquote><p><b class="note">Note</b>: <span class="info"><b>スーバーグローバルデータ</b><br /></span>
+                
+                
+                    <span class="classname">Zend_Controller_Request_Http</span> のパブリックプロパティを使用して
+                    スーパーグローバルデータにアクセスする際に注意すべき点は、
+                    プロパティ名 (スーバーグローバル配列のキー)
+                    は以下の優先順位でマッチするということです。
+                    1. <b><tt>GET</tt></b>, 2. <b><tt>POST</tt></b>, 3. <b><tt>COOKIE</tt></b>,
+                    4. <b><tt>SERVER</tt></b>, 5. <b><tt>ENV</tt></b>.
+                <br />
+            </p></blockquote>
+
+            <p class="para">
+                特定のスーパーグローバルにアクセスするには、
+                パブリックメソッドを使用する方法もあります。たとえば、
+                <var class="varname">$_POST[&#039;user&#039;]</var> の値を取得するには、リクエストオブジェクト上で
+                 <span class="methodname">getPost(&#039;user&#039;)</span> をコールします。同様に、
+                <var class="varname">$_GET</var> 要素の場合は  <span class="methodname">getQuery()</span>、
+                リクエストヘッダの場合は  <span class="methodname">getHeader()</span>
+                を使用します。
+            </p>
+
+            <blockquote><p><b class="note">Note</b>: <span class="info"><b>GET および POST データ</b><br /></span>
+                
+                
+                    リクエストオブジェクトのデータを扱う際には注意しましょう。
+                    これらのデータは、一切フィルタリングを行っていません。
+                    ルータやディスパッチャのほうで適切な検証とフィルタリングを行うので、
+                    リクエストオブジェクト内のデータはそのままにしておきましょう。
+                <br />
+            </p></blockquote>
+
+            <blockquote><p><b class="note">Note</b>: <span class="info"><b>生の POST データの取得</b><br /></span>
+                
+
+                
+                    1.5.0 以降では、生の投稿データを
+                     <span class="methodname">getRawBody()</span> メソッドで取得できます。
+                    このメソッドは、データが送信されていない場合は <b><tt>FALSE</tt></b> を返します。
+                    送信されている場合は、投稿内容の本文全体を返します。
+                <br />
+
+                
+                    これは、RESTful な <acronym class="acronym">MVC</acronym>
+                    アプリケーションを開発するにあたって非常に有用です。
+                <br />
+            </p></blockquote>
+
+            <p class="para">
+                ユーザパラメータをリクエストオブジェクトに設定するには
+                 <span class="methodname">setParam()</span> を、後でそれを取得するには
+                 <span class="methodname">getParam()</span> を使用します。
+                ルータは、リクエスト <acronym class="acronym">URI</acronym> にマッチしたパラメータを
+                リクエストオブジェクトに設定する際にこの機能を使用します。
+            </p>
+
+            <blockquote><p><b class="note">Note</b>: <span class="info"><b>getParam() でのユーザパラメータ以外の取得</b><br /></span>
+                
+
+                
+                     <span class="methodname">getParam()</span> は、実際にはユーザパラメータ以外のところからも情報を取得しています。
+                    優先順位の高い順に並べると、まず最初は  <span class="methodname">setParam()</span>
+                    で設定したパラメータ、それから <b><tt>GET</tt></b> パラメータ、
+                    <b><tt>POST</tt></b> パラメータの順になります。
+                    このメソッドを使用する際には、この点に注意しましょう。
+                <br />
+
+                
+                     <span class="methodname">setParam()</span> で設定したパラメータからだけ取得したい場合は、
+                     <span class="methodname">getUserParam()</span> を使用します。
+                <br />
+
+                
+                    さらに、1.5.0 以降では
+                    どのパラメータから検索するかを制限できます。
+                     <span class="methodname">setParamSources()</span> に空の配列あるいは
+                    値 &#039;_GET&#039; や &#039;_POST&#039; を含む配列を指定して使用します
+                    (デフォルトでは両方が指定されています)。&#039;_GET&#039;
+                    からのみに制限したい場合は
+                     <span class="methodname">setParamSources(array(&#039;_GET&#039;))</span> とします。
+                <br />
+            </p></blockquote>
+
+            <blockquote><p><b class="note">Note</b>: <span class="info"><b>Apache のおかしな挙動</b><br /></span>
+                
+                
+                    Apache の 404 ハンドラを使用して
+                    リクエストをフロントコントローラに渡したり、
+                    PT フラグを rewrite ルールで使用したりする場合は、
+                    必要な <acronym class="acronym">URI</acronym> 情報が含まれるのが
+                    <var class="varname">$_SERVER[&#039;REQUEST_URI&#039;]</var>
+                    ではなく <var class="varname">$_SERVER[&#039;REDIRECT_URL&#039;]</var>
+                    であることに注意しましょう。
+                    この設定を使用して無効なルーティングを取得したい場合は、
+                    デフォルトの <acronym class="acronym">HTTP</acronym> クラスではなく
+                    <span class="classname">Zend_Controller_Request_Apache404</span>
+                    クラスを使用してリクエストオブジェクトを作成しなければなりません。
+                <br />
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$request</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Controller_Request_Apache404<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setRequest</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$request</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+                
+                    このクラスは
+                    <span class="classname">Zend_Controller_Request_Http</span>
+                    クラスを継承したもので、リクエスト <acronym class="acronym">URI</acronym>
+                    を自動で検出できるように変更しています。
+                    これは、単純にもとのクラスと差し替えて使用できます。
+                <br />
+            </p></blockquote>
+        </div>
+
+        <div class="section" id="zend.controller.request.http.baseurl" name="zend.controller.request.http.baseurl"><div class="info"><h1 class="title">ベース URL およびサブディレクトリ</h1></div>
+            
+
+            <p class="para">
+                <span class="classname">Zend_Controller_Request_Http</span> は、
+                サブディレクトリで <span class="classname">Zend_Controller_Router_Rewrite</span> を使用できます。
+                <span class="classname">Zend_Controller_Request_Http</span> は自動的にベース <acronym class="acronym">URL</acronym> を検出し、
+                それを適切に設定します。
+            </p>
+
+            <p class="para">
+                たとえば、<var class="filename">index.php</var> をウェブサーバのサブディレクトリ
+                <var class="filename">/projects/myapp/index.php</var> においた場合は、ベース <acronym class="acronym">URL</acronym>
+                (rewrite base) は <var class="filename">/projects/myapp</var> にしなければなりません。
+                マッチするルートを見つける前に、この文字列がパスの先頭から取り除かれます。
+                これにより、すべてのルートに余計な文字を追加する必要がなくなります。
+                ルート <strong class="command">&#039;user/:username&#039;</strong> は、
+                <var class="filename">http://localhost/projects/myapp/user/martel</var> および
+                <var class="filename">http://example.com/user/martel</var> の両方にマッチするようになります。
+            </p>
+
+            <blockquote><p><b class="note">Note</b>: <span class="info"><b>URL の検出は大文字小文字を区別します</b><br /></span>
+                
+                
+                    自動的なベース <acronym class="acronym">URL</acronym> の検出処理は大文字小文字を区別します。そのため、
+                    <acronym class="acronym">URL</acronym> とファイルシステムのサブディレクトリ名が確実に一致する必要があります
+                    (たとえ Windows マシンであっても同様です)。大文字小文字が一致しなかった場合は、
+                    例外が発生します。
+                <br />
+            </p></blockquote>
+
+            <p class="para">
+                ベース <acronym class="acronym">URL</acronym> の検出に失敗する場合は、
+                <span class="classname">Zend_Controller_Request_Http</span> クラス、あるいは
+                <span class="classname">Zend_Controller_Front</span> クラスの
+                 <span class="methodname">setBaseUrl()</span> メソッドを使用して
+                ベースパスを上書き指定できます。
+                一番簡単な方法は <span class="classname">Zend_Controller_Front</span> で設定することです。
+                この設定はリクエストオブジェクトに引き継がれます。
+                独自のベース <acronym class="acronym">URL</acronym> を設定する例を示します。
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Zend_Controller_Front で独自のベース URL を指定することによるリクエストのディスパッチ</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$router</span>&nbsp; &nbsp; &nbsp;= <span style="color: #000000; font-weight: bold;">new</span> Zend_Controller_Router_Rewrite<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$controller</span> = Zend_Controller_Front::<span style="color: #006600;">getInstance</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$controller</span>-&gt;<span style="color: #006600;">setControllerDirectory</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'./application/controllers'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setRouter</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$router</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setBaseUrl</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'/projects/myapp'</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// ベース URL を指定します!</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$response</span>&nbsp; &nbsp;= <span style="color: #0000ff;">$controller</span>-&gt;<span style="color: #006600;">dispatch</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        </div>
+
+        <div class="section" id="zend.controller.request.http.method" name="zend.controller.request.http.method"><div class="info"><h1 class="title">リクエストメソッドの判定</h1></div>
+            
+
+            <p class="para">
+                 <span class="methodname">getMethod()</span> では、
+                現在のリソースへのリクエストの際に使用した
+                <acronym class="acronym">HTTP</acronym> メソッドを判定できます。
+                さらに、指定した型のリクエストであったかどうかを判定するための
+                メソッドも用意されています。
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para"> <span class="methodname">isGet()</span></p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">isPost()</span></p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">isPut()</span></p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">isDelete()</span></p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">isHead()</span></p></li>
+                <li class="listitem"><p class="para"> <span class="methodname">isOptions()</span></p></li>
+            </ul>
+
+            <p class="para">
+                これらの主な使用法は、RESTfult な
+                <acronym class="acronym">MVC</acronym> アーキテクチャを作成することです。
+            </p>
+        </div>
+
+        <div class="section" id="zend.controller.request.http.ajax" name="zend.controller.request.http.ajax"><div class="info"><h1 class="title">AJAX リクエストの検出</h1></div>
+            
+
+            <p class="para">
+                <span class="classname">Zend_Controller_Request_Http</span> には、
+                <acronym class="acronym">AJAX</acronym> リクエストを検出するための基本的なメソッド
+                 <span class="methodname">isXmlHttpRequest()</span> が用意されています。
+                このメソッドは、<acronym class="acronym">HTTP</acronym> リクエストヘッダ
+                <em class="emphasis">X-Requested-With</em> に
+                &#039;XMLHttpRequest&#039; という値が設定されているかどうかを調べ、
+                設定されている場合に <b><tt>TRUE</tt></b> を返します。
+            </p>
+
+            <p class="para">
+                現時点では、次の JS ライブラリがデフォルトでこのヘッダを渡すようです。
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para">Prototype/Scriptaculous (その他
+                        Prototype 系のライブラリ)</p></li>
+                <li class="listitem"><p class="para">Yahoo! UI Library</p></li>
+                <li class="listitem"><p class="para">jQuery</p></li>
+                <li class="listitem"><p class="para">MochiKit</p></li>
+            </ul>
+
+            <p class="para">
+                大半の <acronym class="acronym">AJAX</acronym> ライブラリは、独自の <acronym class="acronym">HTTP</acronym> リクエストヘッダを送信できます。
+                ご利用のライブラリがこのヘッダを送信していない場合は、
+                自分でこのヘッダを追加することで
+                 <span class="methodname">isXmlHttpRequest()</span> メソッドの動作を期待通りにできます。
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="zend.controller.request.subclassing" name="zend.controller.request.subclassing"><div class="info"><h1 class="title">リクエストオブジェクトのサブクラスの作成</h1></div>
+        
+
+        <p class="para">
+            すべてのリクエストオブジェクトクラスは、抽象クラス
+            <span class="classname">Zend_Controller_Request_Abstract</span> を継承しています。
+            このクラスでは、次のようなメソッドを定義しています。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">abstract <span style="color: #000000; font-weight: bold;">class</span> Zend_Controller_Request_Abstract</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return string</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getControllerName<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param string $value</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return self</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> setControllerName<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$value</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return string</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getActionName<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param string $value</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return self</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> setActionName<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$value</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return string</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getControllerKey<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param string $key</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return self</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> setControllerKey<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$key</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return string</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getActionKey<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param string $key</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return self</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> setActionKey<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$key</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param string $key</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return mixed</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getParam<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$key</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param string $key</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param mixed $value</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return self</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> setParam<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$key</span>, <span style="color: #0000ff;">$value</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return array</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp;<span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getParams<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param array $array</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return self</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> setParams<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a> <span style="color: #0000ff;">$array</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param boolean $flag</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return self</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> setDispatched<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$flag</span> = <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return boolean</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> isDispatched<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            リクエストオブジェクトは、リクエスト環境のコンテナとなります。
+            コントローラチェインが知っておくべきことは、
+            コントローラやアクション、オプションパラメータ、ディスパッチ状況
+            を取得したり設定したりする方法だけです。
+            デフォルトでは、リクエストオブジェクトが
+            コントローラおよびアクションを決定する際には
+            キー controller あるいは action を使用します。
+        </p>
+
+        <p class="para">
+            このクラスかその派生クラスのいずれかを継承したクラスを作成することで、
+            上で説明した作業を独自のものに変更したクラスを作成できます。
+            例としては、たとえば <a href="zend.controller.request.html#zend.controller.request.http" class="link"><acronym class="acronym">HTTP</acronym>
+            環境用</a> のクラスや <acronym class="acronym">CLI</acronym> 環境用、<acronym class="acronym">PHP</acronym>-GTK 環境用のクラスがあります。
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.controller.front.html">フロントコントローラ</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.controller.html">Zend_Controller</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.controller.router.html">標準のルータ</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.controller.html">Zend_Controller</a></li>
+  <li><a href="zend.controller.quickstart.html">Zend_Controller クイックスタート</a></li>
+  <li><a href="zend.controller.basics.html">Zend_Controller の基本</a></li>
+  <li><a href="zend.controller.front.html">フロントコントローラ</a></li>
+  <li class="active"><a href="zend.controller.request.html">リクエストオブジェクト</a></li>
+  <li><a href="zend.controller.router.html">標準のルータ</a></li>
+  <li><a href="zend.controller.dispatcher.html">ディスパッチャ</a></li>
+  <li><a href="zend.controller.action.html">アクションコントローラ</a></li>
+  <li><a href="zend.controller.actionhelpers.html">アクションヘルパー</a></li>
+  <li><a href="zend.controller.response.html">レスポンスオブジェクト</a></li>
+  <li><a href="zend.controller.plugins.html">プラグイン</a></li>
+  <li><a href="zend.controller.modular.html">モジュラーディレクトリ構造の規約の使用</a></li>
+  <li><a href="zend.controller.exceptions.html">MVC での例外</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

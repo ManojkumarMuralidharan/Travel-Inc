@@ -1,0 +1,716 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Http_Cookie und Zend_Http_CookieJar - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.http.client.adapters.html">Zend_Http_Client - Verbindungsadapter</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.http.html">Zend_Http</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.http.response.html">Zend_Http_Response</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.http.cookies" class="section"><div class="info"><h1 class="title">Zend_Http_Cookie und Zend_Http_CookieJar</h1></div>
+    
+
+    <div class="section" id="zend.http.cookies.introduction" name="zend.http.cookies.introduction"><div class="info"><h1 class="title">Einführung</h1></div>
+        
+
+        <p class="para">
+            Wie erwartet ist <span class="classname">Zend_Http_Cookie</span> eine Klasse, die einen
+            <acronym class="acronym">HTTP</acronym> Cookie darstellt. Sie stellt Methoden zum Verarbeiten von
+            <acronym class="acronym">HTTP</acronym> Antwort-Strings, Sammeln von Cookies und dem einfachen Zugriff
+            auf deren Eigenschaften zur Verfügung. So ist es auch möglich verschiedene Zustände
+            eines Cookies zu überprüfen, z.B. den Anfrage <acronym class="acronym">URL</acronym>, die Ablaufzeit,
+            das Vorliegen einer sicheren Verbindung, etc.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Http_CookieJar</span> ist ein Objekt, das normalerweise von der
+            Klasse <span class="classname">Zend_Http_Client</span> genutzt wird und einen Satz von
+            <span class="classname">Zend_Http_Cookie</span> Objekten beinhaltet. Die Idee ist das wenn ein
+            <span class="classname">Zend_Http_CookieJar</span> an ein
+            <span class="classname">Zend_Http_Client</span> Objekt angehängt wird, alle ein- und ausgehenden
+            Cookies der <acronym class="acronym">HTTP</acronym> Anfragen und -Antworten im CookieJar Objekt
+            gespeichert werden. Bei einer neuen Anfrage seitens des Clients wird nach allen Cookies,
+            die auf diese Anfrage zutreffen, gesucht. Diese werden automatisch
+            zum Anfrage-Header hinzugefügt, was besonders nützlich ist, wenn man
+            eine Benutzersession über aufeinander folgende <acronym class="acronym">HTTP</acronym> Anfragen
+            beibehalten muss; die Session-ID wird automatisch gesendet, wenn es notwendig ist.
+            Ferner ist es möglich, <span class="classname">Zend_Http_CookieJar</span> Objekte zu
+            serialisieren und, wenn nötig, in $_SESSION zu speichern.
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookie.instantiating" name="zend.http.cookies.cookie.instantiating"><div class="info"><h1 class="title">Instanzieren von Zend_Http_Cookie Objekten</h1></div>
+        
+
+        <p class="para">
+            Es gibt zwei Möglichkeiten ein Cookie Objekt zu erstellen:
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        Mithilfe des Konstruktors und der folgenden Syntax:
+                        <strong class="command">new <span class="classname">Zend_Http_Cookie</span>(string $name, string
+                            $value, string $domain, [int $expires, [string $path, [boolean
+                            $secure]]]);</strong>
+                    </p>
+
+                    <ul class="itemizedlist">
+                        <li class="listitem">
+                            <p class="para">
+                                <var class="varname">$name</var>: Name des Cookies (notwendig)
+                            </p>
+                        </li>
+
+                        <li class="listitem">
+                            <p class="para">
+                                <var class="varname">$value</var>: Inhalt des Cookies (notwendig)
+                            </p>
+                        </li>
+
+                        <li class="listitem">
+                            <p class="para">
+                                <var class="varname">$domain</var>: Die Domain des Cookies (z.B.
+                                &#039;.example.com&#039;) (notwendig)
+                            </p>
+                        </li>
+
+                        <li class="listitem">
+                            <p class="para">
+                                <var class="varname">$expires</var>: Ablaufzeit des Cookies als UNIX
+                                Zeitstempel (optional, standardmäßig <b><tt>FALSE</tt></b>).
+                                Ein Nicht setzen führt zu einer Behandlung als &#039;Session-Cookie&#039;, das
+                                keine Ablaufzeit enthält.
+                            </p>
+                        </li>
+
+                        <li class="listitem">
+                            <p class="para">
+                                <var class="varname">$path</var>: Pfad des Cookies, z.B. &#039;/foo/bar/&#039;
+                                (optional, standardmäßig &#039;/&#039;)
+                            </p>
+                        </li>
+
+                        <li class="listitem">
+                            <p class="para">
+                                <var class="varname">$secure</var>: Boolean, ob der Cookie nur über sichere
+                                Verbindungen (HTTPS) gesendet werden darf (optional, standardmäßig
+                                boolean <b><tt>FALSE</tt></b>)
+                            </p>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        Durch das Aufrufen der statischen fromString($cookieStr, [$refUri,
+                        [$encodeValue]])-Methode mit einem
+                        Cookie-String, wie er unter &#039;Set-Cookie&#039; in einer <acronym class="acronym">HTTP</acronym>
+                        Antwort und &#039;Cookie&#039; in einer <acronym class="acronym">HTTP</acronym> Anfrage zu finden ist.
+                        In diesem Fall muss der Cookie-Inhalt bereits kodiert sein. Falls der
+                        Cookie-String keinen &#039;domain&#039;-Teil enthält, muss man selbst einen Referenz
+                        <acronym class="acronym">URI</acronym> angeben, aus dem die Domain und der Pfad des Cookies
+                        bestimmt wird.
+                    </p>
+
+                    <p class="para">
+                        Die Methode  <span class="methodname">fromString()</span> akzeptiert die folgenden
+                        Parameter:
+                    </p>
+
+                    <ul class="itemizedlist">
+                        <li class="listitem">
+                            <p class="para">
+                                <var class="varname">$cookieStr</var>: Ein Cookie String wie im
+                                <acronym class="acronym">HTTP</acronym> Response Header &#039;Set-Cookie&#039; oder im
+                                <acronym class="acronym">HTTP</acronym> Request Header &#039;Cookie&#039; (wird dort benötigt)
+                                dargestellt
+                            </p>
+                        </li>
+
+                        <li class="listitem">
+                            <p class="para">
+                                <var class="varname">$refUri</var>: Eine Referenz <acronym class="acronym">URI</acronym>
+                                auf welche die Domain und der Pfad von Cookies gesetzt werden.
+                                (Optional wird standardmäßig dieser Wert von $cookieStr geparst)
+                            </p>
+                        </li>
+
+                        <li class="listitem">
+                            <p class="para">
+                                <var class="varname">$encodeValue</var>: Ob der Wert über urldecode
+                                übergeben werden soll.Hat auch Einfluss auf der Verhalten des
+                                Cookies wenn es in einen Cookie String zurück konvertiert wird.
+                                (Optional ist er standardmäßig true)
+                            </p>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="example"><div class="info"><p><b>Example #1 Instanzieren eines Zend_Http_Cookie-Objekts</b></p></div>
+               
+
+               <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Zuerst nutzen wir den Konstruktor. Der Cookie wird in zwei Stunden ablaufen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Http_Cookie<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'bar'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'.example.com'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> + <span style="color: #cc66cc;">7200</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'/path'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Man kann auch den HTTP-Antwort 'Set-Cookie'-header dafür nutzen.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Dieser Cookie ist ähnlich zum vorangegangenen, allerdings wird</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// er nicht ablaufen und nur über sichere Verbindungen gesendet.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo=bar; domain=.example.com; '</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'path=/path; secure'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Wenn die Domain des Cookies nicht gesetzt ist, muss man ihn selbst angeben.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo=bar; secure;'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'http://www.example.com/path'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            <blockquote><p><b class="note">Note</b>: 
+                
+                    Beim Instanzieren eines Cookie Objekts mit der
+                    <span class="classname">Zend_Http_Cookie</span>::fromString()-Methode wird erwartet,
+                    dass der Cookie-Inhalt <acronym class="acronym">URL</acronym> kodiert ist, wie es bei
+                    Cookie-Strings sein sollte. Allerdings wird angenommen, dass der Inhalt bei
+                    Verwendung des Konstruktors in seiner eigentlichen Form, d.h. nicht URL-kodiert,
+                    übergeben wird.
+                <br />
+            </p></blockquote>
+        </p>
+
+        <p class="para">
+            Ein Cookie Objekt kann durch die magische __toString()-Methode zurück in einen String
+            umgewandelt werden. Diese Methode erstellt einen <acronym class="acronym">HTTP</acronym>-Anfrage
+            &quot;Cookie&quot;-Header String, der den Namen sowie den Inhalt des Cookies enthält und durch ein
+            Semikolon (&#039;;&#039;) abgeschlossen ist. Der Inhalt wird URL-kodiert, wie es für einen
+            Cookie-Header vorgeschrieben ist:
+
+            <div class="example"><div class="info"><p><b>Example #2 Transformation eines Zend_Http_Cookie-Objekts zu einem String</b></p></div>
+               
+
+               <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erstellt einen neuen Cookie</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Http_Cookie<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'two words'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'.example.com'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> + <span style="color: #cc66cc;">7200</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'/path'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt 'foo=two+words;' aus</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>-&gt;__toString<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Bezweckt dasselbe</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #66cc66;">&#40;</span>string<span style="color: #66cc66;">&#41;</span> <span style="color: #0000ff;">$cookie</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Ab PHP 5.2 funktioniert auch diese Variante</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>;</div></li></ol></div></div></div>
+
+            </div>
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookie.accessors" name="zend.http.cookies.cookie.accessors"><div class="info"><h1 class="title">Zend_Http_Cookie getter-Methoden</h1></div>
+        
+
+        <p class="para">
+            Sobald ein <span class="classname">Zend_Http_Cookie</span> instanziert wurde, stellt es diverse
+            getter-Methoden zur Verfügung, die es einem ermöglichen, auf die verschiedenen
+            Eigenschaften des <acronym class="acronym">HTTP</acronym> Cookies zuzugreifen:
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getName()</span>: Gibt den Namen des Cookies zurück
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getValue()</span>: Gibt den wirklichen, also nicht
+                        kodierten, Inhalt zurück
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getDomain()</span>: Gibt die Domain des Cookies zurück
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getPath()</span>: Gibt den Pfad des Cookies zurück; dessen
+                        Standardwert ist &#039;/&#039;
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getExpiryTime()</span>: Gibt die Ablaufzeit des Cookies
+                        als UNIX-Timestamp zurück. Falls der Cookie keine Ablaufzeit besitzt, wird
+                        <b><tt>NULL</tt></b> zurückgegeben.
+                    </p>
+                </li>
+            </ul>
+        </p>
+
+        <p class="para">
+            Zusätzlich gibt es einige boolesche Tester-Methoden:
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">isSecure()</span>: Gibt zurück, ob der Cookie nur über
+                        sichere Verbindungen gesendet werden kann. Wenn <b><tt>TRUE</tt></b>
+                        zurückgegeben wird, wird der Cookie also nur über <acronym class="acronym">HTTPS</acronym>
+                        versendet.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">isExpired(int $time = null)</span>: Überprüft, ob der
+                        Cookie bereits abgelaufen ist. Wenn der Cookie keine Ablaufzeit besitzt,
+                        wird diese Methode immer <b><tt>FALSE</tt></b> zurückgegeben. Wenn
+                        $time übergeben wurde, wird der aktuelle Zeitstempel überschrieben und der
+                        übergebene Zeitstempel zur Überprüfung genutzt.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">isSessionCookie()</span>: Überprüft, ob der Cookie ein
+                        &quot;Session-Cookie&quot; ist, der keine Ablaufzeit besitzt und erst abläuft, wenn
+                        die Session beendet wird.
+                    </p>
+                </li>
+            </ul>
+        </p>
+
+        <p class="para">
+            <div class="example"><div class="info"><p><b>Example #3 Nutzen der getter-Methoden von Zend_Http_Cookie</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Zuerst wird der Cookie erstellt</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'foo=two+words; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'domain=.example.com; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'path=/somedir; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'secure; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'expires=Wednesday, 28-Feb-05 20:41:22 UTC'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">getName</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;&nbsp; &nbsp;<span style="color: #808080; font-style: italic;">// Gibt 'foo' aus</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">getValue</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;&nbsp; <span style="color: #808080; font-style: italic;">// Gibt 'two words' aus</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">getDomain</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// Gibt '.example.com' aus</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">getPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;&nbsp; &nbsp;<span style="color: #808080; font-style: italic;">// Gibt '/' aus</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <a href="http://www.php.net/date"><span style="color: #000066;">date</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Y-m-d'</span>, <span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">getExpiryTime</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt '2005-02-28' aus</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">isExpired</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> ? <span style="color: #ff0000;">'Ja'</span> : <span style="color: #ff0000;">'Nein'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt 'Ja' aus</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">isExpired</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/strtotime"><span style="color: #000066;">strtotime</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'2005-01-01'</span><span style="color: #66cc66;">&#41;</span> ? <span style="color: #ff0000;">'Ja'</span> : <span style="color: #ff0000;">'Nein'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt 'Nein' aus</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">isSessionCookie</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> ? <span style="color: #ff0000;">'Ja'</span> : <span style="color: #ff0000;">'Nein'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt 'Nein' aus</span></div></li></ol></div></div></div>
+
+            </div>
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookie.matching" name="zend.http.cookies.cookie.matching"><div class="info"><h1 class="title">Zend_Http_Cookie: Überprüfen von Szenarien</h1></div>
+        
+
+        <p class="para">
+            Die einzige wirkliche Logik in einem <span class="classname">Zend_Http_Cookie</span> Objekt
+            befindet sich in der match()-Methode. Sie wird genutzt um zu Überprüfen, ob ein Cookie
+            auf eine <acronym class="acronym">HTTP</acronym> Anfrage zutrifft, um zu entscheiden, ob der Cookie in
+            der Anfrage gesendet werden soll. Die Methode hat folgende Syntax und Parameter:
+            <strong class="command">Zend_Http_Cookie-&gt;match(mixed $uri, [boolean $matchSessionCookies,
+                [int $now]]);</strong>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        <var class="varname">$uri</var>: Ein zu überprüfendes
+                        <span class="classname">Zend_Uri_Http</span> Objekt mit einer Domain und einem Pfad.
+                        Wahlweise kann stattdessen jedoch auch ein String, der einen validen
+                        <acronym class="acronym">HTTP</acronym> <acronym class="acronym">URL</acronym> darstellt, übergeben werden.
+                        Der Cookie ist zutreffend, wenn das <acronym class="acronym">URL</acronym> Schema (HTTP oder
+                        <acronym class="acronym">HTTPS</acronym>), die Domain sowie der Pfad passen.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <var class="varname">$matchSessionCookies</var>: Gibt an, ob Session-Cookies
+                        zutreffen sollen. Standardmäßig ist dieser Parameter
+                        <b><tt>TRUE</tt></b>. Wenn <b><tt>FALSE</tt></b> stattdessen
+                        übergeben wird, werden Cookies ohne Ablaufzeit nie zutreffen.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <var class="varname">$now</var>: Ablaufzeit (in Form eines UNIX-Zeitstempels) auf
+                        welche der Cookie überprüft wird. Wenn sie nicht angegeben wird, wird die
+                        gegenwärtige Zeit genutzt.
+                    </p>
+                </li>
+            </ul>
+
+            <div class="example"><div class="info"><p><b>Example #4 Zutreffen von Cookies</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erstellen eines Cookie Objekts - zuerst ein sicherer Cookie ohne Ablaufzeit</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo=two+words; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'domain=.example.com; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'path=/somedir; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'secure;'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://www.example.com/somedir/foo.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt true zurück</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.example.com/somedir/foo.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt false zurück, da die Verbindung nicht sicher ist</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://otherexample.com/somedir/foo.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt false zurück, da die Domain falsch ist</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://example.com/foo.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt false zurück, da der Pfad falsch ist</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://www.example.com/somedir/foo.php'</span>, <span style="color: #000000; font-weight: bold;">false</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt false zurück, da keine Session-Cookies akzeptiert werden</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://sub.domain.example.com/somedir/otherdir/foo.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt true zurück</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erstellen eines anderen Cookie-Objekts - diesmal unsicher und</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// einer Ablaufzeit die zwei Stunden in der Zukunft liegt</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo=two+words; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'domain=www.example.com; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'expires='</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;. <a href="http://www.php.net/date"><span style="color: #000066;">date</span></a><span style="color: #66cc66;">&#40;</span>DATE_COOKIE, <a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> + <span style="color: #cc66cc;">7200</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.example.com/'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt true zurück</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://www.example.com/'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt true zurück, da unsichere Cookies genauso gut über sichere</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Verbindungen übertragen werden können</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://subdomain.example.com/'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt false zurück, da die Domain unzutreffend ist</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.example.com/'</span>, <span style="color: #000000; font-weight: bold;">true</span>, <a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> + <span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">3</span> * <span style="color: #cc66cc;">3600</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Gibt false zurück, da die Ablaufzeit drei Stunden in der Zukunft</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// liegt</span></div></li></ol></div></div></div>
+
+            </div>
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookiejar" name="zend.http.cookies.cookiejar"><div class="info"><h1 class="title">Die Zend_Http_CookieJar Klasse: Instanzierung</h1></div>
+        
+
+        <p class="para">
+            In den meisten Fällen ist es nicht notwendig, ein
+            <span class="classname">Zend_Http_CookieJar</span> Objekt direkt zu erstellen. Wenn man ein
+            neues CookieJar zum <span class="classname">Zend_Http_Client</span> Objekts hinzufügen will,
+            muss man lediglich die Methode Zend_Http_Client-&gt;setCookieJar( aufrufen, die ein neues
+            und leeres CookieJar zum Client hinzufügt. Später kann man dieses CookieJar via
+            Zend_Http_Client-&gt;getCookieJar() holen.
+        </p>
+
+        <p class="para">
+            Wenn dennoch ein CookieJar Objekt manuell erstellen werden soll, kann man dies
+            direkt durch &quot;new Zend_Http_CookieJar()&quot; erreichen - der Konstruktor benötigt
+            keine Parameter. Ein anderer Weg zum Instanzieren eines CookieJar Objekts ist
+            es, die statische Methode Zend_Http_CookieJar::fromResponse() zu nutzen. Diese
+            Methode benötigt zwei Parameter: ein <span class="classname">Zend_Http_Response</span> Objekt
+            und einen Referenz <acronym class="acronym">URI</acronym>, entweder in Form eines Strings oder eines
+            <span class="classname">Zend_Uri_Http</span> Objekts. Es wird ein
+            <span class="classname">Zend_Http_CookieJar</span> Objekt zurückgegeben, das bereits die
+            Cookies, die durch die <acronym class="acronym">HTTP</acronym> Antwort gesetzt wurden, enthält. Der
+            Referenz <acronym class="acronym">URI</acronym> wird genutzt um die Domain und den Pfad des Cookies zu
+            setzen, sofern sie nicht in den Set-Cookie-Headern definiert wurden.
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookiejar.adding_cookies" name="zend.http.cookies.cookiejar.adding_cookies"><div class="info"><h1 class="title">Hinzufügen von Cookies zu einem Zend_Http_CookieJar Objekt</h1></div>
+        
+
+        <p class="para">
+            Normalerweise werden die, durch <acronym class="acronym">HTTP</acronym> Antworten gesetzen, Cookies vom
+            <span class="classname">Zend_Http_Client</span> Objekt automatisch zu dessen CookieJar
+            hinzugefügt. Wenn man es wünscht, kann man Cookies auch manuell zum CookieJar
+            hinzufügen, was durch Nutzen zweier Methoden erreicht werden kann:
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        <span class="classname">Zend_Http_CookieJar-&gt;addCookie($cookie[, $ref_uri])</span>:
+                        Hinzufügen eines einzelnen Cookies zum CookieJar. $cookie kann entweder ein
+                        <span class="classname">Zend_Http_Cookie</span> Objekt oder ein String, der
+                        automatisch zu einem Cookie Objekt transformiert wird, sein. Wenn ein String
+                        übergeben wird, sollte man jedoch zusätzlich immer $ref_uri übergeben, da
+                        dieser einen Referenz <acronym class="acronym">URI</acronym> darstellt - in Form eines
+                        Strings oder eines <span class="classname">Zend_Uri_Http</span> Objekts - dessen
+                        Werte als Standard für die Domain und den Pfad des Cookies genutzt werden.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <span class="classname">Zend_Http_CookieJar-&gt;addCookiesFromResponse($response,
+                            $ref_uri)</span>: Fügt alle Cookies zum CookieJar hinzu, die in
+                        einer einzelnen <acronym class="acronym">HTTP</acronym> Antwort gesetzt wurden. Es wird
+                        erwartet, dass $response ein <span class="classname">Zend_Http_Response</span>
+                        Objekt mit Set-Cookie-Headern ist. $ref_uri ist ein Anfrage
+                        <acronym class="acronym">URI</acronym> in Form eines Strings oder eines
+                        <span class="classname">Zend_Uri_Http</span> Objekts dessen Inhalt die
+                        Standarddomain und den -pfad des Cookies bestimmt.
+                    </p>
+                </li>
+            </ul>
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookiejar.getting_cookies" name="zend.http.cookies.cookiejar.getting_cookies"><div class="info"><h1 class="title">Abrufen der Cookies von einem Zend_Http_CookieJar-Objekts</h1></div>
+        
+
+        <p class="para">
+            Wie beim Hinzufügen von Cookies ist es normalerweise nicht notwendig,
+            die Cookies manuell von einem CookieJar Objekt zu holen. Das
+            <span class="classname">Zend_Http_Client</span> Objekt holt automatisch alle benötigten Cookies
+            für eine <acronym class="acronym">HTTP</acronym> Anfrage. Allerdings gibt es drei Methoden die Cookies
+            aus einem CookieJar zu holen:  <span class="methodname">getCookie()</span>,
+             <span class="methodname">getAllCookies()</span>, und
+             <span class="methodname">getMatchingCookies()</span>. Zusätzlich erhält man alle
+            <span class="classname">Zend_Http_Cookie</span> Objekte von CookieJar wenn man durch Ihn
+            iteriert.
+        </p>
+
+        <p class="para">
+            Es ist wichtig anzumerken, dass jede dieser Methoden einen speziellen
+            Parameter verlangt, der den Rückgabetyp der Methode festlegt. Dieser
+            Parameter kann drei verschiedene Werte annehmen:
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        <b><tt>Zend_Http_CookieJar::COOKIE_OBJECT</tt></b>: Gibt ein
+                        <span class="classname">Zend_Http_Cookie</span> Objekt zurück. Wenn diese Methode
+                        mehr als einen Cookie zurückgeben sollte, wird stattdessen ein Array aus
+                        Objekten zurückgegeben.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <b><tt>Zend_Http_CookieJar::COOKIE_STRING_ARRAY</tt></b>: Gibt Cookies
+                        als Strings - im Format &quot;foo=bar&quot; - zurück, welche passend für das
+                        Senden im &quot;Cookie&quot;-Header einer <acronym class="acronym">HTTP</acronym>Anfrage sind. Wenn
+                        mehr als ein Cookie zurückgegeben werden sollte, wird stattdessen ein Array
+                        solcher Strings zurückgegeben.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <b><tt>Zend_Http_CookieJar::COOKIE_STRING_CONCAT</tt></b>: Ähnlich zu
+                        COOKIE_STRING_ARRAY; allerdings gibt diese Methode, falls mehr als
+                        ein Cookie zurückgegeben wird, einen einzelnen, langen String zurück,
+                        der die Cookies anhand eines Semikolons (;) trennt. Dieses Prozedere
+                        ist besonders hilfreich, wenn man alle zutreffenden Cookies in einem
+                        einzelnen &quot;Cookie&quot;-Header einer <acronym class="acronym">HTTP</acronym> Anfrage zurückgeben
+                        will.
+                    </p>
+                </li>
+            </ul>
+        </p>
+
+        <p class="para">
+            Die Struktur der unterschiedlichen Cookie-Abrufmethoden wird unterhalb beschrieben:
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                        <span class="classname">Zend_Http_CookieJar-&gt;getCookie($uri, $cookie_name[,
+                            $ret_as])</span>: Gibt einen einzelnen Cookie von dem CookieJar
+                            zurück, dessen <acronym class="acronym">URI</acronym> (Domain und Pfad) und Name zu den
+                            Parametern passen. $uri ist entweder ein String oder ein
+                        <span class="classname">Zend_Http_Uri</span> Objekt, die den <acronym class="acronym">URI</acronym>
+                        darstellen. $cookie_name ist ein String zum Identifizieren des
+                        Cookie-Namens. $ret_as ist ein optionaler Parameter, der angibt, von welchem
+                        Typ der zurückgegebene Wert ist. Der Standardwert ist COOKIE_OBJECT.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <span class="classname">Zend_Http_CookieJar-&gt;getAllCookies($ret_as)</span>: Holt
+                        alle Cookies aus dem CookieJar. $ret_as gibt den Rückgabetyp - wie oben
+                        bereits beschrieben - an. Wenn er nicht angegeben wird, nimmt er
+                        COOKIE_OBJECT an.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                        <span class="classname">Zend_Http_CookieJar-&gt;getMatchingCookies($uri[,
+                            $matchSessionCookies[, $ret_as[, $now]]])</span>: Gibt alle Cookies
+                        vom CookieJar zurück, die mit der Ablaufzeit und dem <acronym class="acronym">URI</acronym>
+                        übereinstimmen.
+
+                        <ul class="itemizedlist">
+                            <li class="listitem">
+                                <p class="para">
+                                    <var class="varname">$uri</var> ist entweder ein
+                                    <span class="classname">Zend_Uri_Http</span> Objekt oder ein String, der
+                                    den Verbindungstyp (sicher oder unsicher), die Domain und den
+                                    Pfad angibt. Nach diesen Informationen wird im CookieJar
+                                    gesucht.
+                                </p>
+                            </li>
+
+                            <li class="listitem">
+                                <p class="para">
+                                    <var class="varname">$matchSessionCookies</var> ist ein boolescher
+                                    Ausdruck, der festlegt, ob nach Session-Cookies gesucht werden
+                                    soll. Session-Cookies sind Cookies, die keine Ablaufzeit
+                                    enthalten. Standardmäßig ist dieser Wert
+                                    <b><tt>TRUE</tt></b>.
+                                </p>
+                            </li>
+
+                            <li class="listitem">
+                                <p class="para">
+                                    <var class="varname">$ret_as</var> gibt den Rückgabetyp - wie oben
+                                    beschrieben - an. Wenn keiner angegeben wird, wird
+                                    COOKIE_OBJECT angenommen.
+                                </p>
+                            </li>
+
+                            <li class="listitem">
+                                <p class="para">
+                                    <var class="varname">$now</var> ist ein Integer der einen
+                                    UNIX-Zeitstempel darstellt. Cookies, die vor der angegeben Zeit
+                                    ablaufen, werden nicht zurückgegeben. Wenn dieser Parameter
+                                    nicht angegeben wird, wird stattdessen die aktuelle Zeit
+                                    gewählt.
+                                </p>
+                            </li>
+                        </ul>
+
+                        Mehr über das Zutreffen von Cookies gibt es in
+                        <a href="zend.http.cookies.html#zend.http.cookies.cookie.matching" class="link">diesem Abschnitt</a>.
+                    </p>
+                </li>
+            </ul>
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.http.client.adapters.html">Zend_Http_Client - Verbindungsadapter</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.http.html">Zend_Http</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.http.response.html">Zend_Http_Response</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.http.html">Zend_Http</a></li>
+  <li><a href="zend.http.client.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.http.client.advanced.html">Zend_Http_Client - Fortgeschrittende Nutzung</a></li>
+  <li><a href="zend.http.client.adapters.html">Zend_Http_Client - Verbindungsadapter</a></li>
+  <li class="active"><a href="zend.http.cookies.html">Zend_Http_Cookie und Zend_Http_CookieJar</a></li>
+  <li><a href="zend.http.response.html">Zend_Http_Response</a></li>
+  <li><a href="zend.http.user-agent.html">Zend_Http_UserAgent</a></li>
+  <li><a href="zend.http.user-agent-device.html">The UserAgent Device Interface</a></li>
+  <li><a href="zend.http.user-agent-features.html">The UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-features-wurfl.html">The WURFL UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-features-device-atlas.html">The DeviceAtlas UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-features-tera-wurfl.html">The TeraWurfl UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-storage.html">The UserAgent Storage Interface</a></li>
+  <li><a href="zend.http.user-agent-storage-session.html">The Session UserAgent Storage Adapter</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

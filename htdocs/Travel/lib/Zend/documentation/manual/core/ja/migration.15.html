@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend Framework 1.5(日本語) - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="migration.16.html">Zend Framework 1.6(日本語)</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="migration.html">Zend Framework Migration Notes</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="migration.10.html">Zend Framework 1.0(日本語)</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="migration.15" class="section"><div class="info"><h1 class="title">Zend Framework 1.5(日本語)</h1></div>
+    
+
+    <p class="para">
+        以前のバージョンから Zend Framework 1.5 またはそれ以降に更新する際は、
+        下記の移行上の注意点に注意すべきです。
+    </p>
+
+    <div class="section" id="migration.15.zend.controller" name="migration.15.zend.controller"><div class="info"><h1 class="title">Zend_Controller</h1></div>
+        
+
+        <p class="para">
+            基本的な機能は同じでドキュメント化されている機能も変わりませんが、
+            ひとつだけ、<em class="emphasis">ドキュメント化されていない</em>
+            &quot;機能&quot; が変更されました。
+        </p>
+
+        <p class="para">
+            <acronym class="acronym">URL</acronym> の書き方としてドキュメント化されている方法は、
+            camelCased 形式の名前のアクションを使用するために
+            単語の区切り文字を使用するというものです。デフォルトの区切り文字は
+            &#039;.&#039; あるいは &#039;-&#039; ですが、ディスパッチャの設定で変更できます。
+            ディスパッチャは内部でアクション名を小文字に変換し、
+            単語の区切り文字をもとに camelCasing 形式のアクションメソッド名を作成します。
+            しかし、<acronym class="acronym">PHP</acronym> の関数名は大文字小文字を区別しないので、<acronym class="acronym">URL</acronym> 自体を
+            camelCasing 形式で書くこともできます。
+            この場合でも、ディスパッチャは <acronym class="acronym">URL</acronym> を同じアクションメソッドに解決します。
+            たとえば &#039;camel-cased&#039; はディスパッチャによって
+            &#039;camelCasedAction&#039; になります。一方 &#039;camelCased&#039; は
+            &#039;camelcasedAction&#039; となります。<acronym class="acronym">PHP</acronym> では大文字小文字を細かく区別しないため、
+            これらはどちらも同じメソッドを実行することになります。
+        </p>
+
+        <p class="para">
+            これは、ViewRenderer がビュースクリプトを解決する際に問題を引き起こします。
+            ドキュメントに記載されている正式な方法は、
+            単語の区切りをすべてダッシュに変換して単語は小文字にするというものです。
+            こうすればアクションとビュースクリプトの関連が明確になり、
+            小文字への正規化でスクリプトが見つかることが確実となります。
+            しかし、アクション &#039;camelCased&#039; がコールされて解決された場合は、
+            単語の区切りはもう存在しません。そして ViewRenderer は
+            <var class="filename">camel-cased.phtml</var> ではない別のファイル -- <var class="filename">camelcased.phtml</var>
+            を探してしまうのです。
+        </p>
+
+        <p class="para">
+            中にはこの &quot;機能&quot; を使用している開発者もいるようますが、
+            これは決して意図した機能ではありません。
+            1.5.0 のツリーでは、ViewRenderer はこの方式の解決を行わなくなりました。
+            これでアクションとビュースクリプトの結びつきが確実になったわけです。
+            まず、ディスパッチャはアクション名の大文字小文字をきちんと区別するようになります。
+            つまり、camelCasing 形式を使用したアクションの解決先は、
+            単語の区切りを使用した (&#039;camel-casing&#039;) 場合とは違うものになるということです。
+            これで、ViewRenderer がビュースクリプトを解決する際には
+            区切り文字を使用したアクションのみを使用することになります。
+        </p>
+
+        <p class="para">
+            今までこの &quot;機能&quot; に頼っていた人たちは、
+            以下のいずれかの方法で対応します。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem"><p class="para">
+                    一番いい方法: ビュースクリプトの名前を変更する。
+                    利点: 前方互換性。欠点: もし対象となるビュースクリプトが多い場合は、
+                    多くのファイルの名前を変更しなければならなくなります。
+            </p></li>
+
+            <li class="listitem">
+                <p class="para">
+                    その次にいい方法: ViewRenderer はビュースクリプトの解決を
+                    <span class="classname">Zend_Filter_Inflector</span> に委譲しています。
+                    インフレクタのルールを変更し、
+                    アクションの単語間をダッシュで区切らないようにします。
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$viewRenderer</span> =</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Controller_Action_HelperBroker::<span style="color: #006600;">getStaticHelper</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'viewRenderer'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$inflector</span> = <span style="color: #0000ff;">$viewRenderer</span>-&gt;<span style="color: #006600;">getInflector</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$inflector</span>-&gt;<span style="color: #006600;">setFilterRule</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">':action'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">new</span> Zend_Filter_PregReplace<span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'#[^a-z0-9'</span> . <a href="http://www.php.net/preg_quote"><span style="color: #000066;">preg_quote</span></a><span style="color: #66cc66;">&#40;</span>DIRECTORY_SEPARATOR, <span style="color: #ff0000;">'#'</span><span style="color: #66cc66;">&#41;</span> . <span style="color: #ff0000;">']+#i'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">''</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'StringToLower'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+                <p class="para">
+                    上のコードは、インフレクタを変更して単語をダッシュで区切らないようにしています。
+                    もし実際のビュースクリプト名を camelCased にしたいのなら、さらに
+                    &#039;StringToLower&#039; フィルタも削除することになるでしょう。
+                </p>
+
+                <p class="para">
+                    ビュースクリプトの名前を変えるのが面倒だったり
+                    時間がかかったりする場合は、
+                    もしあまり時間を割けないのならこの方法が最適です。
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    あまりお勧めしない方法: ディスパッチャに camelCased
+                    形式のアクションをディスパッチさせるよう、フロントコントローラのフラグ
+                    <span class="property">useCaseSensitiveActions</span> を設定します。
+                </p>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'useCaseSensitiveActions'</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+                <p class="para">
+                    これで camelCasing 形式の URL を使えるようになり、
+                    単語の区切り文字を使用した場合と同じアクションに解決されるようになります。
+                    しかし、もともと抱えていた問題も残ったままとなってしまいます。
+                    できれば先ほどのふたつのうちのいずれかを使用したほうがいいでしょう。
+                </p>
+
+                <p class="para">
+                    このフラグを使用していると、
+                    将来このフラグが廃止予定になったときに notice が発生することになります。
+                </p>
+            </li>
+        </ul>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="migration.16.html">Zend Framework 1.6(日本語)</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="migration.html">Zend Framework Migration Notes</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="migration.10.html">Zend Framework 1.0(日本語)</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="migration.html">Zend Framework Migration Notes</a></li>
+  <li><a href="migration.110.html">Zend Framework 1.10(一部日本語)</a></li>
+  <li><a href="migration.19.html">Zend Framework 1.9(一部日本語)</a></li>
+  <li><a href="migration.18.html">Zend Framework 1.8(日本語)</a></li>
+  <li><a href="migration.17.html">Zend Framework 1.7(日本語)</a></li>
+  <li><a href="migration.16.html">Zend Framework 1.6(日本語)</a></li>
+  <li class="active"><a href="migration.15.html">Zend Framework 1.5(日本語)</a></li>
+  <li><a href="migration.10.html">Zend Framework 1.0(日本語)</a></li>
+  <li><a href="migration.09.html">Zend Framework 0.9(日本語)</a></li>
+  <li><a href="migration.08.html">Zend Framework 0.8(日本語)</a></li>
+  <li><a href="migration.06.html">Zend Framework 0.6(日本語)</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

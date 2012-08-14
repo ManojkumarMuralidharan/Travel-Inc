@@ -1,0 +1,616 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Http_Cookie および Zend_Http_CookieJar - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.http.client.adapters.html">Zend_Http_Client - 接続アダプタ</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.http.html">Zend_Http</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.http.response.html">Zend_Http_Response(日本語)</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.http.cookies" class="section"><div class="info"><h1 class="title">Zend_Http_Cookie および Zend_Http_CookieJar</h1></div>
+    
+
+    <div class="section" id="zend.http.cookies.introduction" name="zend.http.cookies.introduction"><div class="info"><h1 class="title">導入</h1></div>
+        
+        <p class="para">
+            <span class="classname">Zend_Http_Cookie</span> は、お察しのとおり、<acronym class="acronym">HTTP</acronym> クッキーを表すクラスです。
+            <acronym class="acronym">HTTP</acronym> レスポンス文字列をパースしたりクッキーを収集したり、
+            そしてプロパティに簡単にアクセスしたりするためのメソッドがあります。
+            また、クッキーが所定の条件にマッチしているかどうかを調べることもできます。
+            たとえばリクエスト <acronym class="acronym">URL</acronym>、有効期限、セキュア接続か否かなどを調べます。
+        </p>
+        <p class="para">
+            <span class="classname">Zend_Http_CookieJar</span> は主に <span class="classname">Zend_Http_Client</span> で用いられ、ひとつあるいは複数の
+            <span class="classname">Zend_Http_Cookie</span> オブジェクトを保持します。
+            <span class="classname">Zend_Http_CookieJar</span> オブジェクトを <span class="classname">Zend_Http_Client</span>
+            オブジェクトにアタッチすると、
+            クライアントから <acronym class="acronym">HTTP</acronym> リクエストで送られるクッキーや
+            クライアントが <acronym class="acronym">HTTP</acronym> レスポンスで受け取るクッキーがすべて
+            CookieJar オブジェクトに保存されます。そして、
+            クライアントが別のリクエストを送信する際には、まず CookieJar
+            オブジェクトを調べてリクエストにマッチするクッキーがあるかどうかを確認します。
+            あった場合は、それが自動的にリクエストヘッダに追加されます。
+            これは、連続した <acronym class="acronym">HTTP</acronym> リクエストでユーザのセッションを保持し続けたい場合に便利です。
+            セッション ID が保存されたクッキーを、必要に応じて自動的に送信することができます。
+            さらに、必要に応じて <span class="classname">Zend_Http_CookieJar</span> オブジェクトをシリアライズし、
+            $_SESSION に格納することもできます。
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookie.instantiating" name="zend.http.cookies.cookie.instantiating"><div class="info"><h1 class="title">Zend_Http_Cookie のインスタンスの作成</h1></div>
+        
+        <p class="para">
+            クッキーオブジェクトのインスタンスを作成する方法は二通りあります。
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                    コンストラクタで以下のような構文を使用します。
+                    <strong class="command">new <span class="classname">Zend_Http_Cookie</span>(string $name, string $value, string $domain, [int $expires, [string $path, [boolean $secure]]]);</strong>
+                    </p>
+                    <ul class="itemizedlist">
+                        <li class="listitem">
+                            <p class="para">
+                            <code class="code">$name</code>: クッキーの名前 (例 &#039;PHPSESSID&#039;) (必須)
+                            </p>
+                        </li>
+                        <li class="listitem">
+                            <p class="para">
+                            <code class="code">$value</code>: クッキーの値 (必須)
+                            </p>
+                        </li>
+                        <li class="listitem">
+                            <p class="para">
+                            <code class="code">$domain</code>: クッキーのドメイン (例 &#039;.example.com&#039;) (必須)
+                            </p>
+                        </li>
+                        <li class="listitem">
+                            <p class="para">
+                            <code class="code">$expires</code>: クッキーの有効期限を表す UNIX タイムスタンプ (任意。既定値は <b><tt>NULL</tt></b>)。
+                            設定しなかった場合は、有効期限なしの &#039;セッションクッキー&#039; として扱われます。
+                            </p>
+                        </li>
+                        <li class="listitem">
+                            <p class="para">
+                            <code class="code">$path</code>: クッキーのパス。たとえば &#039;/foo/bar/&#039; (任意。既定値は &#039;/&#039;)
+                            </p>
+                        </li>
+                        <li class="listitem">
+                            <p class="para">
+                            <code class="code">$secure</code>: クッキーの送信をセキュア接続 (<acronym class="acronym">HTTPS</acronym>)
+                            時に限るかどうか (任意。既定値は <b><tt>FALSE</tt></b>)
+                            </p>
+                        </li>
+                    </ul>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                    静的メソッド fromString($cookieStr, [$refUri, [$encodeValue]]) をコールし、<acronym class="acronym">HTTP</acronym> レスポンスヘッダ &#039;Set-Cookie&#039;
+                    あるいは <acronym class="acronym">HTTP</acronym> リクエストヘッダ &#039;Cookie&#039; に対応するクッキー文字列を指定します。
+                    この場合、クッキーの値は事前にエンコードしておく必要があります。
+                    クッキー文字列に &#039;domain&#039; 部分が含まれない場合は、
+                    クッキーのドメインとパスを設定するための参照 <acronym class="acronym">URI</acronym> を指定する必要があります。
+                    </p>
+                    <p class="para">
+                         <span class="methodname">fromString()</span> メソッドでは下記のパラメータを受け付けます。
+                    </p>
+                    <ul class="itemizedlist">
+                        <li class="listitem">
+                            <p class="para">
+                            <var class="varname">$cookieStr</var>:
+                           &#039;Set-Cookie&#039; <acronym class="acronym">HTTP</acronym> レスポンス・ヘッダや、必須の
+                           &#039;Cookie&#039; <acronym class="acronym">HTTP</acronym> リクエスト・ヘッダで表現されるようなクッキー文字列。
+                            </p>
+                        </li>
+                        <li class="listitem">
+                            <p class="para">
+                            <var class="varname">$refUri</var>:
+                            クッキーのドメインとパスがセットされる参照 <acronym class="acronym">URI</acronym>。
+                            (任意。既定値では $cookieStr から値をパースします)
+                            </p>
+                        </li>
+                        <li class="listitem">
+                            <p class="para">
+                            <var class="varname">$encodeValue</var>:
+                            値が urldecode を介して渡されるべきかどうか。
+                            クッキー文字列に変換される際に、クッキーのふるまいにも影響します。
+                            (任意。既定値は true)
+                            </p>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <div class="example"><div class="info"><p><b>Example #1 Zend_Http_Cookie のインスタンスの作成</b></p></div>
+               
+               <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// まずはコンストラクタを使用します。このクッキーの有効期限は二時間です。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Http_Cookie<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'bar'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'.example.com'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> + <span style="color: #cc66cc;">7200</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'/path'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// HTTP レスポンスヘッダ Set-Cookie を設定して使用することもできます。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// このクッキーは先ほどのものとほとんど同じですが、有効期限はありません。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// また、セキュア接続時にのみ送信されます。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo=bar; domain=.example.com; '</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'path=/path; secure'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// クッキーのドメインが設定されていない場合は、手動で設定する必要があります。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo=bar; secure;'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'http://www.example.com/path'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+            <blockquote><p><b class="note">Note</b>: 
+                
+                クッキーオブジェクトを作成するのに <span class="classname">Zend_Http_Cookie</span>::fromString()
+                メソッドを使用した場合は、クッキーの値は <acronym class="acronym">URL</acronym> エンコードされていなければなりません。
+                これはクッキー文字列と同様です。しかし、コンストラクタを使用する場合は、
+                エンコードされたものではなく、デコードされた実際の値を使用します。
+                <br />
+            </p></blockquote>
+        </p>
+        <p class="para">
+            クッキーオブジェクトを文字列に変換するには、マジックメソッド __toString()
+            を使用します。このメソッドは、<acronym class="acronym">HTTP</acronym> リクエストヘッダ &quot;Cookie&quot; 用の文字列を作成します。
+            クッキーの名前と値が表示され、最後はセミコロン (&#039;;&#039;) となります。
+            この値は <acronym class="acronym">URL</acronym> エンコードされ、そのまま Cookie ヘッダとして使用できるようになります。
+            <div class="example"><div class="info"><p><b>Example #2 Zend_Http_Cookie オブジェクトの文字列化</b></p></div>
+               
+               <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 新しいクッキーを作成します。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Http_Cookie<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'two words'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'.example.com'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> + <span style="color: #cc66cc;">7200</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'/path'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは 'foo=two+words;' を表示します。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>-&gt;__toString<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 上と同じことです。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #66cc66;">&#40;</span>string<span style="color: #66cc66;">&#41;</span> <span style="color: #0000ff;">$cookie</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// PHP 5.2 以降では、これでもかまいません。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>;</div></li></ol></div></div></div>
+
+            </div>
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookie.accessors" name="zend.http.cookies.cookie.accessors"><div class="info"><h1 class="title">Zend_Http_Cookie のゲッターメソッド</h1></div>
+        
+        <p class="para">
+            <span class="classname">Zend_Http_Cookie</span> のインスタンスを作成すると、
+            <acronym class="acronym">HTTP</acronym> クッキーのさまざまなプロパティを取得するためのメソッドが使用できるようになります。
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                     <span class="methodname">getName()</span>: クッキーの名前を取得します。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                     <span class="methodname">getValue()</span>: デコードされたクッキーの値を取得します。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                     <span class="methodname">getDomain()</span>: クッキーのドメインを取得します。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                     <span class="methodname">getPath()</span>: クッキーのパスを取得します。既定値は &#039;/&#039; です。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                     <span class="methodname">getExpiryTime()</span>: クッキーの有効期限を UNIX タイムスタンプで取得します。
+                    設定されていない場合は <b><tt>NULL</tt></b> を返します。
+                    </p>
+                </li>
+            </ul>
+        </p>
+        <p class="para">
+            さらに、チェック用のメソッドも提供されています。
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                     <span class="methodname">isSecure()</span>: クッキーの送信がセキュア接続に限定されているかどうかを調べます。
+                    要するに、もし <b><tt>TRUE</tt></b> ならそのクッキーは <acronym class="acronym">HTTPS</acronym> でしか送信されないということです。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                     <span class="methodname">isExpired(int $time = null)</span>: クッキーが有効期限切れになっているかどうかを調べます。
+                    有効期限が設定されていない場合は、常に <b><tt>TRUE</tt></b> を返します。$time を指定すると、
+                    その時刻の時点で有効期限切れになるのかどうかを調べます。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                     <span class="methodname">isSessionCookie()</span>: クッキーが &quot;セッションクッキー&quot;、
+                    すなわち有効期限を持たないクッキー (セッション終了時に無効になるクッキー)
+                    であるかどうかを調べます。
+                    </p>
+                </li>
+            </ul>
+        </p>
+        <p class="para">
+            <div class="example"><div class="info"><p><b>Example #3 Zend_Http_Cookie のゲッターメソッドの使用法</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// まずクッキーを作成します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> =</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo=two+words; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'domain=.example.com; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'path=/somedir; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'secure; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'expires=Wednesday, 28-Feb-05 20:41:22 UTC'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">getName</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;&nbsp; &nbsp;<span style="color: #808080; font-style: italic;">// これは 'foo' を表示します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">getValue</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;&nbsp; <span style="color: #808080; font-style: italic;">// これは 'two words' を表示します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">getDomain</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// これは '.example.com' を表示します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">getPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;&nbsp; &nbsp;<span style="color: #808080; font-style: italic;">// これは '/' を表示します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <a href="http://www.php.net/date"><span style="color: #000066;">date</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Y-m-d'</span>, <span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">getExpiryTime</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは '2005-02-28' を表示します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">isExpired</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> ? <span style="color: #ff0000;">'Yes'</span> : <span style="color: #ff0000;">'No'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは 'Yes' を表示します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">isExpired</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/strtotime"><span style="color: #000066;">strtotime</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'2005-01-01'</span><span style="color: #66cc66;">&#41;</span> ? <span style="color: #ff0000;">'Yes'</span> : <span style="color: #ff0000;">'No'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは 'No' を表示します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">isSessionCookie</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> ? <span style="color: #ff0000;">'Yes'</span> : <span style="color: #ff0000;">'No'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは 'No' を表示します</span></div></li></ol></div></div></div>
+
+            </div>
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookie.matching" name="zend.http.cookies.cookie.matching"><div class="info"><h1 class="title">Zend_Http_Cookie が条件に一致するものかどうかを調べる</h1></div>
+        
+        <p class="para">
+            調べるために <span class="classname">Zend_Http_Cookie</span> に含まれているのは match() メソッドだけです。
+            このメソッドを使用して、送ろうとしている <acronym class="acronym">HTTP</acronym> リクエストに当てはまるクッキーであるかどうかを調べます。
+            その結果によって、クッキーをこのリクエストで送信するかどうかが決まります。
+            メソッドの構文やパラメータの内容は以下のとおりです。
+            <strong class="command">Zend_Http_Cookie-&gt;match(mixed $uri, [boolean $matchSessionCookies, [int $now]]);</strong>
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                    <var class="varname">$uri</var>: <span class="classname">Zend_Uri_Http</span> オブジェクトで、
+                    ドメインやパスのチェックに使用します。オプションとして、
+                    正しい形式の <acronym class="acronym">URL</acronym> を文字列で渡すこともできます。
+                    指定した <acronym class="acronym">URL</acronym> のスキーム (<acronym class="acronym">HTTP</acronym> あるいは <acronym class="acronym">HTTPS</acronym>)、
+                    ドメインおよびパスがすべて一致した場合にのみ、クッキーがマッチします。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                    <var class="varname">$matchSessionCookies</var>:
+                    セッションクッキーをマッチの対象にするかどうか。
+                    既定値は <b><tt>TRUE</tt></b> です。<b><tt>FALSE</tt></b> に設定すると、
+                    有効期限の設定されていないクッキーはマッチしません。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                    <var class="varname">$now</var>: クッキーの有効期限をチェックする基準となる時刻
+                    (UNIX タイムスタンプ形式)。指定しない場合の既定値は、現在時刻です。
+                    </p>
+                </li>
+            </ul>
+            <div class="example"><div class="info"><p><b>Example #4 クッキーがマッチするかどうかの確認</b></p></div>
+                
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// まずクッキーオブジェクトを作成します。これはセキュアなセッションクッキーです。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo=two+words; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'domain=.example.com; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'path=/somedir; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'secure;'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://www.example.com/somedir/foo.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは true を返します。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.example.com/somedir/foo.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは false を返します。接続がセキュアでないからです。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://otherexample.com/somedir/foo.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは false を返します。ドメインが違っているからです。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://example.com/foo.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは false を返します。パスが違っているからです。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://www.example.com/somedir/foo.php'</span>, <span style="color: #000000; font-weight: bold;">false</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは false を返します。セッションクッキーはマッチさせないようにしているからです。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://sub.domain.example.com/somedir/otherdir/foo.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは true を返します。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 別のクッキーオブジェクトを作成します。今度はセキュアではなく、</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 二時間で有効期限切れとなります。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo=two+words; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'domain=www.example.com; '</span> +</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'expires='</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;. <a href="http://www.php.net/date"><span style="color: #000066;">date</span></a><span style="color: #66cc66;">&#40;</span>DATE_COOKIE, <a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> + <span style="color: #cc66cc;">7200</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.example.com/'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは true を返します。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'https://www.example.com/'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは true を返します。セキュアでないクッキーは、</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// セキュアな通信でも送信されます!</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://subdomain.example.com/'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは false を返します。ドメインが違っているからです。</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span>-&gt;<span style="color: #006600;">match</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.example.com/'</span>, <span style="color: #000000; font-weight: bold;">true</span>, <a href="http://www.php.net/time"><span style="color: #000066;">time</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span> + <span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">3</span> * <span style="color: #cc66cc;">3600</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これは false を返します。今から三時間後の時刻を指定したからです。</span></div></li></ol></div></div></div>
+
+            </div>
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookiejar" name="zend.http.cookies.cookiejar"><div class="info"><h1 class="title">Zend_Http_CookieJar のインスタンスの作成</h1></div>
+        
+        <p class="para">
+            <span class="classname">Zend_Http_CookieJar</span> のインスタンスを直接作成する必要は、まずありません。
+            新しいクッキージャーを <span class="classname">Zend_Http_Client</span> オブジェクトにアタッチするには、単に
+            Zend_Http_Client-&gt;setCookieJar() メソッドをコールすればいいのです。これで、
+            新しい空のクッキージャーがクライアントに追加されます。このクッキージャーを取得するには
+            Zend_Http_Client-&gt;getCookieJar() を使用します。
+        </p>
+        <p class="para">
+            それでもやっぱり自分で CookieJar のインスタンスを作成したいというのなら、
+            &quot;new Zend_Http_CookieJar()&quot; と直接コールしてください。
+            コンストラクタには引数を何も指定しません。インスタンスを作成するもうひとつの方法としては、
+            静的メソッド Zend_Http_CookieJar::fromResponse() を使用するものがあります。
+            このメソッドは二つのパラメータを受け取ります。まず最初が <span class="classname">Zend_Http_Response</span>
+            オブジェクト、そして二つ目は参照先 <acronym class="acronym">URI</acronym> で、これは文字列あるいは
+            <span class="classname">Zend_Uri_Http</span> オブジェクトのいずれかです。
+            このメソッドは新しい <span class="classname">Zend_Http_CookieJar</span> オブジェクトを返します。
+            このオブジェクトには、指定した <acronym class="acronym">HTTP</acronym> レスポンスによって設定されたクッキーが既に含まれています。
+            クッキーのドメインとパスが Set-Cookie ヘッダで指定されていない場合は、
+            参照先 <acronym class="acronym">URI</acronym> を使用して設定します。
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookiejar.adding_cookies" name="zend.http.cookies.cookiejar.adding_cookies"><div class="info"><h1 class="title">Zend_Http_CookieJar オブジェクトへのクッキーの追加</h1></div>
+        
+        <p class="para">
+            通常は、CookieJar オブジェクトを追加した <span class="classname">Zend_Http_Client</span> オブジェクトが自動的に処理を行い、
+            <acronym class="acronym">HTTP</acronym> レスポンスで設定されたクッキーをジャーに追加してくれます。
+            自分でクッキーをジャーに追加するには、二通りの方法があります。
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                    <span class="classname">Zend_Http_CookieJar-&gt;addCookie($cookie[, $ref_uri])</span>:
+                    単一のクッキーをジャーに追加します。$cookie には <span class="classname">Zend_Http_Cookie</span>
+                    オブジェクトあるいは文字列を指定します。文字列は自動的に
+                    Cookie オブジェクトに変換されます。文字列を指定する場合は、同時に
+                    $ref_uri も指定しなければなりません。これは参照先 <acronym class="acronym">URI</acronym> で、文字列あるいは
+                    <span class="classname">Zend_Uri_Http</span> オブジェクトを渡します。これをもとにして、
+                    クッキーのデフォルトのドメインとパスを決定します。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                    <span class="classname">Zend_Http_CookieJar-&gt;addCookiesFromResponse($response, $ref_uri)</span>:
+                    <acronym class="acronym">HTTP</acronym> レスポンス内のすべてのクッキーをジャーに追加します。
+                    $response は Set-Cookie ヘッダつきの <span class="classname">Zend_Http_Response</span> オブジェクトです。
+                    $ref_uri は参照先 <acronym class="acronym">URI</acronym> で、文字列あるいは <span class="classname">Zend_Uri_Http</span> オブジェクトとなります。
+                    これをもとにして、クッキーのデフォルトのドメインとパスを決定します。
+                    </p>
+                </li>
+            </ul>
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.cookies.cookiejar.getting_cookies" name="zend.http.cookies.cookiejar.getting_cookies"><div class="info"><h1 class="title">Zend_Http_CookieJar オブジェクトからのクッキーの取得</h1></div>
+        
+        <p class="para">
+            クッキーを追加する場合と同様、クッキーをジャーから取得する作業についても
+            通常は手動で行う必要はありません。<span class="classname">Zend_Http_Client</span>
+            オブジェクトは、その <acronym class="acronym">HTTP</acronym> リクエストで必要なクッキーを自動的に取得します。
+            とは言え、ジャーから手動でクッキーを取得するための方法も提供されています。
+             <span class="methodname">getCookie()</span>、
+             <span class="methodname">getAllCookies()</span> および  <span class="methodname">getMatchingCookies()</span>
+            の三通りの方法です。
+            さらに、CookieJar を順次処理していくことで、そこからすべての
+            <span class="classname">Zend_Http_Cookie</span> オブジェクトを取得することができます。
+        </p>
+        <p class="para">
+            注意すべき点は、これらのメソッドが特別なパラメータを受け取るようになっているということです。
+            このパラメータで、メソッドの返り値の型を指定します。
+            指定できる値は次の三種類です。
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                    <b><tt>Zend_Http_CookieJar::COOKIE_OBJECT</tt></b>:
+                    <span class="classname">Zend_Http_Cookie</span> オブジェクトを返します。
+                    返されるクッキーが複数の場合は、オブジェクトの配列を返します。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                    <b><tt>Zend_Http_CookieJar::COOKIE_STRING_ARRAY</tt></b>:
+                    &quot;foo=bar&quot; 形式の文字列を返します。これは、<acronym class="acronym">HTTP</acronym> リクエストの &quot;Cookie&quot;
+                    ヘッダで使用できる形式です。
+                    返されるクッキーが複数の場合は、文字列の配列を返します。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                    <b><tt>Zend_Http_CookieJar::COOKIE_STRING_CONCAT</tt></b>:
+                    COOKIE_STRING_ARRAY と似ていますが、返されるクッキーが複数の場合には
+                    それらをひとつの長い文字列に連結して返します。
+                    区切り文字はセミコロン (;) となります。
+                    これは、マッチするすべてのクッキーを単一の <acronym class="acronym">HTTP</acronym> リクエストヘッダ
+                    &quot;Cookie&quot; で送信したい場合に非常に便利です。
+                    </p>
+                </li>
+            </ul>
+        </p>
+        <p class="para">
+            クッキー取得のためのさまざまなメソッドのについて説明します。
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                    <span class="classname">Zend_Http_CookieJar-&gt;getCookie($uri, $cookie_name[, $ret_as])</span>:
+                    その <acronym class="acronym">URI</acronym> (ドメインおよびパス) と名前にもとづいて、
+                    ジャーから単一のクッキーを取得します。
+                    $uri は文字列か <span class="classname">Zend_Uri_Http</span> オブジェクトで、<acronym class="acronym">URI</acronym> を表します。
+                    $cookie_name はクッキー名を表す文字列です。
+                    $ret_as は先ほど説明したように返り値の型を指定します。
+                    $ret_type はオプションで、既定値は COOKIE_OBJECT です。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                    <span class="classname">Zend_Http_CookieJar-&gt;getAllCookies($ret_as)</span>:
+                    ジャーからすべてのクッキーを取得します。
+                    $ret_as は先ほど説明したように返り値の型を指定します。
+                    指定しなかった場合の $ret_type の既定値は、COOKIE_OBJECT となります。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                    <span class="classname">Zend_Http_CookieJar-&gt;getMatchingCookies($uri[, $matchSessionCookies[, $ret_as[, $now]]])</span>:
+                    指定した条件を満たす全てのクッキーをジャーから取得します。
+                    条件として指定するのは、<acronym class="acronym">URI</acronym> および有効期限です。
+                    <ul class="itemizedlist">
+                        <li class="listitem">
+                            <p class="para">
+                            <code class="code">$uri</code> は <span class="classname">Zend_Uri_Http</span> オブジェクトあるいは文字列です。
+                            接続形式 (セキュアかそうでないか)、ドメインおよびパスの条件を指定します。
+                            </p>
+                        </li>
+                        <li class="listitem">
+                            <p class="para">
+                            <code class="code">$matchSessionCookies</code> は boolean 値で、
+                            セッションクッキーを含めるかどうかを指定します。
+                            セッションクッキーとは、有効期限が指定されていないクッキーのことです。
+                            既定値は <b><tt>TRUE</tt></b> です。
+                            </p>
+                        </li>
+                        <li class="listitem">
+                            <p class="para">
+                            <code class="code">$ret_as</code>
+                            は、先ほど説明したように返り値の型を指定します。
+                            指定しなかった場合の既定値は COOKIE_OBJECT です。
+                            </p>
+                        </li>
+                        <li class="listitem">
+                            <p class="para">
+                            <code class="code">$now</code> は整数値で表した UNIX タイムスタンプで、
+                            これを &quot;現在時刻&quot; として扱います。
+                            有効期限がこの時刻より前に設定されているクッキーはマッチしません。
+                            指定しなかった場合の既定値は、現在時刻です。
+                            </p>
+                        </li>
+                    </ul>
+                    クッキーのマッチ方法についての詳細は
+                    <a href="zend.http.cookies.html#zend.http.cookies.cookie.matching" class="link">このセクション</a>
+                    を参照してください。
+                    </p>
+                </li>
+            </ul>
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.http.client.adapters.html">Zend_Http_Client - 接続アダプタ</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.http.html">Zend_Http</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.http.response.html">Zend_Http_Response(日本語)</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.http.html">Zend_Http</a></li>
+  <li><a href="zend.http.client.html">導入</a></li>
+  <li><a href="zend.http.client.advanced.html">Zend_Http_Client - 高度な使用法</a></li>
+  <li><a href="zend.http.client.adapters.html">Zend_Http_Client - 接続アダプタ</a></li>
+  <li class="active"><a href="zend.http.cookies.html">Zend_Http_Cookie および Zend_Http_CookieJar</a></li>
+  <li><a href="zend.http.response.html">Zend_Http_Response(日本語)</a></li>
+  <li><a href="zend.http.user-agent.html">Zend_Http_UserAgent</a></li>
+  <li><a href="zend.http.user-agent-device.html">The UserAgent Device Interface</a></li>
+  <li><a href="zend.http.user-agent-features.html">The UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-features-wurfl.html">The WURFL UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-features-device-atlas.html">The DeviceAtlas UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-features-tera-wurfl.html">The TeraWurfl UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-storage.html">The UserAgent Storage Interface</a></li>
+  <li><a href="zend.http.user-agent-storage-session.html">The Session UserAgent Storage Adapter</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

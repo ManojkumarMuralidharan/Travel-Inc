@@ -3,10 +3,10 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>IN ADMIN PANEL | Powered by INDEZINER</title>
-<link rel="stylesheet" type="text/css" href="style.css" />
-<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="notifier.js"></script>
-<script type="text/javascript" src="ddaccordion.js"></script>
+<link rel="stylesheet" type="text/css" href="css/style.css" />
+<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="js/notifier.js"></script>
+<script type="text/javascript" src="js/ddaccordion.js"></script>
 <script type="text/javascript">
 ddaccordion.init({
 	headerclass: "submenuheader", //Shared CSS class name of headers group
@@ -30,7 +30,7 @@ ddaccordion.init({
 })
 </script>
 
-<script type="text/javascript" src="jconfirmaction.jquery.js"></script>
+<script type="text/javascript" src="js/jconfirmaction.jquery.js"></script>
 
 
 
@@ -39,14 +39,15 @@ ddaccordion.init({
   NotifierjsConfig.position = ["bottom", "right"];
 </script>
 
-<script language="javascript" type="text/javascript" src="niceforms.js"></script>
-<link rel="stylesheet" type="text/css" media="all" href="niceforms-default.css" />
+<script language="javascript" type="text/javascript" src="js/niceforms.js"></script>
+<link rel="stylesheet" type="text/css" media="all" href="css/niceforms-default.css" />
 
 <script type="text/javascript">
 	
 	$(document).ready(function() {
 		$('.ask').jConfirmAction();
 		 $("#submit").click(function(){
+		 
 		 if($("#userName").val()==''||$("#password").val() ==''){
 		 Notifier.warning("Please enter the credentials");
 		 return;
@@ -58,14 +59,14 @@ ddaccordion.init({
 			data: { userName: $("#userName").val(), password: $("#password").val() } ,
 			success: function(response)
 			{
-			   // alert(response);
+			    //alert(response);
 				if(response == 'success'){
 				//alert(response);
 				//Notifier.success('Login successful');
-				setTimeout(function() {
+				/*setTimeout(function() {
 				window.location = "home.php";
-				}, 0);
-			//	window.location = "home.php";
+				}, 0);*/
+				window.location = "home.php";
 				}
 				else if(response=='fail')
 				Notifier.error('Login Failed');
@@ -77,9 +78,13 @@ ddaccordion.init({
 			}
 		});
 
-		return false;
+		return true;
 		  
 		  });
+		  
+		  
+
+		  
 	});
 	
 </script>
@@ -100,7 +105,7 @@ ddaccordion.init({
          
          <a href="forgotPassword.php" class="forgot_pass">Forgot password</a> 
          
-         <form action="login_check.php" method="post" class="niceform" method="post" >
+         <form action="login_check.php" id='form_login' method="post" class="niceform"  >
          
                 <fieldset>
                     <dl>
@@ -109,7 +114,7 @@ ddaccordion.init({
                     </dl>
                     <dl>
                         <dt><label for="password">Password:</label></dt>
-                        <dd><input type="text" name="password" id="password" size="54" /></dd>
+                        <dd><input type="password" name="password" id="password" size="54" /></dd>
                     </dl>
                     
                     <dl>
@@ -122,6 +127,8 @@ ddaccordion.init({
                      <dl class="submit">
                     <input type="button" name="submit" id="submit" value="Login" />
                      </dl>
+					 
+
 					<dl class="" style="color:red;font-size:13px;padding-left:300px;">
                     <span name="loginComment" id="loginComment" value="" />
                      </dl>
@@ -137,8 +144,8 @@ ddaccordion.init({
     
     <div class="footer_login">
     
-    	<div class="left_footer_login">Travel <a href="">Travel</a></div>
-    	<div class="right_footer_login"><a href="http://indeziner.com"><img src="images/indeziner_logo.gif" alt="" title="" border="0" /></a></div>
+    	<div class="left_footer_login"><p>I <sup>2A</sup>  Travel</p> </div>
+    	<div class="right_footer_login">I <sup>2A</sup>  Travel</div>
     
     </div>
 

@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-31 22:28:46
+<?php /* Smarty version Smarty-3.1.8, created on 2012-07-30 18:25:38
          compiled from ".\templates\reports.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:293284fb555b96065a0-05138723%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     'b69c84c55ff66c12e36135cbb373dc36ea058547' => 
     array (
       0 => '.\\templates\\reports.tpl',
-      1 => 1338496121,
+      1 => 1343665534,
       2 => 'file',
     ),
   ),
@@ -49,14 +49,14 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 
     <h2>Results</h2> 
     
-<table id="rounded-corner" summary="2007 Major IT Companies' Profit">
+<table id="rounded-corner" summary=" Travel Reports ">
     <thead>
     	<tr>
         	
             <th scope="col" class="rounded-company">Transaction</th>
             <th scope="col" class="rounded">Start Date</th>
             <th scope="col" class="rounded">End Date</th>
-            <th scope="col" class="rounded">Source</th>
+            <th scope="col" class="rounded">Origin</th>
 			<th scope="col" class="rounded">Destination</th>
 			<th scope="col" class="rounded">TravelType</th>
 			<th scope="col" class="rounded">Cost</th>
@@ -68,7 +68,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     </thead>
         <tfoot>
     	<tr>
-        	<td colspan="8" style="width:835px;"class="rounded-foot-left"><em>Your have <?php echo $_smarty_tpl->tpl_vars['reportCount']->value;?>
+        	<td colspan="8" style="width:835px;"class="rounded-foot-left"><em id='reportCount'>Your have <?php echo $_smarty_tpl->tpl_vars['reportCount']->value;?>
  results.</em></td>
         	<td class="rounded-foot-right">&nbsp;</td>
 
@@ -80,11 +80,12 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     	
     </tbody>
 </table>
-<table style="padding-left:280px;">
+<table style="padding-left:180px;">
 <tr><td>
 <div style="align:center;">
-	 <a href="#" class="bt_red"><span class="bt_red_lft"></span><strong>Email</strong><span class="bt_red_r"></span></a>
-
+	 <a href="#" class="bt_red" id="emailRegularExcel"  style="display:block"><span class="bt_red_lft"></span><strong>Email</strong><span class="bt_red_r"></span></a>
+	  <a href="#" class="bt_red" id="emailMonthlyExcel" style="display:none" ><span class="bt_red_lft"></span><strong>Email</strong><span class="bt_red_r"></span></a>
+	<a href="#"  id="generateMonthlyConsolidatedExcel" style="display:none" class="bt_green"><span class="bt_green_lft"></span><strong>Consolidated Excel</strong><span class="bt_green_r"></span></a> 
      <a href="#"  id="generateRegularExcel" style="display:block" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
 	 <a href="#"  id="generateMonthlyExcel" style="display:none" class="bt_green"><span class="bt_green_lft"></span><strong>Export to Excel</strong><span class="bt_green_r"></span></a> 
 </div>
@@ -97,7 +98,6 @@ $_valid = $_smarty_tpl->decodeProperties(array (
      
     
          
-      
      
      </div><!-- end of right content-->
           

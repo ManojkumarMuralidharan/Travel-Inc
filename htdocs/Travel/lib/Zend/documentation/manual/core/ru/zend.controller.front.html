@@ -1,0 +1,687 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Фронт-контроллер - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.controller.basics.html">Основы Zend_Controller</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.controller.html">Zend_Controller</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.controller.request.html">Объект запроса</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.controller.front" class="section"><div class="info"><h1 class="title">Фронт-контроллер</h1></div>
+    
+
+    <div class="section" id="zend.controller.front.overview" name="zend.controller.front.overview"><div class="info"><h1 class="title">Обзор</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Controller_Front</span> реализует
+            <a href="http://www.martinfowler.com/eaaCatalog/frontController.html" class="link external">&raquo; паттерн
+            Front Controller</a>, используемый в приложениях <a href="http://en.wikipedia.org/wiki/Model-view-controller" class="link external">&raquo; MVC</a>.
+            Его назначение состоит в инициализации окружения запроса, проложении
+            маршрута приходящего запроса и последующем запуске выявленных
+            действий. Он агрегирует все ответы и возвращает их по завершении
+            процесса.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Controller_Front</span> также реализует
+            <a href="http://en.wikipedia.org/wiki/Singleton_pattern" class="link external">&raquo; паттерн
+            Singleton</a>, это означает, что в любое время может быть
+            доступен только один экземпляр этого класса. Это позволяет ему также
+            выступать в качестве реестра, в котором хранятся другие объекты,
+            участвующие в процессе диспетчеризации.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Controller_Front</span> регистрирует в себе <a href="zend.controller.plugins.html" class="link">брокер плагинов</a> (plugin
+            broker), что позволяет с помощью плагинов отслеживать события,
+            инициируемые фронт-контроллером.
+            В большинстве случаев это дает возможность подгонять
+            процесс диспетчеризации под конкретный сайт без расширения
+            фронт-контроллера для добавления функциональности.
+        </p>
+
+        <p class="para">
+            Фронт-контроллеру для его работы необходим, как минимум,
+            один или более путей к директориям, содержащим
+            <a href="zend.controller.action.html" class="link">контроллеры действий</a>.
+            Можно также использовать различные методы для дальнейшей
+            настройки конфигураций фронт-контроллера и его помощников.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Поведение по умолчанию</b><br /></span>
+            
+            
+                По умолчанию фронт-контроллер загружает плагин <a href="zend.controller.plugins.html#zend.controller.plugins.standard.errorhandler" class="link">ErrorHandler</a>
+                и помощник действий <a href="zend.controller.actionhelpers.html#zend.controller.actionhelpers.viewrenderer" class="link">ViewRenderer</a>.
+                Это сделано для упрощения обработки ошибок и рендеринга видов в
+                контроллерах, соответственно.
+            <br />
+
+            
+                Для того, чтобы отключить <code class="code">ErrorHandler</code>, произведите
+                следующее до вызова метода <code class="code">dispatch()</code>:
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Отключение плагина ErrorHandler:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'noErrorHandler'</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            
+                Для того, чтобы отключить <code class="code">ViewRenderer</code>, сделайте
+                следующее до вызова метода <code class="code">dispatch()</code>:
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Отключение помощника ViewRenderer:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'noViewRenderer'</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p></blockquote>
+
+    </div>
+
+    <div class="section" id="zend.controller.front.methods.primary" name="zend.controller.front.methods.primary"><div class="info"><h1 class="title">Ключевые методы</h1></div>
+        
+
+        <p class="para">
+            Фронт-контроллер имеет несколько аксессоров для настройки его
+            конфигурации. Тем не менее, он имеет несколько ключевых в
+            его функционале методов.
+        </p>
+
+        <div class="section" id="zend.controller.front.methods.primary.getinstance" name="zend.controller.front.methods.primary.getinstance"><div class="info"><h1 class="title">getInstance()</h1></div>
+            
+
+            <p class="para">
+                <code class="code">getInstance()</code> используется для получения экземпляра
+                фронт-контроллера. Поскольку фронт-контроллер реализует паттерн
+                Singleton, то это также единственно доступный способ
+                инстанцирования объекта фронт-контроллера.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span> = Zend_Controller_Front::<span style="color: #006600;">getInstance</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.controller.front.methods.primary.setcontrollerdirectory" name="zend.controller.front.methods.primary.setcontrollerdirectory"><div class="info"><h1 class="title">setControllerDirectory() и addControllerDirectory()</h1></div>
+            
+
+            <p class="para">
+                <code class="code">setControllerDirectory()</code> используется для того,
+                чтобы указать <a href="zend.controller.dispatcher.html" class="link">диспетчеру</a>, где
+                искать файлы классов <a href="zend.controller.action.html" class="link">контроллеров действий</a>.
+                Он принимает один путь или ассоциативный массив пар
+                модуль =&gt; путь в качестве параметра.
+            </p>
+
+            <p class="para">
+                Примеры:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Установка директории контроллеров, используемой по умолчанию:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setControllerDirectory</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'../application/controllers'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Одновременная установка нескольких директорий модулей:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setControllerDirectory</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'default'</span> =&gt; <span style="color: #ff0000;">'../application/controllers'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'blog'</span>&nbsp; &nbsp; =&gt; <span style="color: #ff0000;">'../modules/blog/controllers'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'news'</span>&nbsp; &nbsp; =&gt; <span style="color: #ff0000;">'../modules/news/controllers'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Добавление директории модуля 'foo':</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">addControllerDirectory</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'../modules/foo/controllers'</span>, <span style="color: #ff0000;">'foo'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <blockquote><p><b class="note">Note</b>: 
+                
+                    Если вы используете <code class="code">addControllerDirectory()</code>
+                    без имени модуля, то он установит директорию для модуля
+                    <code class="code">default</code>. Если директория уже существует, то она
+                    будет перезаписана.
+                <br />
+            </p></blockquote>
+
+            <p class="para">
+                Можно получить текущие установки для директорий
+                контроллеров, используя метод
+                <code class="code">getControllerDirectory()</code>. Он вернет массив пар
+                модуль =&gt; директория.
+            </p>
+        </div>
+
+        <div class="section" id="zend.controller.front.methods.primary.addmoduledirectory" name="zend.controller.front.methods.primary.addmoduledirectory"><div class="info"><h1 class="title">addModuleDirectory() и getModuleDirectory()</h1></div>
+            
+
+            <p class="para">
+                Одной из возможностей фронт-контроллера является то, что вы
+                можете <a href="zend.controller.modular.html" class="link">определять модульную
+                структуру директорий</a> для создания отдельных компонент,
+                которые называются &quot;модулями&quot;.
+            </p>
+
+            <p class="para">
+                Каждый модуль должен находиться в собственной директории и
+                отражать структуру директорий используемого по умолчанию
+                модуля - т.е., он должен содержать, как минимум, поддиректорию
+                &quot;controllers&quot;; с ней, как правило, присутствует поддиректория
+                &quot;views&quot; и другие поддиректории приложения.
+            </p>
+
+            <p class="para">
+                Метод <code class="code">addModuleDirectory()</code> позволяет передавать имя
+                директории, содержащей один или более директорий модулей.
+                Он их сканирует и добавляет в качестве директорий контроллеров
+                во фронт-контроллер.
+            </p>
+
+            <p class="para">
+                Если вы хотите получить путь к определенному модулю или к
+                текущему модулю, то можете использовать метод
+                <code class="code">getModuleDirectory()</code>, при передаче имени модуля он
+                возвращает путь к нему, иначе возвращается путь к текущему
+                модулю.
+            </p>
+        </div>
+
+        <div class="section" id="zend.controller.front.methods.primary.dispatch" name="zend.controller.front.methods.primary.dispatch"><div class="info"><h1 class="title">dispatch()</h1></div>
+            
+
+            <p class="para">
+                <code class="code">dispatch(Zend_Controller_Request_Abstract $request = null,
+                    Zend_Controller_Response_Abstract $response = null)</code>
+                    является &quot;рабочей лошадкой&quot; фронт-контроллера. Он может
+                    опционально принимать
+                    <a href="zend.controller.request.html" class="link">объект
+                    запроса</a> и/или
+                    <a href="zend.controller.response.html" class="link">объект
+                    ответа</a>, что дает разработчикам возможность передавать
+                    свои объекты.
+            </p>
+
+            <p class="para">
+                Если методу <code class="code">dispatch()</code> не были переданы объект
+                запроса или ответа, то он будет проверять, были ли ранее
+                зарегистрированы объекты, и использовать их, либо инстанцировать
+                версии по умолчанию (в обоих случаях по умолчанию будут
+                использоваться разновидность HTTP).
+            </p>
+
+            <p class="para">
+                Аналогичным образом <code class="code">dispatch()</code> производит проверку
+                на уже зарегистрированные объекты
+                <a href="zend.controller.router.html" class="link">маршрутизатора</a> и
+                <a href="zend.controller.dispatcher.html" class="link">диспетчера</a>, и
+                если они не найдены, то инстанцирует версии по умолчанию.
+            </p>
+
+            <p class="para">
+                Процесс диспетчеризации имеет три отдельных события:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para">
+                    Маршрутизация
+                </p></li>
+                <li class="listitem"><p class="para">
+                    Диспетчеризация
+                </p></li>
+                <li class="listitem"><p class="para">
+                    Ответ
+                </p></li>
+            </ul>
+
+            <p class="para">
+                Маршрутизация производится только один раз, когда вызывается
+                <code class="code">dispatch()</code>, при этом используются значения в
+                объекте запроса. Диспетчеризация производится циклически. Запрос
+                может означать вызов нескольких действий, контроллер или плагин
+                могут сбрасывать объект запроса для дополнительного вызова
+                других действий. Когда все действия выполнены, фронт-контроллер
+                возвращает ответ.
+            </p>
+        </div>
+
+        <div class="section" id="zend.controller.front.methods.primary.run" name="zend.controller.front.methods.primary.run"><div class="info"><h1 class="title">run()</h1></div>
+            
+
+            <p class="para">
+                <code class="code">Zend_Controller_Front::run($path)</code> - статический
+                метод, принимающий только путь к директории контроллеров. Он
+                извлекает экземпляр фронт-контроллера через
+                <a href="zend.controller.front.html#zend.controller.front.methods.primary.getinstance" class="link">getInstance()</a>),
+                регистрирует этот путь через
+                <a href="zend.controller.front.html#zend.controller.front.methods.primary.setcontrollerdirectory" class="link">setControllerDirectory()</a>, и в конце вызывает метод <a href="zend.controller.front.html#zend.controller.front.methods.primary.dispatch" class="link">dispatch()</a>.
+            </p>
+
+            <p class="para">
+                В сущности, <code class="code">run()</code> представляет собой удобный
+                метод, который можно использовать при разработке сайта, не
+                требующего специальной настройки фронт-контроллера.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Инстанцирование фронт-контроллера, установка директории контроллера и</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// выполнение диспетчеризации в одном вызове:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Controller_Front::<span style="color: #006600;">run</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'../application/controllers'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+
+    <div class="section" id="zend.controller.front.methods.environment" name="zend.controller.front.methods.environment"><div class="info"><h1 class="title">Методы-аксессоры для конфигурирования</h1></div>
+        
+
+        <p class="para">
+            Кроме методов, перечисленных выше, есть методы-аксессоры, которые
+            можно использовать для управления конфигурацией фронт-контроллера -
+            и одновременно конфигурацией классов, которым фронт-контроллер
+            делегирует выполнение.
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">resetInstance()</code> может использоваться для сброса
+                    всех текущих настроек. Он в основном предназначен для
+                    тестирования, но может также использоваться в тех случаях,
+                    когда нужно связать между собой несколько
+                    фронт-контроллеров.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">(set|get)DefaultControllerName()</code> позволяют
+                    установить другое имя используемого
+                    по умолчанию контроллера (иначе используется &#039;index&#039;) и
+                    получить текущее значение. Они служат посредниками к
+                    <a href="zend.controller.dispatcher.html" class="link">диспетчеру</a>.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">(set|get)DefaultAction()</code> позволяют
+                    установить другое имя используемого по умолчанию действия
+                    (иначе используется &#039;index&#039;) и получить текущее
+                    значение. Они служат посредниками к
+                    <a href="zend.controller.dispatcher.html" class="link">диспетчеру</a>.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">(set|get)Request()</code> позволяют установить
+                    класс <a href="zend.controller.request.html" class="link">запроса</a>
+                    или его объект для использования в процессе диспетчеризации
+                    и получить текущий объект. При установке объекта
+                    запроса вы можете передать имя класса запроса, в этом случае
+                    метод загрузит файл класса и инстанцирует его.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">(set|get)Router()</code> позволяют установить
+                    класс
+                    <a href="zend.controller.router.html" class="link">маршрутизатора</a>
+                    или его объект, используемые в течение процесса
+                    диспетчеризации, и получить текущий объект. Когда
+                    устанавливается объект маршрутизатора, вы можете передать
+                    имя класса маршрутизатора, в этом случае метод загрузит файл
+                    класса и инстанцирует его.
+                </p>
+
+                <p class="para">
+                    При извлечении объекта маршрутизатора сначала производится
+                    проверка, представлен ли во фронт-контроллере такой объект и
+                    в случае его отсутствия инстанцирует используемый по
+                    умолчанию маршрутизатор (Rewrite Router).
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">(set|get)BaseUrl()</code> дают возможность установить
+                    <a href="zend.controller.request.html#zend.controller.request.http.baseurl" class="link">базовый
+                    URL</a>, который удаляется из начала при
+                    маршрутизации запросов, и получить его текущее значение.
+                    Это значение передается объекту запроса непосредственно до
+                    маршрутизации.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">(set|get)Dispatcher()</code> дают возможность
+                    установки класса
+                    <a href="zend.controller.dispatcher.html" class="link">диспетчера</a>
+                    или его объекта для использования в течение диспетчеризации,
+                    и получения текущего объекта. При установке объекта
+                    диспетчера можно передать имя класса диспетчера, в этом
+                    случае метод загрузит файл класса и инстанцирует его.
+                </p>
+
+                <p class="para">
+                    При извлечении объекта диспетчера, метод сначала производит
+                    проверку того, представлен ли во фронт-контроллере такой
+                    объект и в случае его отсутствия инстанцирует диспетчер,
+                    используемый по умолчанию.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">(set|get)Response()</code> дают возможность установить
+                    класс <a href="zend.controller.response.html" class="link">ответа</a>
+                    или его объект для использования в процессе диспетчеризации,
+                    и извлечь текущий объект. При установке объекта
+                    ответа можно передать имя класса ответа, в этом случае метод
+                    загрузит файл класса и инстанцирует его.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">registerPlugin(Zend_Controller_Plugin_Abstract $plugin, $stackIndex = null)</code>
+                    позволяет регистрировать <a href="zend.controller.plugins.html" class="link">объекты плагинов</a>.
+                    Путем установки опционального параметра
+                    <var class="varname">$stackIndex</var>, вы можете
+                    контролировать порядок, в котором выполняются плагины.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">unregisterPlugin($plugin)</code> позволяет отменять
+                    регистрацию <a href="zend.controller.plugins.html" class="link">объектов плагинов</a>.
+                    <var class="varname">$plugin</var> может быть как объектом плагина, так и строкой, обозначающей класс плагина, регистрацию которого надо отменить.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">throwExceptions($flag)</code> используется для
+                    включения/отключения возможности генерации исключений в
+                    течение процесса диспетчеризации. По умолчанию исключения
+                    отлавливаются и размещаются в
+                    <a href="zend.controller.response.html" class="link">объекте
+                    ответа</a>; включение <code class="code">throwExceptions()</code>
+                    переопределит это поведение
+                </p>
+
+                <p class="para">
+                    Более полробную информацию читайте в <a href="zend.controller.exceptions.html" class="xref">Исключения</a>.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">returnResponse($flag)</code> используется для того,
+                    чтобы указать фронт-контроллеру - возвращать ли ответ
+                    из <code class="code">dispatch()</code> (<b><tt>TRUE</tt></b>), либо ответ
+                    должен быть отправлен автоматически (<b><tt>FALSE</tt></b>). По
+                    умолчанию ответ отправляется автоматически
+                    (через вызов
+                    <code class="code">Zend_Controller_Response_Abstract::sendResponse()</code>);
+                    включение <code class="code">returnResponse()</code> переопределит это
+                    поведение.
+                </p>
+
+                <p class="para">
+                    Ситуации, в которых может потребоваться возврат ответа,
+                    включают в себя проверку на предмет исключений до отправки
+                    ответа клиенту, необходимость журналирования различных
+                    аспектов ответа (таких, как заголовки) и т.д.
+                </p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="zend.controller.front.methods.params" name="zend.controller.front.methods.params"><div class="info"><h1 class="title">Параметры фронт-контроллера</h1></div>
+        
+
+        <p class="para">
+            Во введении мы указали на то, что фронт-контроллер также выступает
+            как реестр для различных компонент контроллера. Это реализуется
+            через группу методов для параметров. Эти методы позволяют
+            регистрировать произвольные данные - объекты и переменные - во
+            фронт-контроллере, чтобы их можно было извлечь в любой точке цепочки
+            диспетчеризации. Эти значения передаются маршрутизатору, диспетчеру,
+            и контроллерам действий. Эти методы включают в себя:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">setParam($name, $value)</code> дает возможность
+                    установить единственный параметр с именем <var class="varname">$name</var>
+                    и значением <var class="varname">$value</var>.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">setParams(array $params)</code> позволяет
+                    установить несколько параметров одновременно с помощью
+                    ассоциативного массива.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">getParam($name)</code> дает возможность извлечь один
+                    параметр за один раз, используя его имя <var class="varname">$name</var> в
+                    качестве идентификатора.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">getParams()</code> позволяет извлечь все
+                    параметры за один раз.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">clearParams()</code> позволяет удалить один параметр
+                    (путем передачи строкового идентификатора), нескольких
+                    параметров (путем передачи массива строковых
+                    идентификаторов) или весь стек параметров (без передачи
+                    чего-либо).
+                </p>
+            </li>
+        </ul>
+
+        <p class="para">
+            Есть несколько предопределенных параметров специально для
+            использования в цепочке диспетчеризации:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">useDefaultControllerAlways</code> используется для
+                    указания
+                    <a href="zend.controller.dispatcher.html" class="link">диспетчеру</a>,
+                    что следует использовать контроллер по умолчанию в модуле
+                    по умолчанию для любых запросов, диспетчеризация которых
+                    невозможна (т.е. модуль, контроллер и/или действие не
+                    существуют). По умолчанию он отключен.
+                </p>
+
+                <p class="para">
+                    См. <a href="zend.controller.exceptions.html#zend.controller.exceptions.internal" class="xref">Исключения в MVC, с которыми вы можете встретиться</a> за
+                    более подробной информацией об использовании этого параметра
+                    настройки.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">disableOutputBuffering</code> используется для
+                    указания
+                    <a href="zend.controller.dispatcher.html" class="link">диспетчеру</a>,
+                    что не следует использовать буферизацию вывода для сбора
+                    данных на вывод, генерируемых контроллерами действий. По
+                    умолчанию диспетчер собирает весь вывод и присоединяет его к
+                    телу содержимого в объекте ответа.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">noViewRenderer</code> используется для отключения
+                    помощника <a href="zend.controller.actionhelpers.html#zend.controller.actionhelpers.viewrenderer" class="link">ViewRenderer</a>.
+                    Установите этот параметр в true для его отключения.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <code class="code">noErrorHandler</code> используется для отключения
+                    <a href="zend.controller.plugins.html#zend.controller.plugins.standard.errorhandler" class="link">плагина
+                        Error Handler</a>
+                    Установите этот параметр в true для его отключения.
+                </p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="zend.controller.front.subclassing" name="zend.controller.front.subclassing"><div class="info"><h1 class="title">Расширение фронт-контроллера</h1></div>
+        
+
+        <p class="para">
+            При наследовании от фронт-контроллера, необходимо, как
+            минимум, переопределить метод <code class="code">getInstance()</code>.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> My_Controller_Front <span style="color: #000000; font-weight: bold;">extends</span> Zend_Controller_Front</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <a href="http://www.php.net/static"><span style="color: #000066;">static</span></a> <span style="color: #000000; font-weight: bold;">function</span> getInstance<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">null</span> === self::<span style="color: #0000ff;">$_instance</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; self::<span style="color: #0000ff;">$_instance</span> = <span style="color: #000000; font-weight: bold;">new</span> self<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> self::<span style="color: #0000ff;">$_instance</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Такое переопределение метода <code class="code">getInstance()</code> гарантирует
+            то, что последующий вызов
+            <code class="code">Zend_Controller_Front::getInstance()</code> вернет экземпляр
+            созданного вами подкласса вместо экземпляра
+            <span class="classname">Zend_Controller_Front</span> - это особенно полезно
+            для некоторых альтернативных маршрутизаторов и помощников видов.
+        </p>
+
+        <p class="para">
+            Как правило, нет необходимости создавать подклассы
+            фронт-контроллера, если только не нужно добавить новый
+            функционал (например, автозагрузку плагинов или способ
+            определения путей к помощникам действий). Целями, для достижения
+            которых может потребоваться изменение поведения фронт-контроллера,
+            могут быть изменение принципа хранения директорий
+            контроллеров, установка других используемых по умолчанию
+            маршрутизатора и диспетчера и т.д.
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.controller.basics.html">Основы Zend_Controller</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.controller.html">Zend_Controller</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.controller.request.html">Объект запроса</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.controller.html">Zend_Controller</a></li>
+  <li><a href="zend.controller.quickstart.html">Zend_Controller - Быстрый старт</a></li>
+  <li><a href="zend.controller.basics.html">Основы Zend_Controller</a></li>
+  <li class="active"><a href="zend.controller.front.html">Фронт-контроллер</a></li>
+  <li><a href="zend.controller.request.html">Объект запроса</a></li>
+  <li><a href="zend.controller.router.html">Стандартный маршрутизатор</a></li>
+  <li><a href="zend.controller.dispatcher.html">Диспетчер</a></li>
+  <li><a href="zend.controller.action.html">Контроллеры действий</a></li>
+  <li><a href="zend.controller.actionhelpers.html">Помощники действий</a></li>
+  <li><a href="zend.controller.response.html">Объект ответа</a></li>
+  <li><a href="zend.controller.plugins.html">Плагины</a></li>
+  <li><a href="zend.controller.modular.html">Использование модульной структуры директорий</a></li>
+  <li><a href="zend.controller.exceptions.html">Исключения</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

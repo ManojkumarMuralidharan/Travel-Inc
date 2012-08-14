@@ -4,16 +4,7 @@
      
     
     <div class="right_content">            
-        <script>
-		// justLogged=1;
-		//alert(justLogged);
-		 if(justLogged==1){
-		 var contentText=$("#titleUserName").text();
-		 var text=contentText.split(",",2);
-		Notifier.info(text[0]);
-		justLogged=0;
-		 }
-		</script>
+       {$welcomeContent}
     <h2>My Requests</h2> 
                     
 <table id="mt" class="rounded-corner" summary="2007 Major IT Companies' Profit">
@@ -23,12 +14,12 @@
             <th scope="col" class="rounded">ID</th>
             <th scope="col" class="rounded">Start Date</th>
             <th scope="col" class="rounded">End Date</th>
-            <th scope="col" class="rounded">Source</th>
+            <th scope="col" class="rounded">Origin</th>
 			<th scope="col" class="rounded">Destination</th>
 			<th scope="col" class="rounded">TravelType</th>
 			<th scope="col" class="rounded">Cost</th>
 			<th scope="col" class="rounded">Purpose</th>
-			<th scope="col" class="rounded">Supervisor</br>Comments</th>
+			<th scope="col" class="rounded">Comments</th>
             <th scope="col" class="rounded-q4">Edit</th>
 
         </tr>
@@ -67,7 +58,7 @@
             
 			
 			
-{if {$smarty.session.profile} eq 'supervisor'}
+{if {$smarty.session.profile} eq 'supervisor'||{$smarty.session.profile} eq 'president'||{$smarty.session.profile} eq 'hr'||{$smarty.session.profile} eq 'finance'}
 			 <div class="right_content" style="display:block;">  <!-- start of Super visior content-->          
         
 				<h2>Request pending for approval</h2> 
@@ -80,12 +71,12 @@
 					<th scope="col" class="rounded">ID</th>
 					<th scope="col" class="rounded">Start Date</th>
 					<th scope="col" class="rounded">End Date</th>
-					<th scope="col" class="rounded">Source</th>
+					<th scope="col" class="rounded">Origin</th>
 					<th scope="col" class="rounded">Destination</th>
 					<th scope="col" class="rounded">TravelType</th>
 					<th scope="col" class="rounded">Cost</th>
-					<th scope="col" class="rounded">Purpose</th>
-					<th scope="col" class="rounded">Requestor</br>Reason</th>
+					<th scope="col" class="rounded">Requester</th>
+					<th scope="col" class="rounded">Reason</th>
 					<th scope="col" class="rounded-q4">Decline/<br>On-Hold</th>
 
 				</tr>
@@ -180,10 +171,10 @@
 		   
 		   <div class="NewSelect" onClick="newSelect();"> 
 		   <img src="img/0.png" class="NewSelectLeft">
-		   <div class="NewSelectRight" id="travelTypeFormElement">Local</div>
+		   <div class="NewSelectRight" id="travelTypeFormElement">Domestic</div>
 			   <div class="NewSelectTarget" id="123" style="display: none; ">
 				   <ul class="NewSelectOptions">
-				   <li><a href="javascript:;" onClick="travelType='local';$('#travelTypeFormElement').text('Local');">Local</a></li>
+				   <li><a href="javascript:;" onClick="travelType='local';$('#travelTypeFormElement').text('Domestic');">Domestic</a></li>
 				   <li><a href="javascript:;" onClick="travelType='international';$('#travelTypeFormElement').text('International');">International</a></li>
 				   </ul>
 			   </div>
@@ -195,7 +186,7 @@
 		   </tr>
 		   
 		   <tr>
-		   <td>Source</td>
+		   <td>Origin</td>
 		   <td><input type="text" id="newRequestSource"/></td>   
 		   </tr>
 		   
@@ -248,7 +239,7 @@
 		   <Table>
 		   <tr>
 		   <td>ID</td>
-		   <td><input type="text" id="editRequestid"/></td>   
+		   <td><input type="text" id="editRequestid" readonly="readonly" /></td>   
 		   </tr>
 		   
 		   <tr>
@@ -274,7 +265,7 @@
 	
 		   
 		   <tr>
-		   <td>Source</td>
+		   <td>Origin</td>
 		   <td><input type="text" id="editRequestSource"/></td>   
 		   </tr>
 		   
@@ -310,17 +301,27 @@
 		   
 		   
 		   </Table>
-		   <Table style="padding-left:150px"><tr><td>
-		   <input type="button" name="submit" id="editRequestButton" value="Edit Request" /></td>
-		   </td></tr>
+		   <Table style="padding-left:50px">
+		   <tr>
+		   
+		   <td>
+		   <input type="button" name="submit" id="editRequestButton" value="Edit" />
+		   </td>
+		   <td>
+		   <input type="button" name="submit" id="duplicateRequestButton" value="Duplicate" />
+		   </td>
+		   
+		   </tr>
 		   </Table>
          </form>
 		 
          </div> 
 		</div> 
-		
+
 	<div id="backgroundPopup"></div>  
-   <script>   
+	
+
+	<script>   
      
     
 	   // M7();

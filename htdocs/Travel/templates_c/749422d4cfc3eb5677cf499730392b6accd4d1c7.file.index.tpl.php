@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-31 20:19:33
+<?php /* Smarty version Smarty-3.1.8, created on 2012-08-07 08:02:09
          compiled from ".\templates\index.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:228624fb40c7e6398b3-47310342%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     '749422d4cfc3eb5677cf499730392b6accd4d1c7' => 
     array (
       0 => '.\\templates\\index.tpl',
-      1 => 1338488323,
+      1 => 1344319259,
       2 => 'file',
     ),
   ),
@@ -19,8 +19,11 @@ $_valid = $_smarty_tpl->decodeProperties(array (
   'unifunc' => 'content_4fb40c7e6cbdb0_53961752',
   'variables' => 
   array (
+    'reportUserName' => 0,
     'securityQuestionId' => 0,
     'userName' => 0,
+    'currentBudget' => 0,
+    'totalBudget' => 0,
   ),
   'has_nocache_code' => false,
 ),false); /*/%%SmartyHeaderCode%%*/?>
@@ -30,18 +33,22 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>IN ADMIN PANEL | Powered by INDEZINER</title>
-<link rel="stylesheet" type="text/css" href="style.css" />
-<link rel="icon" type="image/ico" href="Images/favicon.ico"> 
-<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/style.css" />
+<link rel="icon" type="image/ico" href="images/favicon.ico"> 
+<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
 
-<script type="text/javascript" src="notifier.js"></script>
-<script type="text/javascript" src="jquery-ui.min.js"></script>
+<script type="text/javascript" src="js/notifier.js"></script>
+<script type="text/javascript" src="js/jquery-ui.min.js"></script>
  
-<link rel="stylesheet" type="text/css" href="jquery-ui.css"/>
+<link rel="stylesheet" type="text/css" href="css/jquery-ui.css"/>
 
-<link rel="stylesheet" type="text/css" href="ui.theme.css"/>
+<link rel="stylesheet" type="text/css" href="css/ui.theme.css"/>
 
-<script type="text/javascript" src="ddaccordion.js"></script>
+<script type="text/javascript" src="js/ddaccordion.js"></script>
+
+
+<script type="text/javascript" src="js/jquery.progressbar.js"></script>
+
 
 <script type="text/javascript">
 ddaccordion.init({
@@ -66,20 +73,69 @@ ddaccordion.init({
 })
 </script>
 
-<script type="text/javascript" src="jpaginate.js"></script>
+<script type="text/javascript" src="js/jpaginate.js"></script>
 
-<script type="text/javascript" src="jconfirmaction.jquery.js"></script>
+<script type="text/javascript" src="js/jquery.plupload.queue.js"></script>
 
-<script type="text/javascript" src="logout.js"></script>
+<script type="text/javascript" src="js/plupload.full.js"></script>
 
-<script type="text/javascript" src="reports.js"></script>
+<script type="text/javascript" src="js/jconfirmaction.jquery.js"></script>
+
+<script type="text/javascript" src="js/logout.js"></script>
+
+<script type="text/javascript" src="js/reports.js"></script>
+
 
 <script type="text/javascript">
-	
+	$(window).load(function(){
+		$("#loading").hide();		
+	})
 
 	$(document).ready(function() {
 		$('.ask').jConfirmAction();
-	
+		
+		
+		$('#budgetInfo').click(function(){
+			Notifier.warning('You have used '+ $('#currentBudget').text()+' of your total Budget of '+$('#totalBudget').text());
+		});
+		
+		$('#budgetRefresh').click(function(){
+			
+			$.ajax({
+			type: "POST",
+			url: "budgetRefresh.php",
+			}).done(function(data) { 
+				
+				var n=data.split(":");
+				
+		var text="<span id='currentBudget' style='display:none'>";
+		text=text+n[0];
+				text=text+"</span>";
+				text=text+"<span id='totalBudget' style='display:none'>"+n[1]+"</span>";
+				text=text+"<div style='padding-left:120px'><table><tr><td>Budget</td></tr><tr><td><div id='progressbar'></div>";
+				text=text+"</td><td><img src='images/update.png' id='budgetRefresh' alt='' title='' border='0' style='padding-left:10px;'/>";
+				text=text+"</td></tr></table></div>";
+				
+				/*var text="<span id='currentBudget' style='display:none'>";
+				text=text+n[0];
+				text=text+"</span>";
+				text=text+"<span id='totalBudget' style='display:none'>"+n[1];
+				text=text+"</span><img src='images/update.png' id='budgetRefresh'";
+				text=text+" alt='' title='' border='0'/> <div id='progressbar'></div>";*/
+				
+				
+				//$('#budgetMeter').replaceWith("<span id='currentBudget' style='display:none'></span> 
+				//[Used] / <span id='totalBudget' style='display:none'></span><img src='images/update.png' id='budgetRefresh' alt='' //title='' border='0'/> <div id='progressbar'></div>");
+				
+				
+				
+				$("#progressbar").progressBar(n[0],{ max: n[1], textFormat: 'fraction'} );
+				
+				
+			});	
+			
+			
+		});
 		setupPagination($('#userRecordBody'),$('#userRecordsPaginationElement'),$('#current_UserRecords_page'),$('#show_UserRecords_per_page'));
 		setupPagination($('#supervisorRecordBody'),$('#supervisorRecordsPaginationElement'),$('#current_SupervisorRecords_page'),$('#show_SupervisorRecords_per_page'));
 		setupPagination($('#reportsContents'),$('#reportRecordsPaginationElement'),$('#current_ReportsRecords_page'),$('#show_ReportsRecords_per_page'));
@@ -89,20 +145,26 @@ ddaccordion.init({
 		 $('#supervisorRecordsPaginationElement a').click(function(e) {
 		 e.preventDefault();
 		 });
-
- 
+		
+	 $("#progressbar").progressBar($('#currentBudget').text(),{ max: $('#totalBudget').text(), textFormat: 'fraction'} );
+  
 	});
 	
 </script>
          <script>
 		var justLogged=1;
 		var newUserType='user';
-		var travelType='local';
+		var travelType='Domestic';
 		var reportsTravelType='local';
-		var reportUserName='';
+		var reportUserName='<?php echo $_smarty_tpl->tpl_vars['reportUserName']->value;?>
+';
 		var securityQuestionId=<?php echo $_smarty_tpl->tpl_vars['securityQuestionId']->value;?>
 ;
 		var monthlyReportsYear='';
+		var budgetYear='2011-2012';
+		//$('#travelTypeFormElement').text('Domestic');
+		
+		
 	   </script>
 
 		
@@ -111,17 +173,20 @@ ddaccordion.init({
   NotifierjsConfig.position = ["bottom", "right"];
 </script>
 
-<script language="javascript" type="text/javascript" src="niceforms.js"></script>
-<script language="javascript" type="text/javascript" src="popup.js"></script>
-<script language="javascript" type="text/javascript" src="datePicker.js"></script>
+<script language="javascript" type="text/javascript" src="js/niceforms.js"></script>
+<script language="javascript" type="text/javascript" src="js/popup.js"></script>
+<script language="javascript" type="text/javascript" src="js/datePicker.js"></script>
+
 <script type="text/javascript">
 //SETTING UP OUR POPUP  
 //0 means disabled; 1 means enabled; 
 var popupStatus = 0;
 
 </script>
-<link rel="stylesheet" type="text/css" media="all" href="niceforms-default.css" />
-<link rel="stylesheet" type="text/css" media="all" href="popupform-default.css"/>
+<link rel="stylesheet" type="text/css" media="all" href="css/niceforms-default.css" />
+<link rel="stylesheet" type="text/css" media="all" href="css/popupform-default.css"/>
+<link rel="stylesheet" type="text/css" media="all" href="css/jquery.plupload.queue.css"/>
+
 </head>
 <body>
 <div id="main_container">
@@ -130,8 +195,29 @@ var popupStatus = 0;
     <div class="logo"><a href="#"><img src="images/logo.gif" alt="" title="" border="0" /></a></div>
     
     <div class="right_header" id="titleUserName" >Welcome <?php echo $_smarty_tpl->tpl_vars['userName']->value;?>
-, <a href="#" class="messages">(3) Messages</a>|<a href="logout.php" class="logout">Logout</a></div>
-    
+,<a href="logout.php" class="logout">Logout</a>
+		<div id='budgetMeter'> 
+		<span id="currentBudget" style="display:none"><?php echo $_smarty_tpl->tpl_vars['currentBudget']->value;?>
+</span> 
+		<span id="totalBudget" style="display:none"><?php echo $_smarty_tpl->tpl_vars['totalBudget']->value;?>
+</span>
+		<div style='padding-left:90px'>
+		<table><tr><td>Budget</td></tr><tr><td>
+		<div id="progressbar"></div>
+		</td><td>
+		<img src="images/update.png" id='budgetRefresh' alt='' title='' border='0' style="padding-left:10px;"/>
+		<img src="images/help.png" id='budgetInfo' alt='' title='' border='0' style="padding-left:10px;"/>
+		</td></tr>
+		</table>
+		</div> 
+		</div> 
+	
+	
+	</div>
+    <div class="right_header" id="titleUserName" > 
+		
+		
+	</div>    
     </div>
     
     <div class="main_content">
@@ -141,7 +227,21 @@ var popupStatus = 0;
                     <li><a style="font-size:14px;" class="current" href="#" onClick="ChangePage('home');">Home</a></li>
                     <li><a style="font-size:14px;" href="#" onClick="ChangePage('settings');">Settings</a></li>
                     <li><a style="font-size:14px;" href="#Reports" onClick="ChangePage('reports');">Reports</a></li>
-                    <li><a style="font-size:14px;" href="#">Contact Us</a></li>
+								
+					<?php ob_start();?><?php echo $_SESSION['profile'];?>
+<?php $_tmp1=ob_get_clean();?><?php if ($_tmp1=='finance'){?>
+					
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('uploadExcel');">Upload</a></li>
+					<?php }?>
+					
+					<?php ob_start();?><?php echo $_SESSION['profile'];?>
+<?php $_tmp2=ob_get_clean();?><?php ob_start();?><?php echo $_SESSION['profile'];?>
+<?php $_tmp3=ob_get_clean();?><?php if ($_tmp2=='finance'||$_tmp3=='president'){?>
+					
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('budget');">Budget</a></li>
+					<?php }?>
+                    <li><a style="font-size:14px;" href="#" onClick="ChangePage('help');">Help</a></li>
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('contactus');">Contact Us</a></li>
                     </ul>
                     </div> 
                     
@@ -172,6 +272,7 @@ $page="templates/home.tpl";
     
     </div>
 </div>		
+
 <input type="hidden" id="current_UserRecords_page"/>
 <input type="hidden" id="show_UserRecords_per_page"/>
 
@@ -180,6 +281,76 @@ $page="templates/home.tpl";
 
 <input type="hidden" id="current_ReportsRecords_page"/>
 <input type="hidden" id="show_ReportsRecords_per_page"/>
+
+<!-- start of Information Popup -->
+		<div id="popupLoading">
+		<div id="loading" style="color:Black;display:none">	
+			Processing your request, please wait..
+		<img src="images/loading_animation.gif" alt="loading.." />
+		</div>
+		</div>
+		<div id="popupInformation">  
+			<a id="popupInformationClose">x</a>  
+			<h1>Your Request</h1>  
+			<div class="form">
+         <form action="" id="RequestInformationPopupform" method="post" class="niceform">
+		   <Table>
+		   <tr>
+		   <td>ID</td>
+		   <td><input type="text" id="RequestInformationid" readonly="readonly" /></td>   
+		   </tr>
+		   
+		   <tr>
+				<td>Type of Travel</td>
+			   <td>
+				<input type="text" id="RequestInformationTravel1" readonly="readonly" />
+			   </td>   
+		   </tr>
+		   
+	
+		   
+		   <tr>
+		   <td>Origin</td>
+		   <td><input type="text" id="RequestInformationSource" readonly="readonly"/></td>   
+		   </tr>
+		   
+		   <tr>
+		   <td>Destination</td>
+		   <td><input type="text" id="RequestInformationDestination" readonly="readonly" /></td>   
+		   </tr>
+
+		   <tr>
+		   <td>From Date</td>
+		   <td><p><input type="text" id="RequestInformationFromDate" readonly="readonly"/></p></td>   
+		   </tr>
+		   
+		   <tr>
+		   <td>To Date</td>
+		   <td><p><input type="text" id="RequestInformationToDate" readonly="readonly"/></p></td>   
+		   </tr>
+		   
+		   <tr>
+		   <td>Purpose</td>
+		   <td><input type="text" id="RequestInformationPurpose" readonly="readonly"/></td>   
+		   </tr>
+		   
+		   <tr>
+		   <td>Cost</td>
+		   <td><input type="text" id="RequestInformationCost" readonly="readonly"/></td>   
+		   </tr>
+		   	   
+		   </Table>
+		   <Table style="padding-left:50px">
+		   <tr>
+		   
+		  <td></td>
+		   
+		   </tr>
+		   </Table>
+         </form>
+		 
+         </div> 
+		</div> 
 
 </body>
 </html><?php }} ?>

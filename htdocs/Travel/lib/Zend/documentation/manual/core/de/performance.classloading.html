@@ -1,0 +1,421 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Laden von Klassen - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="performance.introduction.html">Einf&uuml;hrung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="performance.html">Zend Framework Performance Guide</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="performance.database.html">Zend_Db Performance</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="performance.classloading" class="section"><div class="info"><h1 class="title">Laden von Klassen</h1></div>
+    
+
+    <p class="para">
+        Jeder der jemals Profiling von Zend Framework Anwendungen durchführen muß, wird sofort
+        feststellen dass das Laden von Klassen relativ teuer ist im Zend Framework. Zwischen der
+        reinen Anzahl von Klassendateien die für viele Komponenten geladen werden müssen, und der
+        Verwendung von Plugins die keine 1:1 Verknüpfung zwischen Ihrem Klassennamen und dem
+        Dateisystem haben, können die Aufrufe zu  <span class="methodname">include_once()</span> und
+         <span class="methodname">require_once()</span> problematisch sein. Diese Kapitel versucht einige
+        konkrete Lösungen für diese Probleme zu geben.
+    </p>
+
+    <div class="section" id="performance.classloading.includepath" name="performance.classloading.includepath"><div class="info"><h1 class="title">Wie kann ich meinen include_path optimieren?</h1></div>
+        
+
+        <p class="para">
+            Eine triviale Optimierung die man machen kann um die Geschwindigkeit für das Laden der
+            Klassen zu erhöhen ist es, auf den include_path besonders Rücksicht zu nehmen. Im
+            speziellen, sollte man vier Dinge tun: Absolute Pfade verwenden (oder Pfade relativ zu
+            absoluten Pfaden), die Anzahl der Include Pfade die man definiert reduzieren, den
+            include_path von Zend Framework so früh wie möglich zu haben, und am Ende von
+            include_path nur den aktuellen Verzechnispfad inkludieren.
+        </p>
+
+        <div class="section" id="performance.classloading.includepath.abspath" name="performance.classloading.includepath.abspath"><div class="info"><h1 class="title">Absolute Pfade verwenden</h1></div>
+            
+
+            <p class="para">
+                Auch wenn das wie eine Mikro-Optimierung aussieht, ist es Fakt das wenn man es
+                nicht durchführt, die Vorteile von <acronym class="acronym">PHP</acronym>&#039;s RealPath Cache sehr
+                klein sind, und als Ergebnis, das OpCode Caching nicht so schnell sein wird wie man
+                erwarten könnte.
+            </p>
+
+            <p class="para">
+                Es gibt zwei einfache Wege um das Sicherzustellen. Erstens, kann man die Pfade in
+                der <var class="filename">php.ini</var>, <var class="filename">httpd.conf</var>, oder
+                <var class="filename">.htaccess</var> Hardcoded hineinschreiben. Zweitens, kann man
+                <acronym class="acronym">PHP</acronym>&#039;s  <span class="methodname">realpath()</span> Funktion verwendet
+                wenn man den include_path setzt:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paths</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/realpath"><span style="color: #000066;">realpath</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/dirname"><span style="color: #000066;">dirname</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">__FILE__</span><span style="color: #66cc66;">&#41;</span> . <span style="color: #ff0000;">'/../library'</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'.'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/set_include_path"><span style="color: #000066;">set_include_path</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/implode"><span style="color: #000066;">implode</span></a><span style="color: #66cc66;">&#40;</span>PATH_SEPARATOR, <span style="color: #0000ff;">$paths</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Man <em class="emphasis">kann</em> relative Pfade verwenden -- solange Sie relativ zu
+                einem absoluten Pfad sind:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/define"><span style="color: #000066;">define</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'APPLICATION_PATH'</span>, <a href="http://www.php.net/realpath"><span style="color: #000066;">realpath</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/dirname"><span style="color: #000066;">dirname</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">__FILE__</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paths</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; APPLICATION_PATH . <span style="color: #ff0000;">'/../library'</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'.'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/set_include_path"><span style="color: #000066;">set_include_path</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/implode"><span style="color: #000066;">implode</span></a><span style="color: #66cc66;">&#40;</span>PATH_SEPARATOR, <span style="color: #0000ff;">$paths</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Wie auch immer, selbst auf diese Art, ist es typischerweise eine triviale Aufgabe
+                um den Pfad einfach an  <span class="methodname">realpath()</span> zu übergeben.
+            </p>
+        </div>
+
+        <div class="section" id="performance.classloading.includepath.reduce" name="performance.classloading.includepath.reduce"><div class="info"><h1 class="title">Die Anzahl der Include Pfade die man definiert reduzieren</h1></div>
+            
+
+            <p class="para">
+                Include Pfade werden in der Reihenfolge in der Sie im include_path vorkommen
+                durchsucht. Natürlich bedeutet das, das man ein Ergebnis schneller erhält wenn die
+                Datei im ersten Scan gefunden wird, statt im letzten. Deswegen ist eine
+                offensichtliche Verbesserung wenn man einfach die Anzahl der Pfade im include_path
+                nur auf die reduziert die man benötigt. Man muß sich jeden include_path den man
+                definiert hat anschauen, und feststellen ob aktuell irgendeine Funktionalität in
+                diesem Pfad ist, die in der eigenen Anwendung verwendet wird; wenn nicht, dann
+                entfernen Sie ihn.
+            </p>
+
+            <p class="para">
+                Eine weitere Optimierung ist es Pfade zu kombinieren. Zum Beispiel folgt Zend
+                Framework der Namenskonvention von <acronym class="acronym">PEAR</acronym>; deswegen kann man, wenn
+                man <acronym class="acronym">PEAR</acronym> Bibliotheken verwendet (oder Bibliotheken von anderen
+                Frameworks oder Komponentenbibliotheken die dem <acronym class="acronym">PEAR</acronym> CS folgen),
+                versuchen alle diese Bibliotheken in den gleichen include_path zu geben. Das kann
+                oft durchgeführt werden indem etwas einfaches wie ein SymLink auf eine oder mehrere
+                Bibliotheken in ein generelles Verzeichnis gelegt wird.
+            </p>
+        </div>
+
+        <div class="section" id="performance.classloading.includepath.early" name="performance.classloading.includepath.early"><div class="info"><h1 class="title">Definiere den include_path zum Zend Framework so früh wie möglich</h1></div>
+            
+
+            <p class="para">
+                Als Fortführung des vorherigen Vorschlags, ist eine weitere offensichtliche
+                Optimierung die Definierung vom include_path vom Zend Framework so früh wie möglich
+                im include_path. In den meisten Fällen sollte er der Erste in der Liste sein. Das
+                stellt sicher das die Dateien die vom Zend Framework included werden schon beim
+                Ersten Scan gefunden werden.
+            </p>
+        </div>
+
+        <div class="section" id="performance.classloading.includepath.currentdir" name="performance.classloading.includepath.currentdir"><div class="info"><h1 class="title">Definiere das aktuelle Verzeichnis als letztes oder gar nicht</h1></div>
+            
+
+            <p class="para">
+                Die meisten Beispiele von include_path zeigen die Verwendung des aktuellen
+                Verzeichnisses oder &#039;.&#039;. Das ist üblich um sicherzustellen das Skripte die im
+                gleichen Verzeichnis wie die Datei die Sie benötigt geladen werden können.
+                Trotzdem, zeigen die gleichen Beispiele typischerweise dieses Pfadelement als
+                erstes Element im include_path -- was bedeuetet das der aktuelle Verzeichnisbaum
+                immer zuerst gescannt wird. In den meisten Fällen, wenn man Zend Framework
+                Anwendungen hat, ist das nicht gewünscht, und der Pfad kann ohne Probleme als
+                letztes Element in der Liste verschoben werden.
+            </p>
+
+            <div class="example"><div class="info"><p><b>Example #1 Beispiel: Optimierter include_path</b></p></div>
+                
+
+                <div class="example-contents"><p>
+                    Fügen wir also alle diese Vorschläge zusammen. Unsere Annahme wird sein, das
+                    man ein oder mehrere <acronym class="acronym">PEAR</acronym> Bibliotheken in Verbindung mit dem
+                    Zend Framework verwendet -- möglicherweise die PHPUnit und
+                    <span class="classname">Archive_Tar</span> Bibliotheken -- und das man
+                    offensichtlicherweise die Dateien relativ zur aktuellen Datei einfügen muß.
+                </p></div>
+
+                <div class="example-contents"><p>
+                    Zuerst, erstellen wir ein Bibliotheksverzeichnis in unserem Projekt. Innerhalb
+                    dieses Verzeichnisses, erstellen wir einen Symlink zu unserer Zend Framework
+                    <var class="filename">library/Zend</var> Verzeichnis, wie auch dem notwendigen
+                    Verzeichnis von unserer <acronym class="acronym">PEAR</acronym> Installation:
+                </p></div>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">library</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Archive/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; PEAR/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; PHPUnit/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; Zend/</div></li></ol></div></div></div>
+
+
+                <div class="example-contents"><p>
+                    Das erlaubt es und unseren eigenen Blbiliothekscode hinzuzufügen wenn das
+                    notwendig werden sollte, wärend andere verwendete Bibliotheken intakt bleiben.
+                </p></div>
+
+                <div class="example-contents"><p>
+                    Als nächstes erstellen wir unseren include_path programmtechnisch in unserer
+                    <var class="filename">public/index.php</var> Datei. Das erlaubt es uns unseren Code in
+                    unserem Dateisystem zu verschieben, ohne das es notwendig ist jedesmal den
+                    include_path zu bearbeiten.
+                </p></div>
+
+                <div class="example-contents"><p>
+                    Wir borgen uns Ideen von jedem der obigen Vorschläge aus: Wir verwenden
+                    absolute Pfade, die durch die Verwendung von
+                     <span class="methodname">realpath()</span> erkannt werden; wir fügen den Zend
+                    Framework so früh wie möglich in den include_path ein; wir haben bereits
+                    Include Pfade erstellt; und wir geben das aktuelle Verzeichnis als letzten Pfad
+                    hinein. Faktisch, machen wir es hier sehr gut -- wir werden mit nur zwei Pfaden
+                    enden.
+                </p></div>
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paths</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/realpath"><span style="color: #000066;">realpath</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/dirname"><span style="color: #000066;">dirname</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">__FILE__</span><span style="color: #66cc66;">&#41;</span> . <span style="color: #ff0000;">'/../library'</span><span style="color: #66cc66;">&#41;</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'.'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/set_include_path"><span style="color: #000066;">set_include_path</span></a><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/implode"><span style="color: #000066;">implode</span></a><span style="color: #66cc66;">&#40;</span>PATH_SEPARATOR, <span style="color: #0000ff;">$paths</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="performance.classloading.striprequires" name="performance.classloading.striprequires"><div class="info"><h1 class="title">Wie kann man unnötige require_once Anweisungen entfernen?</h1></div>
+        
+
+        <p class="para">
+            Lazy Loading ist eine Optimierungstechnik die entwickelt wurde um die teure Operation
+            des Ladens einer Klassendatei bis zum Letztmöglichen Moment zu verzögern -- bzw., wenn
+            ein Objekt dieser Klasse instanziiert wird, wenn eine statische Klassenmethode
+            aufgerufen wird, oder wenn auf eine Klassenkonstante oder statische Eigenschaft
+            referenziert wird. <acronym class="acronym">PHP</acronym> unterstützt das durch Autoloading, welches es
+            erlaubt ein oder mehrere Callbacks zu definieren die in Reihenfolge aufgerufen werden
+            um einen Klassennamen mit einer Datei zu verbinden.
+        </p>
+
+        <p class="para">
+            Trotzdem sind die meisten Vorteile man Autoloading erwarten könnte, hinfällig wenn der
+            Bibliothekscode weiterhin  <span class="methodname">require_once()</span> Aufrufe durchführt --
+            was präzise der Fall ist beim Zend Framework. Die Frage ist also: Wie kann man diese
+             <span class="methodname">require_once()</span> Aufrufe entfernen um die Geschwindigkeit vom
+            Autoloader zu maximieren?
+        </p>
+
+        <div class="section" id="performance.classloading.striprequires.sed" name="performance.classloading.striprequires.sed"><div class="info"><h1 class="title">Aufrufe von require_once mit find und sed entfernen</h1></div>
+            
+
+            <p class="para">
+                Ein einfacher Weg um  <span class="methodname">require_once()</span> Aufrufe zu entfernen
+                ist die Verwendung der <acronym class="acronym">UNIX</acronym> Utilities &#039;find&#039; und &#039;set&#039; in
+                Verbindung um jeden Aufruf auszukommentieren. Führe die folgenden Anweisungen aus
+                (wobei &#039;%&#039; der Shell Prompt ist):
+            </p>
+
+            <div class="programlisting shell"><div class="shellcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">% cd path/to/ZendFramework/library</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">% find . -name '*.php' -not -wholename '*/Loader/Autoloader.php' \</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; -not -wholename '*/Application.php' -print0 | \</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; xargs -0 sed --regexp-extended --in-place 's/(require_once)/\/\/ \1/g'</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Dieser Ein-Zeiler (wegen der Lesbarkeit in zwei Zeilen gebrochen) geht durch jede
+                <acronym class="acronym">PHP</acronym> Datei und sagt Ihr das jede Instanz von &#039;require_once&#039; mit
+                &#039;// require_once&#039; ersetzt werden soll, was jede dieser Anweisungen effektiv
+                auskommentiert. (Es stellt sicher das  <span class="methodname">require_once()</span>
+                Aufrufe innerhalb von <span class="classname">Zend_Application</span> und
+                <span class="classname">Zend_Loader_Autoloader</span> bleiben, da diese Klassen ohne Sie
+                nicht funktionieren.)
+            </p>
+
+            <p class="para">
+                Dieses Kommando sollte in einem automatischen Build oder Release Prozess ganz
+                trivial hinzugefügt werden. Es sollte trotzdem klar sein das man, wenn man diese
+                Technik verwendet, Autoloading verwendetn <em class="emphasis">muss</em>; man kann das
+                von der eigenen &quot;<var class="filename">public/index.php</var>&quot; Datei mit dem folgenden
+                Code tun:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">require_once</span> <span style="color: #ff0000;">'Zend/Loader/Autoloader.php'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Loader_Autoloader::<span style="color: #006600;">getInstance</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+
+    <div class="section" id="performance.classloading.pluginloader" name="performance.classloading.pluginloader"><div class="info"><h1 class="title">Wie kann ich das Laden der Plugins beschleunigen?</h1></div>
+        
+
+        <p class="para">
+            Viele Komponenten haben Plugins, welche es erlauben eigene Klassen zu Erstellen und in
+            der Komponente zu verwenden, sowie bestehende Standardplugins vom Zend Framework, zu
+            überladen. Das bietet eine wichtige Flexibilität für den Framework, aber zu einem
+            Preis: Das Laden der Plugins ist eine recht teure Aufgabe.
+        </p>
+
+        <p class="para">
+            Der Pluginlader erlaubt es Klassenpräfixe / Pfadpaare zu registrieren, was es erlaubt
+            Klassendateien in nicht-standard Pfaden zu spezifizieren. Jeder Präfix kann mehrere mit
+            Ihm assoziierte Pfade haben. Intern durchläuft der Pluginlader jeden Präfix, und dann
+            jeden Ihm angehängten Pfad, testet od die Datei existiert und unter diesem Pfad lesbar
+            ist. Dann lädt er Sie, und testet ob die Klasse nach der er sucht vorhanden ist. Sie
+            man sich vorstellen kann, kann das zu vielen Aufrufe auf das Dateisystem führen.
+        </p>
+
+        <p class="para">
+            Multipliziert mit der anzahl der Komponenten die den PluginLoader verwenden, und man
+            bekommt eine Idee von der Reichweite des Problems. Zu der Zeit zu der das geschrieben
+            wird, verwenden die folgenden Komponenten den PluginLoader:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para"><span class="classname">Zend_Controller_Action_HelperBroker</span>: Helfer</p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <span class="classname">Zend_Dojo</span>: View Helfer, Form Elemente und Dekorator
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para"><span class="classname">Zend_File_Transfer</span>: Adapter</p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <span class="classname">Zend_Filter_Inflector</span>: Filter (verwendet vom ViewRenderer
+                    Action Helfer und <span class="classname">Zend_Layout</span>)
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para"><span class="classname">Zend_Filter_Input</span>: Filter und Prüfungen</p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <span class="classname">Zend_Form</span>: Elemente, Prüfungen, Filter, Dekoratore,
+                    Captcha und File Transfer Adapter
+                </p>
+            </li>
+
+            <li class="listitem"><p class="para"><span class="classname">Zend_Paginator</span>: Adapter</p></li>
+            <li class="listitem"><p class="para"><span class="classname">Zend_View</span>: Helfer, Filter</p></li>
+        </ul>
+
+        <p class="para">
+            Wie kann man die Anzahl der so gemachten Aufrufe reduzieren?
+        </p>
+
+        <div class="section" id="performance.classloading.pluginloader.includefilecache" name="performance.classloading.pluginloader.includefilecache"><div class="info"><h1 class="title">Verwenden des PluginLoaders Include-File Caches</h1></div>
+            
+
+            <p class="para">
+                Zend Framework 1.7.0 fügt einen Include-File Cache zum PluginLoader hinzu. Diese
+                Funktionalität schreibt &quot; <span class="methodname">include_once()</span>&quot; Aufrufe in eine
+                Datei, welche man dann in der Bootstrap Datei einfügen (include) kann. Wärend das
+                einen extra  <span class="methodname">include_once()</span> Aufruf im Code bedeutet, stellt
+                es auch sicher das der PluginLoader so früh wie möglich zurückkehrt.
+            </p>
+
+            <p class="para">
+                Die PluginLoader Dokumentation
+                <a href="zend.loader.pluginloader.html#zend.loader.pluginloader.performance.example" class="link"> enthält ein kompettes
+                Beispiel seiner Verwendung</a>.
+            </p>
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="performance.introduction.html">Einf&uuml;hrung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="performance.html">Zend Framework Performance Guide</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="performance.database.html">Zend_Db Performance</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="performance.html">Zend Framework Performance Guide</a></li>
+  <li><a href="performance.introduction.html">Einf&uuml;hrung</a></li>
+  <li class="active"><a href="performance.classloading.html">Laden von Klassen</a></li>
+  <li><a href="performance.database.html">Zend_Db Performance</a></li>
+  <li><a href="performance.localization.html">Internationalisierung (I18n) und Lokalisierung (L10n)</a></li>
+  <li><a href="performance.view.html">Darstellen der View</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

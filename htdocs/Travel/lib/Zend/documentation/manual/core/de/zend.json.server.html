@@ -1,0 +1,1121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Json_Server - JSON-RPC Server - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.json.xml2json.html">XML zu JSON Konvertierung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.json.html">Zend_Json</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.layout.html">Zend_Layout</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.json.server" class="section"><div class="info"><h1 class="title">Zend_Json_Server - JSON-RPC Server</h1></div>
+    
+
+    <p class="para">
+        <span class="classname">Zend_Json_Server</span> ist eine
+        <a href="http://groups.google.com/group/json-rpc/" class="link external">&raquo; JSON-RPC</a> Server
+        Implementierung. Sie unterstützt sowohl <a href="http://json-rpc.org/wiki/specification" class="link external">&raquo; die Spezifikation von JSON-RPC Version
+            1</a> als auch die <a href="http://groups.google.com/group/json-rpc/web/json-rpc-1-2-proposal" class="link external">&raquo; Spezifikation
+            der Version 2</a>; zusätzlich bietet Sie eine <acronym class="acronym">PHP</acronym> Implementierung
+        der <a href="http://groups.google.com/group/json-schema/web/service-mapping-description-proposal" class="link external">&raquo; Spezifikation
+            für Service Mapping Description (SMD)</a> Um Kunden von Services deren Metadaten
+        anzubieten.
+    </p>
+
+    <p class="para">
+        JSON-RPC ist ein leichgewichtiges Remoce Procedure Call Protokoll das
+        <acronym class="acronym">JSON</acronym> für seine Nachrichten verwendet. Diese JSON-RPC
+        Implementierung folgt <acronym class="acronym">PHP</acronym>&#039;s <a href="http://www.php.net/manual/en/class.soapserver.php" class="link external">&raquo; SoapServer</a>
+        <acronym class="acronym">API</acronym>. Das bedeutet das in einer typischen Situation einfach folgendes
+        getan wird:
+    </p>
+
+    <ul class="itemizedlist">
+        <li class="listitem"><p class="para">Instanzieren des Server Objekts</p></li>
+
+        <li class="listitem">
+            <p class="para">
+                Eine oder mehrere Funktionen und/oder Klassen/Objekte dem Server Objekt hinzufügen
+            </p>
+        </li>
+
+        <li class="listitem"><p class="para">Die Anfrage mit handle() ausführen</p></li>
+    </ul>
+
+    <p class="para">
+        <span class="classname">Zend_Json_Server</span> verwendet <a href="zend.server.reflection.html" class="link">Zend_Server_Reflection</a> um Reflektion
+        durchzuführen um den SMD zu erstellen und die Signaturen der Methodenaufrufe zu erzwingen.
+        Als solche, ist es zwingend notwendig das alle hinzugefügten Funktionen und/oder
+        Klassenmethoden komplette <acronym class="acronym">PHP</acronym> Docblocks dokumentiert haben mindestens
+        aber:
+    </p>
+
+    <ul class="itemizedlist">
+        <li class="listitem"><p class="para">Alle Parameter und deren erwarteter Variablentypen</p></li>
+        <li class="listitem"><p class="para">Den Variablentyp des Rückgabewertes</p></li>
+    </ul>
+
+    <p class="para">
+        <span class="classname">Zend_Json_Server</span> hört aktuell nur auf POST Anfragen; glücklicherweise
+        bieten die meisten JSON-RPC Client Implementierungen die zur aktuell
+        vorhanden sind nur POST Anfragen. Das macht es einfach den gleichen Endpunkt des Servers so
+        zu verwenden das er beide Anfragen behandelt sowie die Service SMD liefert, wie im nächsten
+        Beispiel gezeigt.
+    </p>
+
+    <div class="example"><div class="info"><p><b>Example #1 Zend_Json_Server Verwendung</b></p></div>
+        
+
+        <div class="example-contents"><p>
+            Zuerst müssen wir eine Klasse definieren die wir über den JSON-RPC
+            Server ausliefern wollen. Wir nennen die Klasse &#039;Calculator&#039;, und definieren die
+            Methoden &#039;add&#039;, &#039;substract&#039;, &#039;multiple&#039;, und &#039;divide&#039;:
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * Calculator - Einfache Klasse zur Auslieferung über JSON-RPC</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> Calculator</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* Summe von zwei Variablen zurückgeben</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $x</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $y</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return int</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> add<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$x</span>, <span style="color: #0000ff;">$y</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$x</span> + <span style="color: #0000ff;">$y</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* Differenz von zwei Variablen zurückgeben</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $x</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $y</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return int</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> subtract<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$x</span>, <span style="color: #0000ff;">$y</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$x</span> - <span style="color: #0000ff;">$y</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* Produkt von zwei Variablen zurückgeben</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $x</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $y</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return int</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> multiply<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$x</span>, <span style="color: #0000ff;">$y</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$x</span> * <span style="color: #0000ff;">$y</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* Division von zwei Variablen zurückgeben</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $x</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param&nbsp; int $y</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return float</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> divide<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$x</span>, <span style="color: #0000ff;">$y</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$x</span> / <span style="color: #0000ff;">$y</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <div class="example-contents"><p>
+            Es ist zu beachten das jede Methode einen Docblock mit Einträgen besitzt die jeden
+            Parameter und seinen Typ beschreiben, sowie einen Eintrag für den Rückgabewert. Das ist
+            <em class="emphasis">absolut kritisch</em> wenn <span class="classname">Zend_Json_Server</span>
+            verwendet wird, oder auch jede andere Server Komponente für diesen Zweck im Zend
+            Framework.
+        </p></div>
+
+        <div class="example-contents"><p>
+            Erstellen wir also ein Skript um die Anfrage zu behandeln:
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Json_Server<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Zeigt welche Funktionalität vorhanden ist:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setClass</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Calculator'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Behandelt die Anfrage:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <div class="example-contents"><p>
+            Trotzdem behandelt das noch immer nicht das Problem der Rückgabe eines SMD damit der
+            JSON-RPC Client die Methoden selbstständig erkennen kann. Das kann
+            getan werden indem die <acronym class="acronym">HTTP</acronym> Anfragemethode erkannt wird, und
+            anschließend einige Metadaten des Servers spezifiziert werden:
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Json_Server<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setClass</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Calculator'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'GET'</span> == <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'REQUEST_METHOD'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Zeigt den Endpunkt der URL, und die verwendete JSON-RPC Version:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setTarget</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'/json-rpc.php'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setEnvelope</span><span style="color: #66cc66;">&#40;</span>Zend_Json_Server_Smd::<span style="color: #006600;">ENV_JSONRPC_2</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Den SMD holen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$smd</span> = <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getServiceMap</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Den SMD an den Client zurückgeben</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/header"><span style="color: #000066;">header</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Content-Type: application/json'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$smd</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">return</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <div class="example-contents"><p>
+            Wenn der JSON-RPC Server mit dem Dojo Toolkit verwendet wird muß auch
+            ein spezielles Kompatibilitätsflag gesetzt werden um sicherzustellen das die zwei
+            korrekt miteinander arbeiten:
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Json_Server<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setClass</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Calculator'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'GET'</span> == <span style="color: #0000ff;">$_SERVER</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'REQUEST_METHOD'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setTarget</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'/json-rpc.php'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-&gt;<span style="color: #006600;">setEnvelope</span><span style="color: #66cc66;">&#40;</span>Zend_Json_Server_Smd::<span style="color: #006600;">ENV_JSONRPC_2</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$smd</span> = <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getServiceMap</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Die Kompatibilität zu Dojo setzen:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$smd</span>-&gt;<span style="color: #006600;">setDojoCompatible</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/header"><span style="color: #000066;">header</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Content-Type: application/json'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$smd</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">return</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">handle</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.json.server.details" name="zend.json.server.details"><div class="info"><h1 class="title">Fortgescrittene Details</h1></div>
+        
+
+        <p class="para">
+            Obwohl das meiste an Funktionalität für <span class="classname">Zend_Json_Server</span> in
+            <a href="zend.json.server.html#zend.json.server.usage" class="link">diesem Abschnitt</a> beschrieben wurde, ist
+            noch weitere fortgeschrittenere Funktionalität vorhanden.
+        </p>
+
+        <div class="section" id="zend.json.server.details.zendjsonserver" name="zend.json.server.details.zendjsonserver"><div class="info"><h1 class="title">Zend_Json_Server</h1></div>
+            
+
+            <p class="para">
+                <span class="classname">Zend_Json_Server</span> ist die Kernklasse von
+                JSON-RPC; die bearbeitet alle Anfragen und gibt den Antwort
+                Payload zurück. Sie hat die folgenden Methoden:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">addFunction($function)</span>: Spezifiziert eine
+                        benutzerdefinierte Funktion die dem Server hinzugefügt werden soll.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setClass($class)</span>: Spezifiziert eine Klasse oder ein
+                        Objekt das dem Server hinzugefügt werden soll; alle öffentlichen Methoden
+                        dieses Elemente werden als JSON-RPC Methoden
+                        bekanntgegeben.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">fault($fault = null, $code = 404, $data = null)</span>:
+                        Erstellt und retourniert ein <span class="classname">Zend_Json_Server_Error</span>
+                        Objekt.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">handle($request = false)</span>: Behandelt eine
+                        JSON-RPC Anfrage; optional kann ein
+                        <span class="classname">Zend_Json_Server_Request</span> Objekt für die Anpassung
+                        übergeben werden (standardmäßig wird eines erstellt).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getFunctions()</span>: Gibt eine Liste aller hinzugefügten
+                        Methoden zurück.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setRequest(Zend_Json_Server_Request $request)</span>:
+                        Spezifiziert ein Anfrageobjekt um es für den Server zu verwenden.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getRequest()</span>: Empfängt das Anfrageobjekt das vom
+                        Server verwendet wird.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setResponse(Zend_Json_Server_Response $response)</span>:
+                        Setzt das Antwort Objekt das der Server verwendet.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getResponse()</span>: Empfängt das Anfrageobjekt das vom
+                        Server verwendet wird.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setAutoEmitResponse($flag)</span>: Zeigt ob der Server die
+                        Antworten und alle Header automatisch ausgeben sollte; standardmäßig ist sie
+                        <b><tt>TRUE</tt></b>.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">autoEmitResponse()</span>: Stellt fest ob das automatische
+                        senden der Antwort eingeschaltet ist.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getServiceMap()</span>: Empfängt die Service Map
+                        Description in der Form eines <span class="classname">Zend_Json_Server_Smd</span>
+                        Objekts
+                    </p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="section" id="zend.json.server.details.zendjsonserverrequest" name="zend.json.server.details.zendjsonserverrequest"><div class="info"><h1 class="title">Zend_Json_Server_Request</h1></div>
+            
+
+            <p class="para">
+                Die JSON-RPC Anfrageumgebung ist in ein
+                <span class="classname">Zend_Json_Server_Request</span> Objekt eingekapselt. Diese Objekt
+                erlaubt es die notwendigen Teile der JSON-RPC Anfrage zu setzen,
+                inklusive der Anfrage ID, Parametern, und der JSON-RPC
+                spezifischen Version. Es hat die Möglichkeit sich selbst über
+                <acronym class="acronym">JSON</acronym> zu laden oder ein Set von Optionen, und kann sich selbst
+                über die  <span class="methodname">toJson()</span> Methode als <acronym class="acronym">JSON</acronym>
+                darstellen.
+            </p>
+
+            <p class="para">
+                Das Anfrage Objekt enthält die folgenden Methoden:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setOptions(array $options)</span>: Spezifiziert die
+                        Konfiguration des Objektes. <var class="varname">$options</var> kann Schlüssel
+                        enthalten die jeglicher &#039;set&#039; Methode entsprechen:
+                         <span class="methodname">setParams()</span>,  <span class="methodname">setMethod()</span>,
+                         <span class="methodname">setId()</span> und  <span class="methodname">setVersion()</span>.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">addParam($value, $key = null)</span>: Fügt einen Parameter
+                        hinzu der mit einem Methodenaufruf verwendet wird. Parameter können nur
+                        Werte sein, oder optional auch den Parameternamen enthalten.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">addParams(array $params)</span>: Mehrere Parameter auf
+                        einmal hinzufügen; Ruft  <span class="methodname">addParam()</span> auf
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setParams(array $params)</span>: Setzt alle Parameter auf
+                        einmal; überschreibt jeden existierenden Parameter.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getParam($index)</span>: Empfängt einen Parameter durch
+                        seine Position oder seinen Namen.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getParams()</span>: Empfängt alle Parameter auf einmal.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setMethod($name)</span>: Setzt die Methode die aufgerufen
+                        wird.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getMethod()</span>: Empfängt die Methode die aufgerufen
+                        wird.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">isMethodError()</span>: Erkennt ob eine Anfrage fehlerhaft
+                        ist und einen Fehler produzieren würde, oder nicht.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setId($name)</span>: Setzt den Identifikator der Anfrage
+                        (durch den Client verwendet um Anfragen auf Antworten abzubilden).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getId()</span>: Empfängt den Anfrage Identifikator.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setVersion($version)</span>: Setzt die Version der
+                        JSON-RPC Spezifikation der die Anfrage entspricht. Kann
+                        entweder &#039;1.0&#039; oder &#039;2.0&#039; sein.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getVersion()</span>: Empfängt die Version der
+                        JSON-RPC Spezifikation die von der Anfrage verwendetwird.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">loadJson($json)</span>: Lädt das Anfrageobjekt von einem
+                        <acronym class="acronym">JSON</acronym> String.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">toJson()</span>: Stellt den <acronym class="acronym">JSON</acronym> String
+                        als Anfrage dar.
+                    </p>
+                </li>
+            </ul>
+
+            <p class="para">
+                Eine <acronym class="acronym">HTTP</acronym> spezifische Version ist über
+                <span class="classname">Zend_Json_Server_Request_Http</span> vorhanden. Diese Klasse
+                empfängt eine Anfrage über <var class="filename">php://input</var> und erlaubt den Zugriff
+                auf die rohen <acronym class="acronym">JSON</acronym> Daten über die
+                 <span class="methodname">getRawJson()</span> Methode.
+            </p>
+        </div>
+
+        <div class="section" id="zend.json.server.details.zendjsonserverresponse" name="zend.json.server.details.zendjsonserverresponse"><div class="info"><h1 class="title">Zend_Json_Server_Response</h1></div>
+            
+
+            <p class="para">
+                Der JSON-RPC Antwort Payload ist in ein
+                <span class="classname">Zend_Json_Server_Response</span> Objekt gekapselt. Diese Objekt
+                erlaubt es den Rückgabewert der Anfrage zu setzen, ob die Antwort ein Fehler ist
+                oder nicht, den Anfrageindentifikator, die Version der JSON-RPC
+                Spezifikation der die Antwort entspricht, und optional die Servicemap.
+            </p>
+
+            <p class="para">
+                Das Antwortobjekt bietet die folgenden Methoden:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setResult($value)</span>: Setzt das Ergebnis der Antwort.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getResult()</span>: Empfängt das Antwortergebnis.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setError(Zend_Json_Server_Error $error)</span>: Setzt ein
+                        Fehlerobjekt. Wenn es gesetzt wird, wird es als Antwort verwendet wenn
+                        <acronym class="acronym">JSON</acronym> serialisiert wird.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getError()</span>: Empfängt das Fehlerobjekt, wenn
+                        vorhanden.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">isError()</span>: Ob die Antwort eine Fehlerantwort ist
+                        oder nicht.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setId($name)</span>: Setzt den Antwortindentifikator
+                        (damit der Client die Antwort mit der Originalanfrage in Verbindung bringt).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getId()</span>: Empfängt den Antwortidentifikator.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setVersion($version)</span>: Setzt die
+                        JSON-RPC Version der die Antwort entspricht.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getVersion()</span>: Empfängt die
+                        JSON-RPC Version der die Antwort entspricht.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">toJson()</span>: Serialisiert die Antwort auf
+                        <acronym class="acronym">JSON</acronym>. Wenn die Antwort eine Fehlerantwort ist, wird das
+                        Fehlerobjekt serialisiert.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setServiceMap($serviceMap)</span>: Setzt das Servicemap
+                        Objekt für die Antwort.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getServiceMap()</span>: Empfängt das Servicemap Objekt,
+                        wenn es vorhanden ist.
+                    </p>
+                </li>
+            </ul>
+
+            <p class="para">
+                Eine <acronym class="acronym">HTTP</acronym> spezifische Version ist über
+                <span class="classname">Zend_Json_Server_Response_Http</span> vorhanden. Diese Klasse wird
+                entsprechende <acronym class="acronym">HTTP</acronym> Header senden als auch die Antwort auf
+                <acronym class="acronym">JSON</acronym> zu serialisieren.
+            </p>
+        </div>
+
+        <div class="section" id="zend.json.server.details.zendjsonservererror" name="zend.json.server.details.zendjsonservererror"><div class="info"><h1 class="title">Zend_Json_Server_Error</h1></div>
+            
+
+            <p class="para">
+                JSON-RPC hat ein spezielles Format für das Melden von
+                Fehlerzuständen. Alle Fehler müssen mindestens, eine Fehlermeldung und einen
+                Fehlercode anbieten; optional können Sie zusätzliche Daten, wie ein Backtrace,
+                anbieten.
+            </p>
+
+            <p class="para">
+                Fehlercodes sind von jenen abgeleitet die vom
+                <a href="http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php" class="link external">&raquo; vom
+                    XML-RPC EPI Projekt</a> empfohlen werden.
+                <span class="classname">Zend_Json_Server</span> fügt den richtigen Code basierend auf der
+                Fehlerkondition zu. Für Anwendungsausnahmen wird der Code &#039;-32000&#039; verwendet.
+            </p>
+
+            <p class="para">
+                <span class="classname">Zend_Json_Server_Error</span> bietet die folgenden Methoden:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setCode($code)</span>: Setzt den Fehlercode: Wenn der Code
+                        nicht im akzeptierten Bereich der XML-RPC Fehlercodes
+                        ist, wird -32000 hinzugefügt.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getCode()</span>: Empfängt den aktuellen Fehlercode.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setMessage($message)</span>: Setzt die Fehlernachricht.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getMessage()</span>: Empfängt die aktuelle
+                        Fehlernachricht.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setData($data)</span>: Setzt zusätzliche Daten die den
+                        Fehler genauer qualifizieren, wie ein Backtrace.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getData()</span>: Empfängt alle aktuellen zusätzlichen
+                        Fehlerdaten.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">toArray()</span>: Weist den Fehler einem Array zu. Das
+                        Array enthält die Schlüssel &#039;code&#039;, &#039;message&#039; und &#039;data&#039;.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">toJson()</span>: Weist den Fehler einer
+                        JSON-RPC Fehlerrepräsentation zu.
+                    </p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="section" id="zend.json.server.details.zendjsonserversmd" name="zend.json.server.details.zendjsonserversmd"><div class="info"><h1 class="title">Zend_Json_Server_Smd</h1></div>
+            
+
+            <p class="para">
+                SMD steht für Service Mapping Description, ein <acronym class="acronym">JSON</acronym> Schema das
+                definiert wie ein Client mit einem speziellen Web Service interagieren kann. Zu der
+                Zeit wie das geschrieben wurde, wurde die <a href="http://groups.google.com/group/json-schema/web/service-mapping-description-proposal" class="link external">&raquo; Spezifikation</a>
+                noch nicht formell ratifiziert, aber Sie ist bereits im Dojo Toolkit in Verwendung
+                sowie in anderen JSON-RPC Kundenclients.
+            </p>
+
+            <p class="para">
+                Grundsätzlich bezeichnet eine Service Mapping Description die Methode des Transports
+                (POST, <b><tt>GET</tt></b>, <acronym class="acronym">TCP</acronym>/IP, usw.), den Envelopetyp
+                der Anfrage (normalerweise basierend auf dem Protokoll des Servers), die Ziel
+                <acronym class="acronym">URL</acronym> des Service Providers, und eine Mappe der vorhandenen
+                Services. Im Fall von JSON-RPC ist die Service Mappe eine Liste
+                von vorhandenen Methoden wobei jede Methode die vorhandenen Parameter und deren
+                Typen beschreibt, sowie den erwarteten Typ des Rückgabewerts.
+            </p>
+
+            <p class="para">
+                <span class="classname">Zend_Json_Server_Smd</span> bietet einen Objektorientierten Weg um
+                Service Mappen zu erstellen. Grundsätzlich werden Ihm Metadaten übergeben die den
+                Service beschreiben indem Mutatoren verwendet und Services (Methoden und Funktionen)
+                spezifiziert werden.
+            </p>
+
+            <p class="para">
+                Die Servicebeschreibungen selbst sind typischerweise Instanzen von
+                <span class="classname">Zend_Json_Server_Smd_Service</span>; man kann genauso alle
+                Informationen als Array an die verschiedenen Servicemutatoren in
+                <span class="classname">Zend_Json_Server_Smd</span> übergeben, und es wird für einen ein
+                Serviceobjekt instanziieren. Die Serviceobjekte enthalten Informationen wie den
+                Namen des Services (typischerweise die Funktion oder den Methodennamen), die
+                Parameter (Namen, Typen und Position), und den Typ des Rückgabewerts. Optionen kann
+                jedes Service sein eigenes Ziel und Envelope haben, obwohl diese Funktionalität
+                selten verwendet wird.
+            </p>
+
+            <p class="para">
+                <span class="classname">Zend_Json_Server</span> führt all das im Hintergrund durch, indem
+                Reflektion auf den hinzugefügten Klassen und Funktionen verwendet wird; man sollte
+                seine eigenen Service Maps erstellen wenn man eigene Funktionalitäten anbieten will
+                welche die Introspektion von Klassen und Funktionen nicht bieten kann.
+            </p>
+
+            <p class="para">
+                Die vorhandenen Methoden in <span class="classname">Zend_Json_Server_Smd</span> enthalten:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setOptions(array $options)</span>: Erstellt ein SMD Objekt
+                        von einem Array an Optionen. Alle Mutatoren (Methoden die mit &#039;set&#039;
+                        beginnen) können als Schlüssel verwendet werden.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setTransport($transport)</span>: Setzt den Transport der
+                        für den Zugriff auf das Service verwendet werden soll; aktuell wird nur POST
+                        unterstützt.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getTransport()</span>: Empfängt den aktuellen Transport
+                        des Services.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setEnvelope($envelopeType)</span>: Setzt den aktuelle
+                        Anfrageenvelope der verwendet werden sollte um auf den Service zuzugreifen.
+                        Aktuell werden die Konstanten
+                        <b><tt>Zend_Json_Server_Smd::ENV_JSONRPC_1</tt></b> und
+                        <b><tt>Zend_Json_Server_Smd::ENV_JSONRPC_2</tt></b> verwendet.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getEnvelope()</span>: Empfängt den aktuellen
+                        Anfrageenvelope.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setContentType($type)</span>: Setzt den Contenttype den
+                        Anfragen verwenden sollten (standardmäßig ist das &#039;application/json&#039;).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getContentType()</span>: Empfängt den aktuellen
+                        Contenttype für Anfragen an den Service.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setTarget($target)</span>: Setzt den aktuellen
+                        <acronym class="acronym">URL</acronym> Endpunkt für den Service.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getTarget()</span>: Empfängt den <acronym class="acronym">URL</acronym>
+                        Endpunkt für den Service.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setId($id)</span>: Tpischerweise ist das der
+                        <acronym class="acronym">URL</acronym> Endpunkt des Services (der selbe wie das Ziel).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getId()</span>: Empfängt die ServiceID (typischerweise der
+                        <acronym class="acronym">URL</acronym> Endpunkt des Services).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setDescription($description)</span>: Setzt eine
+                        Servicebeschreibung (typischerweise nähere Informationen die den Zweck des
+                        Services beschreiben).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getDescription()</span>: Empfängt die Servicebeschreibung.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setDojoCompatible($flag)</span>: Setzt ein Flag das
+                        indiziert ob das SMD mit dem Dojo Toolkit kompatibel ist oder nicht. Wenn es
+                        <b><tt>TRUE</tt></b> ist, dann ist das erzeugte <acronym class="acronym">JSON</acronym>
+                        SMD so formatiert das es dem Format entspricht das Dojo&#039;s JSON-RPC Client
+                        erwartet.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">isDojoCompatible()</span>: Gibt den Wert des
+                        Dojokompatibilitätsflags zurück (Standardmäßig <b><tt>FALSE</tt></b>).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">addService($service)</span>: Fügt ein Service der Mappe
+                        hinzu. Kann ein Array von Informationen sein die an den Konstruktor von
+                        <span class="classname">Zend_Json_Server_Smd_Service</span> übergeben werden, oder
+                        eine Instanz dieser Klasse.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">addServices(array $services)</span>: Fügt mehrere Services
+                        auf einmal hinzu.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setServices(array $services)</span>: Fügt mehrere Serices
+                        auf einmal hinzu, und überschreibt alle vorher gesetzten Services.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getService($name)</span>: Gibt ein Service durch seinen
+                        Namen zurück.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getServices()</span>: Gibt alle hinzugefügten Services
+                        zurück.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">removeService($name)</span>: Entfernt ein Service von der
+                        Mappe.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">toArray()</span>: Weißt die Service Mappe einem Array zu.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">toDojoArray()</span>: Weißt die Service Mappe einem Array
+                        zu das mit dem Dojo Toolkit kompatibel ist.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">toJson()</span>: Weißt die Service Mappe einer
+                        <acronym class="acronym">JSON</acronym> Repräsentation zu.
+                    </p>
+                </li>
+            </ul>
+
+            <p class="para">
+                <span class="classname">Zend_Json_Server_Smd_Service</span> hat die folgenden Methoden:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setOptions(array $options)</span>: Setzt den Objektstatus
+                        durch ein Array. Jeder Mutator (Methoden die mit &#039;set&#039; beginnen, kann als
+                        Schlüssel verwendet und über diese Methode gesetzt werden.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setName($name)</span>: Setzt den Namen des Services
+                        (typischerweise die Funktion oder den Methodennamen).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getName()</span>: Empfängt den Servicenamen.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setTransport($transport)</span>: Setzt den Transport des
+                        Services (aktuell werden nur Transporte unterstützt die in
+                        <span class="classname">Zend_Json_Server_Smd</span> erlaubt sind).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getTransport()</span>: Empfängt den aktuellen Transport.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setTarget($target)</span>: Setzt den
+                        <acronym class="acronym">URL</acronym> Endpunkt des Services (typischerweise ist das der
+                        selbe wir im gesamten SMD welchem der Service hinzugefügt wird).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getTarget()</span>: Gibt den <acronym class="acronym">URL</acronym>
+                        Endpunkt des Services zurück.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setEnvelope($envelopeType)</span>: Setzt den
+                        Serviceenvelope (aktuell werden nur Envelopes unterstützt die in
+                        <span class="classname">Zend_Json_Server_Smd</span> erlaubt sind).
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getEnvelope()</span>: Empfängt den Typ des
+                        Serviceenvelopes.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">addParam($type, array $options = array(), $order =
+                            null)</span>: Fügt dem Service einen Parameter hinzu.
+                        Standardmäßig ist nur der Parametertyp notwendig. Trotzdem kann die
+                        Reihenfolge spezifiziert werden sowie auch Optionen wie:
+                    </p>
+
+                    <ul class="itemizedlist">
+                        <li class="listitem">
+                            <p class="para">
+                                <em class="emphasis">name</em>: Der Name des Parameters
+                            </p>
+                        </li>
+
+                        <li class="listitem">
+                            <p class="para">
+                                <em class="emphasis">optional</em>: Ob der Parameter optional ist oder
+                                nicht
+                            </p>
+                        </li>
+
+                        <li class="listitem">
+                            <p class="para">
+                                <em class="emphasis">default</em>: Ein Standardwert für diesen Parameter
+                            </p>
+                        </li>
+
+                        <li class="listitem">
+                            <p class="para">
+                                <em class="emphasis">description</em>: Ein Text der den Parameter
+                                beschreibt
+                            </p>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">addParams(array $params)</span>: Fügt verschiedene
+                        Parameter auf einmal hinzu; jeder Parameter sollte ein Assoziatives Array
+                        sein das mindestens den Schlüssel &#039;type&#039; enthält welches den Typ des
+                        Parameters beschreibt, und optinal den Schlüssel &#039;order&#039;; jeden andere
+                        Schlüssel wird als <var class="varname">$options</var> an
+                         <span class="methodname">addOption()</span> übergeben.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setParams(array $params)</span>: Setzt viele Parameter aus
+                        einmal, überschreibt alle aktuellen Parameter auf einmal.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getParams()</span>: Empfängt alle aktuell gesetzten
+                        Parameter.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">setReturn($type)</span>: Setzt den Type des Rückgabewertes
+                        des Services.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">getReturn()</span>: Empfängt den Typ des Rückgabewertes
+                        des Services.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">toArray()</span>: Weist das Service an ein Array zu.
+                    </p>
+                </li>
+
+                <li class="listitem">
+                    <p class="para">
+                         <span class="methodname">toJson()</span>: Weist das Service einer
+                        <acronym class="acronym">JSON</acronym> Repräsentation zu.
+                    </p>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.json.xml2json.html">XML zu JSON Konvertierung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.json.html">Zend_Json</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.layout.html">Zend_Layout</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.json.html">Zend_Json</a></li>
+  <li><a href="zend.json.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.json.basics.html">Grundlegende Verwendung</a></li>
+  <li><a href="zend.json.advanced.html">Fortgeschrittene Verwendung von Zend_Json</a></li>
+  <li><a href="zend.json.xml2json.html">XML zu JSON Konvertierung</a></li>
+  <li class="active"><a href="zend.json.server.html">Zend_Json_Server - JSON-RPC Server</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

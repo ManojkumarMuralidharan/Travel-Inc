@@ -24,7 +24,7 @@
                     </dl>
                     
                     
-                   {if {$smarty.session.profile} eq 'supervisor'} 
+                   {if {$smarty.session.profile} eq 'supervisor'||{$smarty.session.profile} eq 'hr'||{$smarty.session.profile} eq 'finance'||{$smarty.session.profile} eq 'president'} 
                     <dl>
                         <dt><label for="Users">Users:</label></dt>
                         <dd>
@@ -43,13 +43,13 @@
 					<table>	
 					<tr>
 					 <td><label class="check_label">Domestic</label></td>
-					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio NFh" id="travelTypeLocal" onclick="reportsTravelType='local';alert(reportsTravelType);$('#travelTypeLocal').toggleClass('NFh');$('#travelTypeInternational').attr('Class','NFRadio');$('#travelTypeBoth').attr('Class','NFRadio');"></div></td>
+					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio NFh" id="travelTypeLocal" onclick="reportsTravelType='local';$('#travelTypeLocal').toggleClass('NFh');$('#travelTypeInternational').attr('Class','NFRadio');$('#travelTypeBoth').attr('Class','NFRadio');"></div></td>
 					 
 					 <td><label  style="padding-left:25px;" class="check_label">International</label></td>
-					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio" id="travelTypeInternational" onclick="reportsTravelType='international';alert(reportsTravelType);$('#travelTypeLocal').attr('Class','NFRadio');$('#travelTypeInternational').toggleClass('NFh');$('#travelTypeBoth').attr('Class','NFRadio');"></div></td>
+					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio" id="travelTypeInternational" onclick="reportsTravelType='international';$('#travelTypeLocal').attr('Class','NFRadio');$('#travelTypeInternational').toggleClass('NFh');$('#travelTypeBoth').attr('Class','NFRadio');"></div></td>
 					 
 					 <td><label style="padding-left:30px;" class="check_label">Both</label>	</td>
-					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio" id="travelTypeBoth" onclick="reportsTravelType='both';alert(reportsTravelType);$('#travelTypeLocal').attr('Class','NFRadio');$('#travelTypeInternational').attr('Class','NFRadio');$('#travelTypeBoth').toggleClass('NFh');"></div></td>
+					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio" id="travelTypeBoth" onclick="reportsTravelType='both';$('#travelTypeLocal').attr('Class','NFRadio');$('#travelTypeInternational').attr('Class','NFRadio');$('#travelTypeBoth').toggleClass('NFh');"></div></td>
 					 </tr>
 					 </table>
                     </dd>

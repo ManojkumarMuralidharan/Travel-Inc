@@ -1,0 +1,579 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>インデックスの検索 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.search.lucene.index-creation.html">インデックスの構築</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.search.lucene.query-language.html">クエリ言語</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.search.lucene.searching" class="section"><div class="info"><h1 class="title">インデックスの検索</h1></div>
+    
+
+    <div class="section" id="zend.search.lucene.searching.query_building" name="zend.search.lucene.searching.query_building"><div class="info"><h1 class="title">クエリの作成</h1></div>
+        
+
+        <p class="para">
+            インデックスを検索するには二通りの方法があります。
+            クエリパーサを使用して文字列からクエリを作成する方法と、
+            <span class="classname">Zend_search_Lucene</span> <acronym class="acronym">API</acronym> を使用して独自のクエリを作成する方法です。
+        </p>
+
+        <p class="para">
+        提供されているクエリパーサを使用する前に、以下の点を考慮してください。
+
+            <ol type="1">
+                <li class="listitem">
+                    <p class="para">
+                        プログラムで生成したクエリ文字列をクエリパーサに渡そうとしているなら、
+                        クエリ <acronym class="acronym">API</acronym> を使用してクエリを直接作成すべきです。言い換えると、
+                        クエリパーサというのは人間が入力したテキストのために設計されたものであり、
+                        プログラムが生成したテキストのためのものではないのです。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                        トークン化されていないフィールドについては、
+                        クエリパーサを使用するよりも直接クエリに追加するほうが適しています。
+                        フィールドの値がアプリケーションによって生成されるのなら、
+                        フィールドのクエリ条件についても自動処理で作成すべきです。
+                        クエリパーサが使用している解析器は、人間が入力したテキストを
+                        単語に分解するために設計されています。
+                        日付やキーワードなどのプログラムが生成した値は、
+                        クエリ <acronym class="acronym">API</acronym> で追加しなければなりません。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                        検索フォームにおいては、
+                        テキストで入力された内容はクエリパーサを使用すべきでしょう。
+                        その他のフィールド、例えば範囲指定やキーワードなどについては、
+                        クエリ <acronym class="acronym">API</acronym> に直接渡すようにしましょう。
+                        限られた内容、例えばプルダウンメニューで選択するフィールドは、
+                        クエリ文字列に追加すべきではありません。
+                        その代わりに、TermQuery 条件として使用します。
+                    </p>
+                </li>
+                <li class="listitem">
+                    <p class="para">
+                        論理クエリにより、複数のクエリをひとつにまとめることができます。
+                        これは、クエリ文字列で定義されるユーザ検索に条件を追加するための最良な方法です。
+                    </p>
+                </li>
+            </ol>
+
+        </p>
+
+        <p class="para">
+            どちらの方法を使用したとしても、インデックスを検索する <acronym class="acronym">API</acronym> メソッドは同じです。
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span> = Zend_Search_Lucene::<span style="color: #006600;">open</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'/data/my_index'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">find</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        <p class="para">
+             <span class="methodname">Zend_Search_Lucene::find()</span> メソッドは、
+            入力の型を自動的に判別し、クエリパーサを使用して文字列から
+            <span class="classname">Zend_Search_Lucene_Search_Query</span> オブジェクトを作成します。
+        </p>
+
+        <p class="para">
+            重要なのは、クエリパーサは標準の解析器を使用してクエリ文字列をトークン化するということです。
+            インデックス化されたテキストに対するすべての変換は、クエリ文字列エントリに対しても行われます。
+        </p>
+        <p class="para">
+            小文字変換を行うことで大文字小文字を区別しない検索を行えるようにしたり、
+            ストップワードを取り除いたりといったさまざまなことを行います。
+        </p>
+        <p class="para">
+            それに対して、<acronym class="acronym">API</acronym> メソッドは単語の変換やフィルタリングを行いません。これは、
+            コンピュータが生成したフィールドやトークン化されていないフィールドに適しています。
+        </p>
+
+        <div class="section" id="zend.search.lucene.searching.query_building.parsing" name="zend.search.lucene.searching.query_building.parsing"><div class="info"><h1 class="title">クエリのパース</h1></div>
+            
+            <p class="para">
+                 <span class="methodname">Zend_Search_Lucene_Search_QueryParser::parse()</span>
+                メソッドを使用してクエリ文字列をパースし、
+                クエリオブジェクトに格納します。
+            </p>
+
+            <p class="para">
+                このオブジェクトをクエリ作成 <acronym class="acronym">API</acronym> メソッドで使用し、
+                ユーザが入力したクエリと機械が生成したクエリを結合します。
+            </p>
+
+            <p class="para">
+                実際のところ、これが
+                トークン化されたいないフィールドを検索する唯一の方法となることもあります。
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$userQuery</span> = Zend_Search_Lucene_Search_QueryParser::<span style="color: #006600;">parse</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$queryStr</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$pathTerm</span>&nbsp; = <span style="color: #000000; font-weight: bold;">new</span> Zend_Search_Lucene_Index_Term<span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'/data/doc_dir/'</span> . <span style="color: #0000ff;">$filename</span>, <span style="color: #ff0000;">'path'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$pathQuery</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Search_Lucene_Search_Query_Term<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$pathTerm</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Search_Lucene_Search_Query_Boolean<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">addSubquery</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$userQuery</span>, <span style="color: #000000; font-weight: bold;">true</span> <span style="color: #808080; font-style: italic;">/* required */</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">addSubquery</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$pathQuery</span>, <span style="color: #000000; font-weight: bold;">true</span> <span style="color: #808080; font-style: italic;">/* required */</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$hits</span> = <span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">find</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </p>
+
+            <p class="para">
+                 <span class="methodname">Zend_Search_Lucene_Search_QueryParser::parse()</span>
+                メソッドはオプションのパラメータでエンコーディングを受け取ることができます。
+                ここで、クエリ文字列のエンコーディングを指定します。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$userQuery</span> = Zend_Search_Lucene_Search_QueryParser::<span style="color: #006600;">parse</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$queryStr</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'iso-8859-5'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </p>
+
+            <p class="para">
+                エンコーディングを省略した場合は、現在のロケールを使用します。
+            </p>
+
+            <p class="para">
+                デフォルトのクエリ文字列エンコーディングを
+                 <span class="methodname">Zend_Search_Lucene_Search_QueryParser::setDefaultEncoding()</span>
+                メソッドで指定することもできます。
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Search_Lucene_Search_QueryParser::<span style="color: #006600;">setDefaultEncoding</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'iso-8859-5'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">...</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$userQuery</span> = Zend_Search_Lucene_Search_QueryParser::<span style="color: #006600;">parse</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$queryStr</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </p>
+
+            <p class="para">
+                 <span class="methodname">Zend_Search_Lucene_Search_QueryParser::getDefaultEncoding()</span>
+                は、デフォルトのクエリ文字列エンコーディングを返します
+                (空文字列は &quot;現在のロケール&quot; を表します)。
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="zend.search.lucene.searching.results" name="zend.search.lucene.searching.results"><div class="info"><h1 class="title">検索結果</h1></div>
+        
+        <p class="para">
+            検索結果は <span class="classname">Zend_Search_Lucene_Search_QueryHit</span> オブジェクトの配列となります。
+            各オブジェクトは、2 つのプロパティを保持しています。
+            <code class="code">$hit-&gt;id</code> がインデックス内のドキュメント番号、
+            <code class="code">$hit-&gt;score</code> が検索結果のスコアを表します。
+            結果はスコア順に並べられます (スコアの高い結果が最初になります)。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene_Search_QueryHit</span> オブジェクトでは、
+            検索結果としてヒットした <span class="classname">Zend_Search_Lucene_Document</span>
+            の各フィールドも公開しています。
+            この例で、ヒットしたドキュメントには
+            title と author の 2 つのフィールドが含まれています。
+        </p>
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span> = Zend_Search_Lucene::<span style="color: #006600;">open</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'/data/my_index'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$hits</span> = <span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">find</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$hits</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$hit</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$hit</span>-&gt;<span style="color: #006600;">score</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$hit</span>-&gt;<span style="color: #006600;">title</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$hit</span>-&gt;<span style="color: #006600;">author</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            保存されたフィールドは、常に UTF-8 エンコーディングで返されます。
+        </p>
+
+        <p class="para">
+            オプションで、
+            <span class="classname">Zend_Search_Lucene_Search_QueryHit</span> から元の <span class="classname">Zend_Search_Lucene_Document</span>
+            を取得できます。
+
+            保存されたドキュメントを取得するには、
+            インデックスオブジェクトの <code class="code">getDocument()</code>
+            メソッドを使用し、その <code class="code">getFieldValue()</code>
+            メソッドでフィールドの値を取得します。
+        </p>
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span> = Zend_Search_Lucene::<span style="color: #006600;">open</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'/data/my_index'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$hits</span> = <span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">find</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$hits</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$hit</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// ヒットした結果の Zend_Search_Lucene_Document オブジェクトを返します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$document</span> = <span style="color: #0000ff;">$hit</span>-&gt;<span style="color: #006600;">getDocument</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Zend_Search_Lucene_Document から</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Zend_Search_Lucene_Field オブジェクトを返します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$document</span>-&gt;<span style="color: #006600;">getField</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'title'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Zend_Search_Lucene_Field オブジェクトを値を文字列で返します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$document</span>-&gt;<span style="color: #006600;">getFieldValue</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'title'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// getFieldValue() と同じです</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$document</span>-&gt;<span style="color: #006600;">title</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        <p class="para">
+        <span class="classname">Zend_Search_Lucene_Document</span> オブジェクトで使用可能なフィールドは、
+        インデックス化の際に決まります。ドキュメントのフィールドは、
+        インデックス化用アプリケーション (例えば LuceneIndexCreation.jar)
+        によってインデックス化、あるいはインデックス化して保存されます。
+        </p>
+
+        <p class="para">
+        ドキュメントを識別するフィールド (例では &#039;path&#039;)
+        もインデックス化して取得できるようにしなければならないことに注意しましょう。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.searching.results-limiting" name="zend.search.lucene.searching.results-limiting"><div class="info"><h1 class="title">結果の制限</h1></div>
+        
+
+        <p class="para">
+            検索処理の中でいちばん時間がかかるのが、スコアの計算です。
+            検索結果の数が多い (数万件程度) 場合、これには数秒程度かかることもあります。
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> では、結果セットの件数を制限するためのメソッドとして
+            <code class="code">getResultSetLimit()</code> と
+            <code class="code">setResultSetLimit()</code> を用意しています。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$currentResultSetLimit</span> = Zend_Search_Lucene::<span style="color: #006600;">getResultSetLimit</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Search_Lucene::<span style="color: #006600;">setResultSetLimit</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$newLimit</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            0 (デフォルト値) は、&#039;制限しない&#039; という意味です。
+        </p>
+
+        <p class="para">
+            このメソッドが返す結果は、&#039;スコアの高いほうから N 件&#039; ではなく
+            あくまで &#039;最初の N 件&#039;
+            <a href="#fnid1" name="fn1"><sup>[1]</sup></a>
+            です。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.searching.results-scoring" name="zend.search.lucene.searching.results-scoring"><div class="info"><h1 class="title">結果の重み付け</h1></div>
+        
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> は、Java Lucene と同じ重み付けアルゴリズムを使用します。
+            検索結果に一致したものが、デフォルトで重み順に並べ替えられます。スコアの高いものが先頭となり、
+            スコアの高いもののほうが低いものよりクエリにマッチするようになります。
+        </p>
+
+        <p class="para">
+            大雑把に言うと、文書の中に検索語句が頻繁に登場するほどスコアが高くなります。
+        </p>
+
+        <p class="para">
+            検索結果のスコアを取得するには <code class="code">score</code> プロパティを使用します。
+        </p>
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$hits</span> = <span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">find</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$hits</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$hit</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$hit</span>-&gt;<span style="color: #006600;">id</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$hit</span>-&gt;<span style="color: #006600;">score</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            重みを計算するために使用されるのが
+            <span class="classname">Zend_Search_Lucene_Search_Similarity</span> クラスです。詳細は
+            <a href="zend.search.lucene.extending.html#zend.search.lucene.extending.scoring" class="link">拡張性
+            - 重み付けのアルゴリズム</a> を参照ください。
+        </p>
+
+    </div>
+
+    <div class="section" id="zend.search.lucene.searching.sorting" name="zend.search.lucene.searching.sorting"><div class="info"><h1 class="title">検索結果の並べ替え</h1></div>
+        
+        <p class="para">
+            検索結果は、デフォルトではスコアで並べ替えられます。
+            これを変更するには、並べ替え用の (ひとつあるいは複数の)
+            フィールドと並べ替えの形式、そして並べ替えの方向をパラメータで指定します。
+        </p>
+
+        <p class="para">
+            <code class="code">$index-&gt;find()</code> のコール時に、オプションのパラメータを指定できます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">find</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span> <span style="color: #66cc66;">&#91;</span>, <span style="color: #0000ff;">$sortField</span> <span style="color: #66cc66;">&#91;</span>, <span style="color: #0000ff;">$sortType</span> <span style="color: #66cc66;">&#91;</span>, <span style="color: #0000ff;">$sortOrder</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#93;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#91;</span>, <span style="color: #0000ff;">$sortField2</span> <span style="color: #66cc66;">&#91;</span>, <span style="color: #0000ff;">$sortType</span> <span style="color: #66cc66;">&#91;</span>, <span style="color: #0000ff;">$sortOrder</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#93;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;...<span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            <code class="code">$sortField</code> は、結果の並べ替えを行う保存されたフィールドの名前です。
+        </p>
+
+        <p class="para">
+            <code class="code">$sortType</code> は省略可能です。
+            <code class="code">SORT_REGULAR</code> (通常の並べ替え。デフォルト)、
+            <code class="code">SORT_NUMERIC</code> (数値として並べ替え)、
+            <code class="code">SORT_STRING</code> (文字列として並べ替え) のいずれかとなります。
+        </p>
+
+        <p class="para">
+            <code class="code">$sortOrder</code> は省略可能です。
+            <code class="code">SORT_ASC</code> (昇順で並べ替え。デフォルト)、
+            <code class="code">SORT_DESC</code> (降順で並べ替え) のいずれかとなります。
+        </p>
+
+        <p class="para">
+            例を以下に示します。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">find</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span>, <span style="color: #ff0000;">'quantity'</span>, SORT_NUMERIC, SORT_DESC<span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">find</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span>, <span style="color: #ff0000;">'fname'</span>, SORT_STRING, <span style="color: #ff0000;">'lname'</span>, SORT_STRING<span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$index</span>-&gt;<span style="color: #006600;">find</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$query</span>, <span style="color: #ff0000;">'name'</span>, SORT_STRING, <span style="color: #ff0000;">'quantity'</span>, SORT_NUMERIC, SORT_DESC<span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            デフォルト以外の並び順を使用する際には注意しましょう。
+            並べ替えのためにはドキュメント全体をインデックスから読み込む必要があり、
+            検索のパフォーマンスが著しく低下してしまいます。
+        </p>
+    </div>
+
+    <div class="section" id="zend.search.lucene.searching.highlighting" name="zend.search.lucene.searching.highlighting"><div class="info"><h1 class="title">検索結果の強調</h1></div>
+        
+        <p class="para">
+            <span class="classname">Zend_Search_Lucene</span> では、2 とおりの方法で検索結果を強調させることができます。
+        </p>
+        <p class="para">
+            まず最初の方法が、<span class="classname">Zend_Search_Lucene_Document_Html</span> クラス
+            (詳細は <a href="zend.search.lucene.overview.html#zend.search.lucene.index-creation.html-documents" class="link">HTML ドキュメントの節</a>
+            を参照ください) を用いて次のようにすることです。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * テキストを指定した色で強調する</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> *</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @param string|array $words</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @param string $colour</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @return string</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> highlight<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$words</span>, <span style="color: #0000ff;">$colour</span> = <span style="color: #ff0000;">'#66ffff'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * テキストを、指定したビューヘルパーあるいはコールバック関数で強調する</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> *</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @param string|array $words&nbsp; 強調したい単語。配列あるいは文字列で指定します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @param callback $callback&nbsp; &nbsp;コールバックメソッド。テキストの変換 (強調) に使用します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @param array&nbsp; &nbsp; $params&nbsp; &nbsp; &nbsp;コールバックのパラメータとして渡す配列</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> *&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(最初の必須パラメータは、強調させる HTML 片となります)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @return string</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> * @throws Zend_Search_Lucene_Exception</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;"> */</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> highlightExtended<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$words</span>, <span style="color: #0000ff;">$callback</span>, <span style="color: #0000ff;">$params</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span></div></li></ol></div></div></div>
+
+        </p>
+        <p class="para">
+            強調方法をカスタマイズするには <code class="code">highlightExtended()</code>
+            メソッドにコールバックを指定して使用します。このコールバックは、ひとつ以上のパラメータを受け取ります
+            <a href="#fnid2" name="fn2"><sup>[2]</sup></a><acronym class="acronym">HTML</acronym><acronym class="acronym">HTML</acronym>。
+            あるいは、<span class="classname">Zend_Search_Lucene_Document_Html</span> クラスを継承して
+            <code class="code">applyColour($stringToHighlight, $colour)</code> メソッドを再定義することもできます。
+            このメソッドは、デフォルトの強調コールバックとして用いられるものです。
+            <a href="#fnid3" name="fn3"><sup>[3]</sup></a>
+                <acronym class="acronym">HTML</acronym><acronym class="acronym">XHTML</acronym>
+            
+        </p>
+        <p class="para">
+            <a href="zend.view.helpers.html" class="link">ビューヘルパー</a> も、ビュースクリプトのコンテキストでコールバックとして使えます。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$doc</span>-&gt;<span style="color: #006600;">highlightExtended</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'word1 word2 word3...'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$this</span>, <span style="color: #ff0000;">'myViewHelper'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+        <p class="para">
+            強調した結果を取得するには <code class="code">Zend_Search_Lucene_Document_Html-&gt;getHTML()</code> メソッドを使用します。
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                強調処理は、現在の解析器を使って行われます。つまり、解析器が理解するすべての形式の単語が強調されます。
+            <br />
+            
+                たとえば、大文字小文字を区別しない解析器を使っている場合に &#039;text&#039; を強調するよう指定すると、
+                &#039;text&#039; や &#039;Text&#039; そして &#039;TEXT&#039; といった単語も強調されます。
+            <br />
+            
+                同様に、語幹抽出機能を持つ解析器を使っている場合に &#039;indexed&#039; を強調するよう指定すると、
+                &#039;index&#039; や &#039;indexing&#039; そして &#039;indices&#039; といった単語も強調されます。
+            <br />
+            
+                一方、現在の解析器が処理をスキップするような単語
+                (短い単語に対するフィルタが解析器に適用されている場合など)
+                は、なにも強調されません。
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            もうひとつの方法は、
+            <code class="code">Zend_Search_Lucene_Search_Query-&gt;highlightMatches(string $inputHTML[, Zend_Search_Lucene_Search_Highlighter_Interface $highlighter])</code>
+            メソッドを使うことです。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$query</span> = Zend_Search_Lucene_Search_QueryParser::<span style="color: #006600;">parse</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$queryStr</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$highlightedHTML</span> = <span style="color: #0000ff;">$query</span>-&gt;<span style="color: #006600;">highlightMatches</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$sourceHTML</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+        <p class="para">
+            オプションの 2 番目のパラメータは、
+            デフォルトの <acronym class="acronym">HTML</acronym> ドキュメントエンコーディングです。
+            省略した場合は、Content-type HTTP-EQUIV meta タグを使用します。
+        </p>
+        <p class="para">
+            オプションの 3 番目のパラメータは、
+            <span class="classname">Zend_Search_Lucene_Search_Highlighter_Interface</span>
+            インターフェイスを実装したオブジェクトです。
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">interface</span> Zend_Search_Lucene_Search_Highlighter_Interface</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* 強調対象の文書を設定します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param Zend_Search_Lucene_Document_Html $document</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> setDocument<span style="color: #66cc66;">&#40;</span>Zend_Search_Lucene_Document_Html <span style="color: #0000ff;">$document</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* 強調対象の文書を取得します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return Zend_Search_Lucene_Document_Html $document</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getDocument<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* 指定した単語を強調します (サブクエリ単位でこのメソッドが起動されます)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @param string|array $words&nbsp; 強調したい単語。配列あるいは文字列で指定します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> highlight<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$words</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+            ここでの <span class="classname">Zend_Search_Lucene_Document_Html</span> オブジェクトは、
+            <span class="classname">Zend_Search_Lucene_Search_Query-&gt;highlightMatches()</span> メソッドに渡された
+            <acronym class="acronym">HTML</acronym> から作成されるオブジェクトです。
+        </p>
+        <p class="para">
+            <code class="code">$highlighter</code> パラメータを省略すると、
+            <span class="classname">Zend_Search_Lucene_Search_Highlighter_Default</span>
+            オブジェクトのインスタンスを作成してそれを使用します。
+        </p>
+        <p class="para">
+            <code class="code">highlight()</code> メソッドはサブクエリ単位で起動されるので、
+            サブクエリ単位で異なる強調処理を行うことができます。
+        </p>
+        <p class="para">
+            実際のところ、デフォルトの処理は定義済みの色テーブルを使用しているだけです。
+            自前の強調処理を実装することもできますし、デフォルトの処理を継承して色テーブルだけを再定義することもできます。
+        </p>
+        <p class="para">
+            <code class="code">Zend_Search_Lucene_Search_Query-&gt;htmlFragmentHighlightMatches()</code>
+            も同じような動きをします。唯一の違いは、入力を受け取って、
+            &lt;&gt;HTML&gt;, &lt;HEAD&gt;, &lt;BODY&gt; tags タグを含まない <acronym class="acronym">HTML</acronym> 片を返すことです。
+            それでも、返される <acronym class="acronym">HTML</acronym> 片は自動的に正しい <acronym class="acronym">XHTML</acronym> に変換されます.
+        </p>
+    </div>
+<div class="footnote"><a name="fnid1" href="#fn1"><sup>[1]</sup></a><span class="para footnote">
+                しかし、返される結果はスコア順 (あるいはその他指定した順)
+                で並べ替えられています。
+            </span></div>
+<div class="footnote"><a name="fnid2" href="#fn2"><sup>[2]</sup></a><span class="para footnote">最初のパラメータは強調対象の  片、
+            そしてその他のパラメータはコールバックの振る舞いによって変わります。
+            返り値は、強調済みの  片となります。</span></div>
+<div class="footnote"><a name="fnid3" href="#fn3"><sup>[3]</sup></a><span class="para footnote">
+                    どちらの場合についても、返される  は自動的に正しい  形式に変換されます。
+                </span></div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.search.lucene.index-creation.html">インデックスの構築</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.search.lucene.query-language.html">クエリ言語</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.search.lucene.html">Zend_Search_Lucene</a></li>
+  <li><a href="zend.search.lucene.overview.html">概要</a></li>
+  <li><a href="zend.search.lucene.index-creation.html">インデックスの構築</a></li>
+  <li class="active"><a href="zend.search.lucene.searching.html">インデックスの検索</a></li>
+  <li><a href="zend.search.lucene.query-language.html">クエリ言語</a></li>
+  <li><a href="zend.search.lucene.query-api.html">クエリ作成用の API</a></li>
+  <li><a href="zend.search.lucene.charset.html">文字セット</a></li>
+  <li><a href="zend.search.lucene.extending.html">拡張性</a></li>
+  <li><a href="zend.search.lucene.java-lucene.html">Java Lucene との相互運用</a></li>
+  <li><a href="zend.search.lucene.advanced.html">応用</a></li>
+  <li><a href="zend.search.lucene.best-practice.html">ベストプラクティス</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

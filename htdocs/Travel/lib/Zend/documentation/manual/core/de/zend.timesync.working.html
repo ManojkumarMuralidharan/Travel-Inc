@@ -1,0 +1,375 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Arbeiten mit Zend_TimeSync - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.timesync.introduction.html">Einf&uuml;hrung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.timesync.html">Zend_TimeSync</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.tool.html">Zend_Tool</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.timesync.working" class="section"><div class="info"><h1 class="title">Arbeiten mit Zend_TimeSync</h1></div>
+    
+
+    <p class="para">
+        <span class="classname">Zend_TimeSync</span> kann die aktuelle Zeit von jedem angegebenen
+        <em class="emphasis">NTP</em> oder <em class="emphasis">SNTP</em>
+        Zeitserver zurückgeben. Es kann automatisch mehrere Server handhaben und bietet ein
+        einfaches Interface.
+    </p>
+
+    <blockquote><p><b class="note">Note</b>: 
+        
+            Alle Beispiele in diesem Kapitel verwenden einen öffentlichen, generellen
+            Zeitserver: <em class="emphasis">0.europe.pool.ntp.org</em>.
+            Man sollte einen öffentlichen, generellen Zeitserver verwenden, der in der Nähe
+            des eigenen Anwendungsservers steht. Siehe
+            <a href="http://www.pool.ntp.org" class="link external">&raquo; http://www.pool.ntp.org</a> für Informationen.
+        <br />
+    </p></blockquote>
+
+    <div class="section" id="zend.timesync.working.generic" name="zend.timesync.working.generic"><div class="info"><h1 class="title">Generelle Anfragen von Zeitserver</h1></div>
+        
+
+        <p class="para">
+            Die Anfrage der Zeit von einem Zeitserver ist einfach. Zuerst gibt man den Zeitserver,
+            von dem man die Zeit anfragen will, an.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_TimeSync<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'0.pool.ntp.org'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getDate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">getIso</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Was passiert also im Hintergrund von <span class="classname">Zend_TimeSync</span>? Zuerst wird
+            der Syntax des Timeservers geprüft. In unserem Beispiel wird also
+            &#039;<em class="emphasis">0.pool.ntp.org</em>&#039; geprüft und als möglicherweise richtige Adresse
+            für einen Zeitserver erkannt. Wenn jetzt  <span class="methodname">getDate()</span> aufgerufen
+            wird, wird der aktuell gesetzte Zeitserver angefragt und dieser gibt dessen eigene Zeit
+            zurück. <span class="classname">Zend_TimeSync</span> berechnet darauf die Differenz zur
+            aktuellen Zeit des Servers, auf dem das Skript läuft, und gibt ein
+            <span class="classname">Zend_Date</span> Objekt mit der korrigierten Zeit zurück.
+        </p>
+
+        <p class="para">
+            Für Details über <span class="classname">Zend_Date</span> und dessen Methoden siehe unter der
+            Dokumentation von <a href="zend.date.introduction.html" class="link"><span class="classname">Zend_Date</span></a> nach.
+        </p>
+    </div>
+
+    <div class="section" id="zend.timesync.working.multiple" name="zend.timesync.working.multiple"><div class="info"><h1 class="title">Mehrere Zeitserver</h1></div>
+        
+
+        <p class="para">
+            Nicht alle Zeitserver sind immer erreichbar und geben eine Zeit zurück. Server können
+            wärend Wartungsarbeiten nicht erreichbar sein. Wenn die Zeit nicht vom Zeitserver
+            angefragt werden kann, erhält man eine Exception.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_TimeSync</span> ist eine einfache Lösung, die mehrere Zeitserver
+            behandeln kann und einen automatischen Fallback Mechanismus bietet. Es gibt zwei
+            unterstützte Wege; man kann entweder ein Array von Zeitservern angeben wenn die Instanz
+            erstellt wird, oder zusätzliche Zeitserver zur Instanz durch Verwendung der
+            Methode  <span class="methodname">addServer()</span> hinzufügen.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_TimeSync<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'0.pool.ntp.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'1.pool.ntp.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'2.pool.ntp.org'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">addServer</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'3.pool.ntp.org'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getDate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">getIso</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Es gibt keine Begrenzung in der Anzahl an Zeitservern, die hinzugefügt werden können.
+            Wenn ein Zeitserver nicht erreicht werden kann, dann fällt
+            <span class="classname">Zend_TimeSync</span> zurück und versucht den nächsten Zeitserver zu
+            erreichen.
+        </p>
+
+        <p class="para">
+            Wenn man mehr als einen Zeitserver angibt - was die beste Praxis für
+            <span class="classname">Zend_TimeSync</span> ist - sollte man jeden Server benennen. Man kann
+            die Server mit dem Arrayschlüssel, mit dem zweiten Parameter wärend der Initiierung oder
+            mit dem zweiten Parameter beim Hinzufügen von anderen Zeitservern, benennen.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_TimeSync<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'generic'</span>&nbsp; =&gt; <span style="color: #ff0000;">'0.pool.ntp.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'fallback'</span> =&gt; <span style="color: #ff0000;">'1.pool.ntp.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'reserve'</span>&nbsp; =&gt; <span style="color: #ff0000;">'2.pool.ntp.org'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">addServer</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'3.pool.ntp.org'</span>, <span style="color: #ff0000;">'additional'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getDate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">getIso</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Die Benennung der Zeitserver gibt die Möglichkeit, dass ein spezieller Zeitserver
+            angefragt werden kann, wie man später in diesem Kapitel sieht.
+        </p>
+    </div>
+
+    <div class="section" id="zend.timesync.working.protocol" name="zend.timesync.working.protocol"><div class="info"><h1 class="title">Protokolle von Zeitservern</h1></div>
+        
+
+        <p class="para">
+            Es gibt verschiedene Typen von Zeitservern. Die meisten öffentlichen Zeitserver
+            verwenden <em class="emphasis">NTP</em> als Protokoll. Es sind auch
+            andere Zeit Synchronisationsprotokolle vorhanden.
+        </p>
+
+        <p class="para">
+            Man kann das richtige Prokoll mit der Adresse des Zeitservers setzen. Aktuell gibt
+            es zwei Prokolle, die von <span class="classname">Zend_TimeSync</span> unterstützt werden:
+            <em class="emphasis">NTP</em> und <em class="emphasis">SNTP</em>. Das
+            Standardprotokoll ist <em class="emphasis">NTP</em>. Wenn man nur <em class="emphasis">NTP</em>
+            verwendet, kann man das Protokoll in der Adresse, wie im vorherigen Beispiel gezeigt,
+            unterdrücken.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_TimeSync<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'generic'</span>&nbsp; =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>0.pool.ntp.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'fallback'</span> =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>1.pool.ntp.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'reserve'</span>&nbsp; =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>2.pool.ntp.org'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">addServer</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'sntp:<span style="color: #000099; font-weight: bold;">\\</span>internal.myserver.com'</span>, <span style="color: #ff0000;">'additional'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getDate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">getIso</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            <span class="classname">Zend_TimeSync</span> kann gemischte Zeitserver verwenden. Man ist also
+            nicht auf ein einzelnes Prokoll beschränkt, aber man kann jeden Zeitserver unabhängig
+            von seinem Protokoll hinzufügen.
+        </p>
+    </div>
+
+    <div class="section" id="zend.timesync.working.ports" name="zend.timesync.working.ports"><div class="info"><h1 class="title">Ports für Zeitserver verwenden</h1></div>
+        
+
+        <p class="para">
+            Wie bei jedes Protkoll im World Wide Web, verwenden die Protokolle
+            <em class="emphasis">NTP</em> und <em class="emphasis">SNTP</em> Standardports. NTP verwendet den
+            Port <em class="emphasis">123</em>, SNTP hingegen den Port <em class="emphasis">37</em>.
+        </p>
+
+        <p class="para">
+            Aber manchmal weicht der, für ein Protokoll verwendete Port vom Standard ab. Der zu
+            verwendende Port kann mit der Adresse für jeden Server definiert werden. Es muß nur
+            die Nummer des Ports nach der Adresse hinzugefügt werden. Wenn kein Port definiert
+            wurde, dann verwendet <span class="classname">Zend_TimeSync</span> den Standardport.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_TimeSync<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'generic'</span>&nbsp; =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>0.pool.ntp.org:200'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'fallback'</span> =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>1.pool.ntp.org'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">addServer</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'sntp:<span style="color: #000099; font-weight: bold;">\\</span>internal.myserver.com:399'</span>, <span style="color: #ff0000;">'additional'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getDate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">getIso</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.timesync.working.options" name="zend.timesync.working.options"><div class="info"><h1 class="title">Optionen für Zeitserver</h1></div>
+        
+
+        <p class="para">
+            Es gibt nur eine Option in <span class="classname">Zend_TimeSync</span> die intern verwendet
+            wird: <em class="emphasis">timeout</em>. Wenn gewünscht, können beliebige selbstdefinierte
+            Optionen verwendent und abgefragt werden.
+        </p>
+
+        <p class="para">
+            Die Option <em class="emphasis">timeout</em> definiert die Anzahl an Sekunden
+            nach der eine Verbindung als abgebrochen erkannt wird, wenn keine Antwort kommt. Der
+            Standardwert ist <em class="emphasis">1</em>, was bedeutet das
+            <span class="classname">Zend_TimeSync</span> auf den nächsten Zeitserver zurückfällt, wenn der
+            angefragte Server nicht in einer Sekunde antwortet.
+        </p>
+
+        <p class="para">
+            Mit der  <span class="methodname">setOptions()</span> Methode kann jede Option gesetzt werden.
+            Diese Funktion akzeptiert ein Array, wobei die Schlüssel die zu setzende Option sind und
+            der Wert der Wert dieser Option. Jede vorher gesetzte Option wird mit dem neuen Wert
+            überschrieben. Wenn man wissen will, welche Optionen gesetzt sind, kann die
+             <span class="methodname">getOptions()</span> Methode verwendet werden. Sie akzeptiert entweder
+            einen Schlüssel, der die gegebene Option zurückgibt sofern diese gesetzt ist, oder,
+            wenn kein Schlüssel angegeben wird, gibt sie alle gesetzten Optionen zurück.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_TimeSync::<span style="color: #006600;">setOptions</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'timeout'</span> =&gt; <span style="color: #cc66cc;">3</span>, <span style="color: #ff0000;">'myoption'</span> =&gt; <span style="color: #ff0000;">'timesync'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_TimeSync<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'generic'</span>&nbsp; =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>0.pool.ntp.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'fallback'</span> =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>1.pool.ntp.org'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">addServer</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'sntp:<span style="color: #000099; font-weight: bold;">\\</span>internal.myserver.com'</span>, <span style="color: #ff0000;">'additional'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getDate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">getIso</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print_r"><span style="color: #000066;">print_r</span></a><span style="color: #66cc66;">&#40;</span>Zend_TimeSync::<span style="color: #006600;">getOptions</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print"><span style="color: #000066;">print</span></a> <span style="color: #ff0000;">&quot;Timeout = &quot;</span> . Zend_TimeSync::<span style="color: #006600;">getOptions</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'timeout'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Wie man sieht, sind die Optionen für <span class="classname">Zend_TimeSync</span> statisch. Jede
+            Instanz von <span class="classname">Zend_TimeSync</span> verwendet die gleichen Optionen.
+        </p>
+    </div>
+
+    <div class="section" id="zend.timesync.working.different" name="zend.timesync.working.different"><div class="info"><h1 class="title">Verschiedene Zeitserver verwenden</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_TimeSync</span>&#039;s Standardverhalten für die Anfrage einer Zeit ist
+            diese vom ersten gegebenen Server anzufragen. Manchmal ist es aber sinnvoll, einen
+            anderen Zeitserver zu setzen, von dem die Zeit abgefragt werden soll. Das kann mit der
+             <span class="methodname">setServer()</span> Methode getan werden. Um den zu verwendenden
+            Zeitserver zu definieren, muss einfach der Alias als Parameter in dieser Methode gesetzt
+            werden. Und um den aktuell verwendeten Zeitserver zu erhalten, kann die
+             <span class="methodname">getServer()</span> Methode aufgerufen werden. Wenn kein Parameter
+            angegeben wird, wird der aktuelle Zeitserver zurückgegeben.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_TimeSync<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'generic'</span>&nbsp; =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>0.pool.ntp.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'fallback'</span> =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>1.pool.ntp.org'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">addServer</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'sntp:<span style="color: #000099; font-weight: bold;">\\</span>internal.myserver.com'</span>, <span style="color: #ff0000;">'additional'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$actual</span> = <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getServer</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">setServer</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'additional'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+    </div>
+
+    <div class="section" id="zend.timesync.working.informations" name="zend.timesync.working.informations"><div class="info"><h1 class="title">Informationen von Zeitservern</h1></div>
+        
+
+        <p class="para">
+            Zeitserver bieten nicht nur die Zeit selbst, sondern auch zusätzliche Informationen.
+            Man kann diese Informationen mit der  <span class="methodname">getInfo()</span> Methode
+            erhalten.
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_TimeSync<span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'generic'</span>&nbsp; =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>0.pool.ntp.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'fallback'</span> =&gt; <span style="color: #ff0000;">'ntp:<span style="color: #000099; font-weight: bold;">\\</span>1.pool.ntp.org'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/print_r"><span style="color: #000066;">print_r</span></a> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getInfo</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Die zurückgegebenen Informationen unterscheiden sich im verwendeten Protokoll und im
+            verwendeten Server.
+        </p>
+    </div>
+
+    <div class="section" id="zend.timesync.working.exceptions" name="zend.timesync.working.exceptions"><div class="info"><h1 class="title">Behandeln von Ausnahmen</h1></div>
+        
+
+        <p class="para">
+            Ausnahmen werden für alle Zeitserver gesammelt und als Array zurückgegeben. Es ist also
+            möglich, durch alle geworfenen Ausnahmen zu laufen, wie im folgenden Beispiel gezeigt:
+            gezeigt:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$serverlist</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// invalid servers</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'invalid_a'</span>&nbsp; =&gt; <span style="color: #ff0000;">'ntp://a.foo.bar.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'invalid_b'</span>&nbsp; =&gt; <span style="color: #ff0000;">'sntp://b.foo.bar.org'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$server</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_TimeSync<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$serverlist</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">try <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$result</span> = <span style="color: #0000ff;">$server</span>-&gt;<span style="color: #006600;">getDate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$result</span>-&gt;<span style="color: #006600;">getIso</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> catch <span style="color: #66cc66;">&#40;</span>Zend_TimeSync_Exception <span style="color: #0000ff;">$e</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$exceptions</span> = <span style="color: #0000ff;">$e</span>-&gt;<span style="color: #006600;">get</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #b1b100;">foreach</span> <span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$exceptions</span> <span style="color: #b1b100;">as</span> <span style="color: #0000ff;">$key</span> =&gt; <span style="color: #0000ff;">$myException</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #0000ff;">$myException</span>-&gt;<span style="color: #006600;">getMessage</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <a href="http://www.php.net/echo"><span style="color: #000066;">echo</span></a> <span style="color: #ff0000;">'&lt;br /&gt;'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.timesync.introduction.html">Einf&uuml;hrung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.timesync.html">Zend_TimeSync</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.tool.html">Zend_Tool</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.timesync.html">Zend_TimeSync</a></li>
+  <li><a href="zend.timesync.introduction.html">Einf&uuml;hrung</a></li>
+  <li class="active"><a href="zend.timesync.working.html">Arbeiten mit Zend_TimeSync</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

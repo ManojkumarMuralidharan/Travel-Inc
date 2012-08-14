@@ -7,14 +7,14 @@
                     <dl>
                         <dt><label for="Year">Year:</label></dt>
                         <dd>
-                            <select size="1" name="gender" id="monthlyReportsYear">
+                            <select size="1" name="gender"  id="">
 								<option value="" onClick="Notifier.warning('Select a year');"></option>
                                 <option value="1999" onClick="monthlyReportsYear=this.text;">1999</option>
                                 <option value="2000" onClick="monthlyReportsYear=this.text;">2000</option>
                                 <option value="2001" onClick="monthlyReportsYear=this.text;">2001</option>
                                 <option value="2002" onClick="monthlyReportsYear=this.text;">2002</option>
                                 <option value="2003" onClick="monthlyReportsYear=this.text;">2003</option>
-								 <option value="2012" onClick="monthlyReportsYear=this.text;">2012</option>
+								<option value="2012" onClick="monthlyReportsYear=this.text;">2012</option>
                             </select>
                         </dd>
                     </dl>

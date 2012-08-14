@@ -1,4 +1,4 @@
-<?php /* Smarty version Smarty-3.1.8, created on 2012-05-29 16:50:23
+<?php /* Smarty version Smarty-3.1.8, created on 2012-07-20 15:25:50
          compiled from ".\templates\regularReports.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:142284fb66d884c0930-46900572%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +7,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     'b783d588c7c8303150ee49a189be269a20c8f920' => 
     array (
       0 => '.\\templates\\regularReports.tpl',
-      1 => 1338303016,
+      1 => 1342790174,
       2 => 'file',
     ),
   ),
@@ -50,7 +50,10 @@ $_valid = $_smarty_tpl->decodeProperties(array (
                     
                     
                    <?php ob_start();?><?php echo $_SESSION['profile'];?>
-<?php $_tmp1=ob_get_clean();?><?php if ($_tmp1=='supervisor'){?> 
+<?php $_tmp1=ob_get_clean();?><?php ob_start();?><?php echo $_SESSION['profile'];?>
+<?php $_tmp2=ob_get_clean();?><?php ob_start();?><?php echo $_SESSION['profile'];?>
+<?php $_tmp3=ob_get_clean();?><?php ob_start();?><?php echo $_SESSION['profile'];?>
+<?php $_tmp4=ob_get_clean();?><?php if ($_tmp1=='supervisor'||$_tmp2=='hr'||$_tmp3=='finance'||$_tmp4=='president'){?> 
                     <dl>
                         <dt><label for="Users">Users:</label></dt>
                         <dd>
@@ -70,13 +73,13 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 					<table>	
 					<tr>
 					 <td><label class="check_label">Domestic</label></td>
-					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio NFh" id="travelTypeLocal" onclick="reportsTravelType='local';alert(reportsTravelType);$('#travelTypeLocal').toggleClass('NFh');$('#travelTypeInternational').attr('Class','NFRadio');$('#travelTypeBoth').attr('Class','NFRadio');"></div></td>
+					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio NFh" id="travelTypeLocal" onclick="reportsTravelType='local';$('#travelTypeLocal').toggleClass('NFh');$('#travelTypeInternational').attr('Class','NFRadio');$('#travelTypeBoth').attr('Class','NFRadio');"></div></td>
 					 
 					 <td><label  style="padding-left:25px;" class="check_label">International</label></td>
-					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio" id="travelTypeInternational" onclick="reportsTravelType='international';alert(reportsTravelType);$('#travelTypeLocal').attr('Class','NFRadio');$('#travelTypeInternational').toggleClass('NFh');$('#travelTypeBoth').attr('Class','NFRadio');"></div></td>
+					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio" id="travelTypeInternational" onclick="reportsTravelType='international';$('#travelTypeLocal').attr('Class','NFRadio');$('#travelTypeInternational').toggleClass('NFh');$('#travelTypeBoth').attr('Class','NFRadio');"></div></td>
 					 
 					 <td><label style="padding-left:30px;" class="check_label">Both</label>	</td>
-					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio" id="travelTypeBoth" onclick="reportsTravelType='both';alert(reportsTravelType);$('#travelTypeLocal').attr('Class','NFRadio');$('#travelTypeInternational').attr('Class','NFRadio');$('#travelTypeBoth').toggleClass('NFh');"></div></td>
+					 <td><div style="padding-left:30px;margin-top:-10px;" class="NFRadio" id="travelTypeBoth" onclick="reportsTravelType='both';$('#travelTypeLocal').attr('Class','NFRadio');$('#travelTypeInternational').attr('Class','NFRadio');$('#travelTypeBoth').toggleClass('NFh');"></div></td>
 					 </tr>
 					 </table>
                     </dd>

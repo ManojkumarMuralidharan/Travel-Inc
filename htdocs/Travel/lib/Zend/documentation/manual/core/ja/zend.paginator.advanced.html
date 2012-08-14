@@ -1,0 +1,347 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>高度な使用法 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.paginator.configuration.html">設定</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.paginator.html">Zend_Paginator</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.pdf.html">Zend_Pdf</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.paginator.advanced" class="section"><div class="info"><h1 class="title">高度な使用法</h1></div>
+    
+
+    <div class="section" id="zend.paginator.advanced.adapters" name="zend.paginator.advanced.adapters"><div class="info"><h1 class="title">独自のデータソースアダプタ</h1></div>
+        
+
+        <p class="para">
+            同梱のアダプタでは対応していないようなデータ形式を処理したくなることもあるでしょう。
+            そんな場合は自分でアダプタを書く必要があります。
+        </p>
+
+        <p class="para">
+            そのためには
+            <span class="classname">Zend_Paginator_Adapter_Interface</span>
+            を実装しなければなりません。このインターフェイスでは
+            2 つのメソッドが必須となっています。
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">count()</p>
+            </li>
+            <li class="listitem">
+                <p class="para">getItems($offset, $itemCountPerPage)</p>
+            </li>
+        </ul>
+
+        <p class="para">
+            さらに、コンストラクタを実装してそのパラメータでデータソースを受け取り、
+            protected あるいは private なプロパティにそれを保存する処理も作りたくなることでしょう。
+            これをどのように実装するかはあなた次第です。
+        </p>
+
+        <p class="para">
+            これまでに SPL の
+            <a href="http://www.php.net/~helly/php/ext/spl/interfaceCountable.html" class="link external">&raquo; <code class="code">Countable</code></a>
+            インターフェイスを使ったことがある方なら
+             <span class="methodname">count()</span> はおなじみでしょう。
+            <span class="classname">Zend_Paginator</span> と組み合わせて使う場合、
+            これはデータコレクション内の項目総数を返します。
+            さらに、 <span class="classname">Zend_Paginator</span> のインスタンスには
+             <span class="methodname">countAllItems()</span> メソッドがあります。
+            これはアダプタの  <span class="methodname">count()</span> メソッドへのプロキシです。
+        </p>
+
+        <p class="para">
+             <span class="methodname">getItems()</span> メソッドは、ほんの少しだけ複雑です。
+            これは、オフセットおよび 1 ページあたりの項目数を受け取ります。
+            それにあわせて適切なデータを返す必要があります。
+            配列の場合はこのようになるでしょう。
+        </p>
+
+        <p class="para">
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">return</span> <a href="http://www.php.net/array_slice"><span style="color: #000066;">array_slice</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$this</span>-&gt;_array, <span style="color: #0000ff;">$offset</span>, <span style="color: #0000ff;">$itemCountPerPage</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            同梱のアダプタ (すべて <span class="classname">Zend_Paginator_Adapter_Interface</span>
+            を実装しています) を見れば、
+            自分のアダプタでこれをどのように実装すればいいのか参考になるでしょう。
+        </p>
+    </div>
+
+    <div class="section" id="zend.paginator.advanced.scrolling-styles" name="zend.paginator.advanced.scrolling-styles"><div class="info"><h1 class="title">独自のスクロール形式</h1></div>
+        
+
+        <p class="para">
+            独自のスクロール形式を作成するには
+            <span class="classname">Zend_Paginator_ScrollingStyle_Interface</span>
+            を実装しなければなりません。このインターフェイスには
+             <span class="methodname">getPages()</span> メソッドが定義されています。
+        </p>
+
+        <p class="para">
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getPages<span style="color: #66cc66;">&#40;</span>Zend_Paginator <span style="color: #0000ff;">$paginator</span>, <span style="color: #0000ff;">$pageRange</span> = <span style="color: #000000; font-weight: bold;">null</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            このメソッドは、いわゆる &quot;ローカル&quot; ページ
+            (現在のページの周辺のページたち) の範囲のページの最小値・
+            最大値を計算しなければなりません。
+        </p>
+
+        <p class="para">
+            他のスクロール形式を継承している (たとえば
+            <span class="classname">Zend_Paginator_ScrollingStyle_Elastic</span>)
+            のでない限り、自作のスクロール形式は必ずといっていいほど
+            次のようなコードで終わることになるでしょう。
+        </p>
+
+        <p class="para">
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">return</span> <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getPagesInRange</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$lowerBound</span>, <span style="color: #0000ff;">$upperBound</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            このコールには特別な意味はありません。
+            単に最小値と最大値の妥当性をチェックして、
+            その範囲の配列を返しているだけです。
+        </p>
+
+        <p class="para">
+            新しいスクロール形式が用意できたら、どのディレクトリからそれを探すのかを
+            <span class="classname">Zend_Paginator</span> に通知する必要があります。
+            そのためには、次のようにします。
+        </p>
+
+        <p class="para">
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$prefix</span> = <span style="color: #ff0000;">'My_Paginator_ScrollingStyle'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$path</span>&nbsp; &nbsp;= <span style="color: #ff0000;">'My/Paginator/ScrollingStyle/'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">addScrollingStylePrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$prefix</span>, <span style="color: #0000ff;">$path</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+    </div>
+
+    <div class="section" id="zend.paginator.advanced.caching" name="zend.paginator.advanced.caching"><div class="info"><h1 class="title">キャッシュ機能</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Paginator</span> は、渡されたデータをキャッシュする機能があります。
+            これを使用すると、アダプタが毎回データを取得することを回避できます。
+            アダプタのデータを自動的にキャッシュさせるよう設定するには、
+             <span class="methodname">setCache()</span> メソッドに <span class="classname">Zend_Cache_Core</span> のインスタンスを渡します。
+        </p>
+
+        <p class="para">
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span> = Zend_Paginator::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$someData</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$fO</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'lifetime'</span> =&gt; <span style="color: #cc66cc;">3600</span>, <span style="color: #ff0000;">'automatic_serialization'</span> =&gt; <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$bO</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'cache_dir'</span>=&gt;<span style="color: #ff0000;">'/tmp'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cache</span> = Zend_cache::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Core'</span>, <span style="color: #ff0000;">'File'</span>, <span style="color: #0000ff;">$fO</span>, <span style="color: #0000ff;">$bO</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">setCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cache</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Paginator</span> が <span class="classname">Zend_Cache_Core</span> のインスタンスを受け取ると、
+            データがキャッシュされるようになります。キャッシュインスタンスを渡した後でも、
+            場合によってはデータをキャッシュしたくないこともあるでしょう。そんな場合は
+             <span class="methodname">setCacheEnable()</span> を使用します。
+        </p>
+
+        <p class="para">
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span> = Zend_Paginator::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$someData</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// $cache は Zend_Cache_Core のインスタンスです</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">setCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cache</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// ... スクリプトの後半で次のようにすると</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">setCacheEnable</span><span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">false</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// キャッシュが無効になります</span></div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            キャッシュが設定されると、データは自動的に格納され、必要に応じて取り出されるようになります。
+            キャッシュを手動で空にできると便利でしょう。そうするには
+             <span class="methodname">clearPageItemCache($pageNumber)</span> をコールします。
+            何もパラメータを渡さなければ、キャッシュ全体が空になります。
+            ページ番号をパラメータとして渡すと、そのページのキャッシュを空にします。
+        </p>
+
+        <p class="para">
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span> = Zend_Paginator::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$someData</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">setCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cache</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$items</span> = <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getCurrentItems</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これで 1 ページ目がキャッシュに入りました</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$page3Items</span> = <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getItemsByPage</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">3</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// これで 3 ページ目がキャッシュに入りました</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 3 ページ目のキャッシュをクリアします</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">clearPageItemCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">3</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// すべてのキャッシュをクリアします</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">clearPageItemCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            1 ページあたりのアイテム数を変更すると、キャッシュ全体が空になります。
+            キャッシュの内容が無効になるからです。
+        </p>
+
+        <p class="para">
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span> = Zend_Paginator::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$someData</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">setCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cache</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// アイテムを取得します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$items</span> = <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getCurrentItems</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// すべてのキャッシュデータが消去されます</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">setItemCountPerPage</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">2</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            キャッシュ内のデータを見たり、直接アクセスしたりすることもできます。その場合には
+             <span class="methodname">getPageItemCache()</span> を使用します。
+        </p>
+
+        <p class="para">
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span> = Zend_Paginator::<span style="color: #006600;">factory</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$someData</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">setItemCountPerPage</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">3</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Paginator::<span style="color: #006600;">setCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cache</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// アイテムを取得します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$items</span> = <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getCurrentItems</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$otherItems</span> = <span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getItemsPerPage</span><span style="color: #66cc66;">&#40;</span><span style="color: #cc66cc;">4</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// キャッシュされたアイテムを二次元配列で取得します</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/var_dump"><span style="color: #000066;">var_dump</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$paginator</span>-&gt;<span style="color: #006600;">getPageItemCache</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p>
+    </div>
+
+    <div class="section" id="zend.paginator.advanced.aggregator" name="zend.paginator.advanced.aggregator"><div class="info"><h1 class="title">Zend_Paginator_AdapterAggregate インターフェイス</h1></div>
+        
+
+        <p class="para">
+            作成するアプリケーションによっては、「内部のデータ構造は既存のアダプタと同じだけれども
+            そのデータにアクセスするためにカプセル化を崩したくない」ということもあるでしょう。
+            あるいは、<span class="classname">Zend_Paginator_Adapter_Abstract</span>
+            が提供するような「オブジェクト &quot;is-a&quot; アダプタ」形式ではなく
+            「オブジェクト &quot;has-a&quot; アダプタ」形式であることもあるでしょう。
+            そんな場合は <span class="classname">Zend_Paginator_AdapterAggregate</span>
+            インターフェイスを使用します。これは、 <acronym class="acronym">PHP</acronym> の SPL 拡張モジュールにある
+            <span class="classname">IteratorAggregate</span> と同じ動きをします。
+        </p>
+
+        <p class="para">
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">interface</span> Zend_Paginator_AdapterAggregate</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">/**</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* Return a fully configured Paginator Adapter from this method.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;* @return Zend_Paginator_Adapter_Abstract</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">&nbsp; &nbsp; &nbsp;*/</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> getPaginatorAdapter<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+        </p>
+
+        <p class="para">
+            このインターフェイスは小さく、ただ
+            <span class="classname">Zend_Paginator_Adapter_Abstract</span>
+            のインスタンスを返すだけのものです。このインスタンスは
+            <code class="code">Zend_Paginator::factory</code> および Zend_Paginator
+            コンストラクタの両方で使用可能で、適切に処理されます。
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.paginator.configuration.html">設定</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.paginator.html">Zend_Paginator</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.pdf.html">Zend_Pdf</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.paginator.html">Zend_Paginator</a></li>
+  <li><a href="zend.paginator.introduction.html">導入</a></li>
+  <li><a href="zend.paginator.usage.html">使用法</a></li>
+  <li><a href="zend.paginator.configuration.html">設定</a></li>
+  <li class="active"><a href="zend.paginator.advanced.html">高度な使用法</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

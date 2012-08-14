@@ -2,7 +2,7 @@
 session_start();
 session_destroy();
 // put full path to Smarty.class.php
-require('C:/Users/TestUser/xampp/htdocs/Travel/lib/Smarty/libs/Smarty.class.php');
+require('Smarty.class.php');
 $smarty = new Smarty();
 
 //$smarty->assign('userName','Ned');

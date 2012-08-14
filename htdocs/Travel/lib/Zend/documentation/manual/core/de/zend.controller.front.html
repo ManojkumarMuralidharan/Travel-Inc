@@ -1,0 +1,637 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Der Front Controller - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.controller.basics.html">Zend_Controller Grundlagen</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.controller.html">Zend_Controller</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.controller.request.html">Das Request Objekt</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.controller.front" class="section"><div class="info"><h1 class="title">Der Front Controller</h1></div>
+    
+
+    <div class="section" id="zend.controller.front.overview" name="zend.controller.front.overview"><div class="info"><h1 class="title">Übersicht</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Controller_Front</span> implementiert ein <a href="http://www.martinfowler.com/eaaCatalog/frontController.html" class="link external">&raquo; Front
+                Controller-Entwurfsmuster</a>, das in <a href="http://de.wikipedia.org/wiki/Model_View_Controller" class="link external">&raquo; Model-View-Controller
+                (MVC)</a>-Anwendungen verwendet wird. Seine Aufgabe ist, die Abfrage-Umgebung
+                zu initialisieren, die eingehende Abfrage zu routen und dann die Anfrage an alle
+                angefragten Aktionen weiterzuleiten (das alles zusammen wird auch dispatchen
+                genannt); er fasst alle Antworten zusammen und gibt sie zurück, wenn der Prozess
+                beendet ist.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Controller_Front</span> implementiert auch das <a href="http://de.wikipedia.org/wiki/Einzelst%C3%BCck_%28Entwurfsmuster%29" class="link external">&raquo; Singleton-Entwurfsmuster
+                </a>, das heißt nur eine einzige Instanz dieser Klasse darf zu jedem Zeitpunkt
+            existieren. Das ermöglicht es auch, dass der Front-Controller als Registry fungiert, in
+            der alle anderen Objekte des Prozesses Daten persistent speichern können.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Controller_Front</span> registriert einen <a href="zend.controller.plugins.html" class="link">Plugin-Broker</a> in der Registry, die er
+            selber ist, was es erlaubt, verschiedene Events, die er auslöst, von den Plugins
+            überwachen zu lassen. In den meisten Fällen gibt das dem Entwickler die Möglichkeit,
+            einen maßgeschneiderten Dispatch-Prozess zu entwerfen, ohne den Front-Controller
+            erweitern zu müssen um Funktionalität hinzuzufügen.
+        </p>
+
+        <p class="para">
+            Als ein absolutes Minimum, um zu funktionieren, braucht der Front-Controller den Pfad
+            zu einem oder mehreren Verzeichnissen, die
+            <a href="zend.controller.action.html" class="link">Action-Controller</a> enthalten. Verschiedene
+            Methoden können auch noch aufgerufen werden, um die Front-Controller-Umgebung und die
+            seiner Hilfsklassen anzupassen.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Standardverhalten</b><br /></span>
+            
+            
+                Standardmäßig lädt der Front-Controller sowohl das <a href="zend.controller.plugins.html#zend.controller.plugins.standard.errorhandler" class="link">ErrorHandler</a>-Plugin
+                als auch das <a href="zend.controller.actionhelpers.html#zend.controller.actionhelpers.viewrenderer" class="link">ViewRenderer</a>-Action-Helper-Plugin.
+                Diese sind dafür geschrieben, Fehlerbehandlung bzw. das Rendern von Views in den
+                Controllern zu vereinfachen.
+            <br />
+
+            
+                Um den <em class="emphasis">ErrorHandler</em> abzuschalten, kann der folgende Code an
+                jeder Stelle vor dem Aufruf der  <span class="methodname">dispatch()</span>-Methode des
+                Front-Controllers ausgeführt werden:
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Error-Handler-Plugin abschalten:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'noErrorHandler'</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            
+                Um den <em class="emphasis">ViewRenderer</em> abzuschalten muss wiederum der folgende
+                Code vor dem  <span class="methodname">dispatch()</span> ausgeführt werden:
+            <br />
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Den ViewRenderer Action-Helper deaktivieren:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setParam</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'noViewRenderer'</span>, <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.controller.front.methods.primary" name="zend.controller.front.methods.primary"><div class="info"><h1 class="title">Grundlegende Methoden</h1></div>
+        
+
+        <p class="para">
+            Der Front-Controller hat etliche Zugriffsmethoden, die benutzt werden können, um seine
+            Umgebung zu konfigurieren. Jedoch gibt es drei grundlegende Methoden, die entscheidend
+            für die Funktionalität des Front-Controllers sind:
+        </p>
+
+        <div class="section" id="zend.controller.front.methods.primary.getinstance" name="zend.controller.front.methods.primary.getinstance"><div class="info"><h1 class="title">getInstance()</h1></div>
+            
+
+            <p class="para">
+                 <span class="methodname">getInstance()</span> wird benutzt, um eine Front-Controller
+                Instanz zu erhalten. Da der Front-Controller das Singleton-Entwurfsmuster
+                implementiert, ist das auch die einzige Möglichkeit, ein Front-Controller-Objekt zu
+                erhalten.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span> = Zend_Controller_Front::<span style="color: #006600;">getInstance</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+
+        <div class="section" id="zend.controller.front.methods.primary.setcontrollerdirectory" name="zend.controller.front.methods.primary.setcontrollerdirectory"><div class="info"><h1 class="title">setControllerDirectory() und addControllerDirectory()</h1></div>
+            
+
+            <p class="para">
+                 <span class="methodname">setControllerDirectory()</span> wird benutzt, um <a href="zend.controller.dispatcher.html" class="link">dem Dispatcher</a>
+                zu sagen, wo er nach <a href="zend.controller.action.html" class="link">Action-Controller</a>-Klassendateien suchen
+                soll. Sie akzeptiert sowohl einen einzelnen Pfad als auch ein Array aus
+                Modul und Pfadpaaren.
+            </p>
+
+            <p class="para">
+                Ein Paar Beispiele:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Standard-Controller-Verzeichnis setzen:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setControllerDirectory</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'../application/controllers'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Einige Modul-Ordner auf einmal setzen:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">setControllerDirectory</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'default'</span> =&gt; <span style="color: #ff0000;">'../application/controllers'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'blog'</span>&nbsp; &nbsp; =&gt; <span style="color: #ff0000;">'../modules/blog/controllers'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'news'</span>&nbsp; &nbsp; =&gt; <span style="color: #ff0000;">'../modules/news/controllers'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Den Ordner für das Modul 'foo' hinzufügen:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$front</span>-&gt;<span style="color: #006600;">addControllerDirectory</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'../modules/foo/controllers'</span>, <span style="color: #ff0000;">'foo'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <blockquote><p><b class="note">Note</b>: 
+                
+                    Wenn  <span class="methodname">addControllerDirectory()</span> ohne einen Modulnamen
+                    verwendet wird, setzt sie den Ordner für das Modul <em class="emphasis">default</em>
+                    -- und überschreibt einen Pfad, der vorher gesetzt wurde.
+                <br />
+            </p></blockquote>
+
+            <p class="para">
+                Die aktuellen Einstellungen für den/die Controller-Ordner können mit
+                 <span class="methodname">getControllerDirectory()</span> abgerufen werden; das gibt ein
+                Array mit Modul- und Verzeichnispaaren zurück.
+            </p>
+        </div>
+
+        <div class="section" id="zend.controller.front.methods.primary.addmoduledirectory" name="zend.controller.front.methods.primary.addmoduledirectory"><div class="info"><h1 class="title">addModuleDirectory() und getModuleDirectory()</h1></div>
+            
+
+            <p class="para">
+                Ein Aspekt des Front-Controllers ist, dass man für die Erstellung von
+                alleinstehenden Komponenten <a href="zend.controller.modular.html" class="link">eine modulare
+                    Verzeichnisstruktur definieren kann</a>; diese werden &quot;Module&quot; (modules)
+                genannt.
+            </p>
+
+            <p class="para">
+                Jedes Modul sollte in seinem eigenen Verzeichnis sein und die Verzeichnisstruktur
+                des Standardmoduls spiegeln -- z.B., sollte es mindestens ein
+                <var class="filename">/controllers/</var> Unterverzeichnis haben und typischerweise ein
+                <var class="filename">/views/</var> Unterverzeichnis und andere Anwendungsverzeichnisse.
+            </p>
+
+            <p class="para">
+                 <span class="methodname">addModuleDirectory()</span> erlaubt es, den Namen des
+                Verzeichnisses zu übergeben, der ein oder mehrere Modulverzeichnisse enthält. Er
+                scannt dieses dann und fügt es den Controllerverzeichnissen des Front-Controllers
+                hinzu.
+            </p>
+
+            <p class="para">
+                Später, wenn man den Pfad zu einem speziellen Modul oder dem aktuellen Modul
+                eruieren will, kann  <span class="methodname">getModuleDirectory()</span> aufgerufen werden
+                und optional ein Modulname übergeben werden, für welches das spezielle
+                Modulverzeichnis geholt werden soll.
+            </p>
+        </div>
+
+        <div class="section" id="zend.controller.front.methods.primary.dispatch" name="zend.controller.front.methods.primary.dispatch"><div class="info"><h1 class="title">dispatch()</h1></div>
+            
+
+            <p class="para">
+                 <span class="methodname">dispatch(Zend_Controller_Request_Abstract $request = null,
+                    Zend_Controller_Response_Abstract $response = null)</span>
+                erledigt die Schwerstarbeit des Front-Controllers. Sie nimmt als Parameter optional
+                ein <a href="zend.controller.request.html" class="link">Anfrage-Object</a> und/oder ein <a href="zend.controller.response.html" class="link">Antwort-Objekt</a> entgegen,
+                was es dem Entwickler erlaubt, wahlweise eigene Objekte für diese beiden Aufgaben zu
+                bestimmen.
+            </p>
+
+            <p class="para">
+                Wenn kein Anfrage- oder Antwort-Objekt angegeben werden, wird
+                 <span class="methodname">dispatch()</span> nach vorher registrierten Objekten suchen und
+                diese benutzen oder Standardversionen für seinen Prozess instanzieren (in beiden
+                Fällen wird der <acronym class="acronym">HTTP</acronym>-Dialekt als Standard benutzt).
+            </p>
+
+            <p class="para">
+                Auf ähnliche Art sucht  <span class="methodname">dispatch()</span> nach registrierten <a href="zend.controller.router.html" class="link">Router</a>- und <a href="zend.controller.dispatcher.html" class="link">Dispatcher</a>-Objekten und instanziert
+                die Standardversionen wenn keine gefunden werden.
+            </p>
+
+            <p class="para">
+                Der Dispatch-Prozess hat drei verschiedene Schritte:
+            </p>
+
+            <ul class="itemizedlist">
+                <li class="listitem"><p class="para">Routing</p></li>
+                <li class="listitem"><p class="para">Dispatching</p></li>
+                <li class="listitem"><p class="para">Antwort</p></li>
+            </ul>
+
+            <p class="para">
+                Das Routing geschieht genau einmal, indem die Werte aus dem Anfrageobjekt benutzt,
+                die zum Zeitpunkt des Aufrufes von  <span class="methodname">dispatch()</span> vorhanden
+                waren. Das Dispatchen geschieht in einer Schleife; eine Anfrage kann entweder
+                melden, dass es mehrere Aktionen gibt, die ausgeführt werden sollen, oder der
+                Controller oder ein Plugin können das Anfrageobjekt zurücksetzen, um zu erzwingen,
+                dass noch zusätzliche Aktionen ausgeführt werden sollen. Wenn alles erledigt ist,
+                gibt der Front-Controller eine Antwort zurück.
+            </p>
+        </div>
+
+        <div class="section" id="zend.controller.front.methods.primary.run" name="zend.controller.front.methods.primary.run"><div class="info"><h1 class="title">run()</h1></div>
+            
+
+            <p class="para">
+                 <span class="methodname">Zend_Controller_Front::run($path)</span> ist eine statische
+                Methode, die einfach einen Pfad zu einem Verzeichnis, das Action-Controller
+                enthält, als Parameter akzeptiert. Sie holt sich eine Front-Controller-Instanz (mit
+                <a href="zend.controller.front.html#zend.controller.front.methods.primary.getinstance" class="link">getInstance()</a>,
+                registriert den angegebenen Pfad mit <a href="zend.controller.front.html#zend.controller.front.methods.primary.setcontrollerdirectory" class="link">setControllerDirectory()</a>,
+                und <a href="zend.controller.front.html#zend.controller.front.methods.primary.dispatch" class="link">dispatcht</a>
+                schlussendlich.
+            </p>
+
+            <p class="para">
+                Im Grunde ist  <span class="methodname">run()</span> eine Komfort-Methode, die für
+                Seitenkonstellationen benutzt werden kann, die keine Anpassung der
+                Front-Controller-Umgebung benötigen.
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Front-Controller instanzieren, Controller-Verzeichnis setzen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// und dispatchen in einem einfachen Schritt:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">Zend_Controller_Front::<span style="color: #006600;">run</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'../application/controllers'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+
+    <div class="section" id="zend.controller.front.methods.environment" name="zend.controller.front.methods.environment"><div class="info"><h1 class="title">Methoden für Umgebungszugriff</h1></div>
+        
+
+        <p class="para">
+            Zusätzlich zu den oben aufgelisteten Methoden gibt es eine Menge Zugriffsmethoden, die
+            benutzt werden können, um die Front-Controller-Umgebung zu beeinflussen -- und damit die
+            Umgebung der Klassen, an die der Front-Controller seine Arbeit weiterleitet.
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">resetInstance()</span> wird benutzt, um alle aktuellen
+                    Einstellungen zu löschen. Ihr hauptsächlicher Nutzen sind Testfälle, aber sie
+                    kann auch für Fälle benutzt werden, in denen mehrere
+                    Front-Controller-Ausführungen aneinander gehängt werden sollen.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">setDefaultControllerName()</span> und
+                     <span class="methodname">getDefaultControllerName()</span> erlauben es, dem
+                    Front-Controller einen anderen Namen für den Standard-Action-Controller
+                    mitzugeben (ansonsten wird &#039;index&#039; benutzt), bzw. den aktuellen Wert
+                    herauszufinden. Diese Funktionen leiten die Anfragen an den <a href="zend.controller.dispatcher.html" class="link">Dispatcher</a> weiter.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">setDefaultAction()</span> und
+                     <span class="methodname">getDefaultAction()</span> erlauben analog, den
+                    Standard-Aktionsnamen zu setzen - ohne Einstellung wird &#039;index&#039; verwendet - und
+                    den aktuellen Wert auszulesen. Auch diese beiden leiten an den <a href="zend.controller.dispatcher.html" class="link">Dispatcher</a> weiter.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Mit  <span class="methodname">setRequest()</span> und
+                     <span class="methodname">setRequest()</span> kann
+                    <a href="zend.controller.request.html" class="link">die Request</a> Klasse oder das
+                    Objekt, das während des Dispatch-Prozesses verwendet wird und um das aktuelle
+                    Objekt zu erhalten. Wenn das Requestobjekt gesetzt wird, kann ein
+                    Request-Klassenname übergeben werden, und in diesem Fall wird die Methode die
+                    Klassendatei laden und sie initialisieren.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Mit  <span class="methodname">setRouter()</span> sowie
+                     <span class="methodname">setRouter()</span> kann auf die gleiche Art der
+                    Klassenname bzw. das Objekt übergeben bzw. zurückgegeben werden, das beim
+                    dispatchen als <a href="zend.controller.router.html" class="link">Router</a> verwendet
+                    wird.
+                </p>
+
+                <p class="para">
+                    Wenn nach dem Router-Objekt gefragt wird, wird erst überprüft, ob eines
+                    existiert. Wenn nicht, wird der Standard-Router (der Rewrite-Router) instanziert
+                    und zurückgegeben.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">setBaseUrl()</span> und
+                     <span class="methodname">getBaseUrl()</span> erlauben es, die <a href="zend.controller.request.html#zend.controller.request.http.baseurl" class="link">Basis
+                    <acronym class="acronym">URL</acronym></a> zu setzen, die beim Routen der Anfrage außen vor
+                    gelassen wird, sowie den aktuellen Wert dieser Einstellung zu erhalten. Diese
+                    URL wird dem Request-Objekt erst direkt vor dem Routing bekannt gemacht.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">setDispatcher()</span> und
+                     <span class="methodname">getDispatcher()</span> kann die <a href="zend.controller.dispatcher.html" class="link">Dispatcher</a>-Klasse oder das
+                    Dispatcher-Objekt setzen, das den Dispatch-Prozess übernimmt. Wie oben, so kann
+                    auch hier ein Klassenname oder ein Objekt übergeben werden; die get-Methode gibt
+                    in jedem Fall ein Objekt zurück.
+                </p>
+
+                <p class="para">
+                    Wenn das Dispatcher Objekt empfangen wird, wird erst überprüft, ob bereits ein
+                    Dispatcher existiert, wenn nicht, wird der Standard-Dispatcher instanziert und
+                    zurückgegeben.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Über  <span class="methodname">setResponse()</span> und
+                     <span class="methodname">getResponse()</span> kann das <a href="zend.controller.response.html" class="link">Antwort-Objekt</a> gesetzt bzw. erhalten
+                    werden. Auch hier kann wieder ein Klassenname oder ein Objekt übergeben werden.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Mit  <span class="methodname">registerPlugin(Zend_Controller_Plugin_Abstract $plugin,
+                        $stackIndex = null)</span> können
+                    <a href="zend.controller.plugins.html" class="link">Front-Controller-Plugins</a>
+                    registriert werden. Über den optionalen <var class="varname">$stackIndex</var> kann
+                    kontrolliert werden, in welcher Reihenfolge die Plugins ausgeführt werden.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">unregisterPlugin($plugin)</span> kann registrierte <a href="zend.controller.plugins.html" class="link">Plugin-Objekte</a> entfernen.
+                    <var class="varname">$plugin</var> kann entweder ein Plugin-Objekt oder eine
+                    Zeichenkette sein, welche die Klasse des zu entfernenden Plugins angibt.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Mit  <span class="methodname">throwExceptions($flag)</span> wird festgelegt, ob
+                    Exceptions (Ausnahmen), die während des Dispatch-Prozesses von Plugins,
+                    Controllern, Hilfsklassen etc. geworfen werden. Als Standardeinstellung werden
+                    Exceptions gefangen und im <a href="zend.controller.response.html" class="link">Antwort-Objekt</a> gespeichert. Das
+                    Einschalten von  <span class="methodname">throwExceptions()</span> überschreibt dieses
+                    Verhalten.
+                </p>
+
+                <p class="para">
+                    Mehr Informationen gibt es hier: <a href="zend.controller.exceptions.html" class="link">MVC Exceptions</a>.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">returnResponse($flag)</span> stellt ein, ob die Antwort nach
+                     <span class="methodname">dispatch()</span> vom Front-Controller zurückgegeben werden
+                    soll (<b><tt>TRUE</tt></b>) oder ob er sie automatisch ausgibt
+                    (<b><tt>FALSE</tt></b>). In der Standardeinstellung wird die Antwort
+                    automatisch ausgegeben (durch Aufruf von
+                     <span class="methodname">Zend_Controller_Response_Abstract::sendResponse()</span>);
+                    das Einschalten von  <span class="methodname">returnResponse()</span> ändert das.
+                </p>
+
+                <p class="para">
+                    Gründe, die Antwort zurückzugeben, wären zum Beispiel der Wunsch, nach Fehlern
+                    zu suchen, bevor die Antwort ausgegeben wird, das Logging verschiedener Aspekte
+                    der Antwort (bspw. HTTP-Header), etc.
+                </p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="zend.controller.front.methods.params" name="zend.controller.front.methods.params"><div class="info"><h1 class="title">Front-Controller-Parameter</h1></div>
+        
+
+        <p class="para">
+            In der Einführung haben wir erwähnt, dass der Front-Controller auch als eine Registry
+            für die verschiedenen Controller-Komponenten fungiert. Das macht er über eine Gruppe von
+            &quot;param&quot;-Methoden, de es erlauben, beliebige Daten -- Objekte und Variablen -- im
+            Front-Controller zu registrieren, die dann zu jeder Zeit im Dispatch-Prozess abgerufen
+            werden können. Diese Werte werden weitergegeben an den Router, den Dispatcher und an
+            die Aktions-Controller. Diese Methodengruppe besteht aus:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">setParam($name, $value)</span> setzt einen einzelnen
+                    Parameter mit dem Namen <var class="varname">$name</var> und dem Wert
+                    <var class="varname">$value</var>.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">setParams(array $params)</span> setzt mehrere Parameter auf
+                    einmal mit Hilfe eines assoziativen Arrays.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">getParam($name)</span> gibt den Parameter
+                    <var class="varname">$name</var> zurück.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">getParams()</span> gibt eine komplette Liste mit allen
+                    gesetzten Parametern zurück.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                     <span class="methodname">clearParams()</span> kann einen Parameter löschen (wenn eine
+                    Zeichenkette mit einem gültigen Namen übergeben wird), mehrere benannte
+                    Parameter (wenn ein Array mit mehreren Parameter-Namen übergeben wird) oder
+                    alle (wenn nichts übergeben wird).
+                </p>
+            </li>
+        </ul>
+
+        <p class="para">
+            Es gibt mehrere vordefinierte Parameter, die ebenfalls gesetzt werden können und die
+            speziellen Einfluss auf den Dispatch-Prozess haben:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    <em class="emphasis">useDefaultControllerAlways</em> wird benutzt, um dem <a href="zend.controller.dispatcher.html" class="link">Dispatcher</a> zu sagen, dass er,
+                    wenn er einen Fehler beim Dispatchen feststellt - also ein Modul / einen
+                    Controller / eine Aktionsmethode nicht findet, automatisch den
+                    Startseiten-Controller im Modul default benutzen soll. Standardmäßig
+                    ausgeschaltet.
+                </p>
+
+                <p class="para">
+                    Siehe das Kapitel <a href="zend.controller.exceptions.html#zend.controller.exceptions.internal" class="link">MVC
+                        Exceptions denen man begegnen kann</a> für detailliertere Informationen
+                    über die Benutzung dieser Einstellung.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <em class="emphasis">disableOutputBuffering</em> sagt dem <a href="zend.controller.dispatcher.html" class="link">Dispatcher</a>, dass er keinen
+                    Ausgabepuffer benutzen soll, um die Ausgabe, die von den Action-Controllern
+                    generiert wird, abzufangen. Standardmäßig werden sämtliche Ausgaben abgefangen
+                    und im Antwort-Objekt gespeichert.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Wenn <em class="emphasis">noViewRenderer</em> auf <b><tt>TRUE</tt></b> steht,
+                    wird der <a href="zend.controller.actionhelpers.html#zend.controller.actionhelpers.viewrenderer" class="link">ViewRenderer</a>
+                    abgeschaltet.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    <em class="emphasis">noErrorHandler</em> auf <b><tt>TRUE</tt></b> schaltet das
+                    <a href="zend.controller.plugins.html#zend.controller.plugins.standard.errorhandler" class="link">ErrorHandler-Plugin</a>
+                    ab.
+                </p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="zend.controller.front.subclassing" name="zend.controller.front.subclassing"><div class="info"><h1 class="title">Erweitern des Front-Controllers</h1></div>
+        
+
+        <p class="para">
+            Um den Front-Controller zu erweitern, muss als Minimalanforderung auf jeden Fall
+            die Methode  <span class="methodname">getInstance()</span> überschrieben werden:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #000000; font-weight: bold;">class</span> My_Controller_Front <span style="color: #000000; font-weight: bold;">extends</span> Zend_Controller_Front</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #000000; font-weight: bold;">public</span> <a href="http://www.php.net/static"><span style="color: #000066;">static</span></a> <span style="color: #000000; font-weight: bold;">function</span> getInstance<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><span style="color: #000000; font-weight: bold;">null</span> === self::<span style="color: #0000ff;">$_instance</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; self::<span style="color: #0000ff;">$_instance</span> = <span style="color: #000000; font-weight: bold;">new</span> self<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #b1b100;">return</span> self::<span style="color: #0000ff;">$_instance</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Das Überschreiben der  <span class="methodname">getInstance()</span>-Methode sorgt dafür, dass
+            folgende Aufrufe von  <span class="methodname">Zend_Controller_Front::getInstance()</span> eine
+            Instanz der neuen Subklasse zurückgeben anstatt einer
+            <span class="classname">Zend_Controller_Front</span>-Instanz -- das ist speziell für einige der
+            alternativen Router und View-Helfer nützlich.
+        </p>
+
+        <p class="para">
+            Typischerweise muss der Front-Controller nicht erweitert werden, es sei denn, es ist
+            gewünscht, neue Funktionalität (wie zum Beispiel einen Plugin-Autoloader oder einen Weg,
+            Action-Helper-Pfade anzugeben) hinzuzufügen. Einige Gelegenheiten, bei denen das
+            Standardverhalten geändert werden könnte, wären zum Beispiel die Art, wie Controller
+            geladen oder deren Pfade gespeichert werden, oder welcher Standard-Router und/oder
+            Dispatcher benutzt werden.
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.controller.basics.html">Zend_Controller Grundlagen</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.controller.html">Zend_Controller</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.controller.request.html">Das Request Objekt</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.controller.html">Zend_Controller</a></li>
+  <li><a href="zend.controller.quickstart.html">Zend_Controller Schnellstart</a></li>
+  <li><a href="zend.controller.basics.html">Zend_Controller Grundlagen</a></li>
+  <li class="active"><a href="zend.controller.front.html">Der Front Controller</a></li>
+  <li><a href="zend.controller.request.html">Das Request Objekt</a></li>
+  <li><a href="zend.controller.router.html">Der Standard Router</a></li>
+  <li><a href="zend.controller.dispatcher.html">Der Dispatcher</a></li>
+  <li><a href="zend.controller.action.html">Action Controller</a></li>
+  <li><a href="zend.controller.actionhelpers.html">Action Helfer</a></li>
+  <li><a href="zend.controller.response.html">Das Response Objekt</a></li>
+  <li><a href="zend.controller.plugins.html">Plugins</a></li>
+  <li><a href="zend.controller.modular.html">Eine konventionelle modulare Verzeichnis Struktur verwenden</a></li>
+  <li><a href="zend.controller.exceptions.html">MVC Ausnahmen</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

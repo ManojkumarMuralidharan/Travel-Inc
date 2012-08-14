@@ -1,0 +1,429 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>HTTP Authentication Adapter - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.auth.adapter.digest.html">Digest Authentication</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.auth.html">Zend_Auth</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.auth.adapter.ldap.html">LDAP Authentifizierung</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.auth.adapter.http" class="section"><div class="info"><h1 class="title">HTTP Authentication Adapter</h1></div>
+    
+
+    <div class="section" id="zend.auth.adapter.http.introduction" name="zend.auth.adapter.http.introduction"><div class="info"><h1 class="title">Einführung</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Auth_Adapter_Http</span> bietet die am meisten entsprechende
+            Implementation von <a href="http://tools.ietf.org/html/rfc2617" class="link external">&raquo; RFC-2617</a>,
+            <a href="http://en.wikipedia.org/wiki/Basic_authentication_scheme" class="link external">&raquo; Basis</a> und
+            <a href="http://en.wikipedia.org/wiki/Digest_access_authentication" class="link external">&raquo; Digest</a>
+            <acronym class="acronym">HTTP</acronym> Authentifizierung. Digest Authentifizierung ist eine Methode der
+            <acronym class="acronym">HTTP</acronym> Authentifikation welche die Basis Authentifizierung erweitert
+            indem ein Weg angeboten wird um sich zu Authentifizieren ohne dass das Passwort im
+            Klartext über das Netzwerk geschickt werden muß.
+        </p>
+
+        <p class="para">
+            <em class="emphasis">Hauptsächliche Features:</em>
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    Unterstützt sowohl Basis als auch Digest Authentifizierung.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Enthält Aufrufe für alle unterstützten Schemas, damit Klienten mit jedem
+                    unterstützten Schema arbeiten können.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Bietet Proxy Authentifizierung.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Enthält Unterstützung für die Authentifizierung gegenüber Textdateien und
+                    bietet ein Interface für die Authentifizierung gegenüber anderen Quellen,
+                    wie z.B. Datenbanken.
+                </p>
+            </li>
+        </ul>
+
+        <p class="para">
+            Es gibt ein paar nennenswerte Features von <acronym class="acronym">RFC-2617</acronym> die bis jetzt
+            nicht implementiert wurden:
+        </p>
+
+        <ul class="itemizedlist">
+            <li class="listitem">
+                <p class="para">
+                    Einstweilige Verfolgung, welche &quot;stale&quot; Support erlaubt und die
+                    Unterstützung bei wiederholenden Attacken erhöht.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Authentifizierung mit Integritäts-Prüfung, oder &quot;auth-int&quot;.
+                </p>
+            </li>
+
+            <li class="listitem">
+                <p class="para">
+                    Authentifizierungs-Info <acronym class="acronym">HTTP</acronym> Header.
+                </p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="zend.auth.adapter.design_overview" name="zend.auth.adapter.design_overview"><div class="info"><h1 class="title">Design Übersicht</h1></div>
+        
+
+        <p class="para">
+            Dieser Adapter besteht aus zwei Sub-Komponenten, die <acronym class="acronym">HTTP</acronym>
+            Authentifizierungs Klasse selbst, und den sogenannten &quot;Auflöser&quot;. Die
+            <acronym class="acronym">HTTP</acronym> Authentifizierungs Klasse kapselt die Logik für die
+            Ausführung beider, sowohl der Basis als auch der Digest Authentifizierung. Sie
+            verwendet einen Auflöser um die Identität eines Klienten in Datenspeichern nachzusehen
+            (standardmäßig eine Textdatei), und die Zeugnisse vom Datenspeicher zu empfangen. Die
+            &quot;aufgelösten&quot; Zeugnisse werden dann mit den Werten verglichen die vom Klienten
+            übermittelt wurden um zu eruieren ob die Authentifizierung erfolgreich war.
+        </p>
+    </div>
+
+    <div class="section" id="zend.auth.adapter.configuration_options" name="zend.auth.adapter.configuration_options"><div class="info"><h1 class="title">Konfigurations Optionen</h1></div>
+        
+
+        <p class="para">
+            Die <span class="classname">Zend_Auth_Adapter_Http</span> Klasse benötigt ein Konfigurations
+            Array das Ihrem Konstruktor übergeben werden muß. Es sind verschiedene Konfigurations
+            Optionen vorhanden, und einige davon werden benötigt:
+        </p>
+
+        <table class="doctable table"><div class="info"><caption><b>Konfigurations Optionen</b></caption></div>
+            
+
+            
+                <thead valign="middle">
+                    <tr valign="middle">
+                        <th>Options Name</th>
+                        <th>Benötigt</th>
+                        <th>Beschreibung</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody valign="middle" class="tbody">
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">accept_schemes</span></em></td>
+                        <td align="left">Ja</td>
+
+                        <td align="left">
+                            Ermittelt welches Authentifizierungs Schema der Adapter vom
+                            Klienten akzeptiert. Muß eine Leerzeichen-getrennte Liste sein, die
+                            <em class="emphasis">&#039;basic&#039;</em> und, oder <em class="emphasis">&#039;digest&#039;</em>
+                            enthält.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">realm</span></em></td>
+                        <td align="left">Ja</td>
+
+                        <td align="left">
+                            Setzt das Authentifizierungs-Bereich; Benutzernamen sollten im
+                            angegebenen Bereich einmalig sein.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">digest_domains</span></em></td>
+
+                        <td align="left">
+                            Ja, wenn <span class="property">accept_schemes</span>
+                            <em class="emphasis">digest</em> enthält
+                        </td>
+
+                        <td align="left">
+                            Leerzeichen-getrennte Liste von <acronym class="acronym">URI</acronym>s für welche die
+                            gleichen Authentifizierungs Informationen gültig sind. Die
+                            <acronym class="acronym">URI</acronym>s müssen nicht alle auf den gleichen Server
+                            zeigen.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">nonce_timeout</span></em></td>
+
+                        <td align="left">
+                            Ja, wenn <span class="property">accept_schemes</span>
+                            <em class="emphasis">digest</em> enthält
+                        </td>
+
+                        <td align="left">
+                            Setzt die Anzahl an Sekunden für welche die Verfolgung gültig ist.
+                            Siehe die Notizen anbei.
+                        </td>
+                    </tr>
+
+
+                    <tr valign="middle">
+                        <td align="left"><em class="emphasis"><span class="property">proxy_auth</span></em></td>
+                        <td align="left">Nein</td>
+
+                        <td align="left">
+                            Standardmäßig ausgeschaltet. Einschalten um Proxi Authentifizierung
+                            durchzuführen statt normaler originaler Server Authentifizierung.
+                        </td>
+                    </tr>
+
+                </tbody>
+            
+        </table>
+
+
+        <blockquote><p><b class="note">Note</b>: 
+            
+                Die aktuelle Implementation von <span class="property">nonce_timeout</span> hat einige
+                interessante Nebeneffekte. Diese Einstellung soll die gültige Lebenszeit einer
+                gegebenen Verfolgung ermitteln, oder effektiv, wie lange die Authentifizierungs
+                Information eines Klienten akzeptiert wird. Aktuell ist es auf 3600 (zum Beispiel)
+                gesetzt, und führt dazu das der Klient jede Stunde um neue Zeugnisse gebeten wird.
+                Das wird in einem zukünftigen Release behoben werden, sobald Verfolgung und &quot;stale&quot;
+                Support implementiert werden.
+            <br />
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.auth.adapter.http.resolvers" name="zend.auth.adapter.http.resolvers"><div class="info"><h1 class="title">Auflöser</h1></div>
+        
+
+        <p class="para">
+            Der Job des Auflösers ist es einen Benutzernamen und einen Bereich, und gibt eine Art
+            von Zeugnisswert zurück. Basis Authentifizierung erwartet einen Hash des Benutzernamens,
+            des Bereichs, und dessen Passwörter (jedes seperiert durch ein Komma). Aktuell ist der
+            einzige unterstützte Hash Algorithmus <acronym class="acronym">MD5</acronym>.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Auth_Adapter_Http</span> ist darauf angewiesen das Objekte
+            <span class="classname">Zend_Auth_Adapter_Http_Resolver_Interface</span> implementieren. Eine
+            Textdatei Auflöser Klasse ist mit diesem Adapter inkludiert, aber jede Art von Auflöser
+            kann einfach erstellt werden indem das Resolver Interface implementiert wird.
+        </p>
+
+        <div class="section" id="zend.auth.adapter.http.resolvers.file" name="zend.auth.adapter.http.resolvers.file"><div class="info"><h1 class="title">Datei Auflöser</h1></div>
+            
+
+            <p class="para">
+                Der Datei Auflöser ist eine sehr einfache Klasse. Sie hat eine einzelne Eigenschaft
+                die einen Dateinamen spezifiziert, welcher auch dem Konstruktor übergeben werden
+                kann. Ihre  <span class="methodname">resolve()</span> Methode geht durch die Textdatei, und
+                sucht nach einer Zeile mit einem entsprechenden Benutzernamen und Bereich. Das
+                Format der Textdatei ist ähnlich dem von Apache htpasswd Dateien:
+            </p>
+
+            <div class="programlisting txt"><div class="txtcode"><div style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&lt;benutzername&gt;:&lt;bereich&gt;:&lt;zeugnisse&gt;\n</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Jede Zeile besteht aus drei Feldern - Benutzername, Bereich und Zeugnisse - jede
+                abgeteilt durch einen Doppelpunkt. Das Zeugnis Feld ist für den Datei Auflöser nicht
+                sichtbar; es gibt den Wert einfach, wie er ist, an den Aufrufer zurück. Deswegen
+                kann dieses Dateiformat sowohl Basis als auch Digest Authentifizierung behandeln. In
+                der Basis Authentifizierung sollte das Zeugnis Feld im Klartext stehen. In der
+                Digest Authentifizierung sollte es der oben beschriebene <acronym class="acronym">MD5</acronym> Hash
+                sein.
+            </p>
+
+            <p class="para">
+                Es gibt zwei gleiche einfache Wege um einen Datei Auflöser zu erstellen:
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$path</span>&nbsp; &nbsp; &nbsp;= <span style="color: #ff0000;">'files/passwd.txt'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$resolver</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Http_Resolver_File<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$path</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                oder
+            </p>
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$path</span>&nbsp; &nbsp; &nbsp;= <span style="color: #ff0000;">'files/passwd.txt'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$resolver</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Http_Resolver_File<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$resolver</span>-&gt;<span style="color: #006600;">setFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$path</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+            <p class="para">
+                Wenn der angegebene Pfad leer oder nicht lesbar ist, wird eine Ausnahme geworfen.
+            </p>
+        </div>
+    </div>
+
+    <div class="section" id="zend.auth.adapter.http.basic_usage" name="zend.auth.adapter.http.basic_usage"><div class="info"><h1 class="title">Grundsätzliche Verwendung</h1></div>
+        
+
+        <p class="para">
+            Zuerst muß ein Array mit den benötigen Konfigurationswerten gesetzt werden:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$config</span> = <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'accept_schemes'</span> =&gt; <span style="color: #ff0000;">'basic digest'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'realm'</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =&gt; <span style="color: #ff0000;">'My Web Site'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'digest_domains'</span> =&gt; <span style="color: #ff0000;">'/members_only /my_account'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'nonce_timeout'</span>&nbsp; =&gt; <span style="color: #cc66cc;">3600</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Dieses Array bringt den Adapter dazu entwedet Basis oder Digest Authentifizierung zu
+            akzeptieren, und benötigt einen authentifizierten Zugriff auf alle Areale der Site
+            unter <var class="filename">/members_only</var> und <var class="filename">/my_account</var>. Der
+            Bereichs Wert wird normalerweise durch den Browser in der Passwort Dialog Box
+            angezeigt. <span class="property">nonce_timeout</span> verhält sich natürlich so wie oben
+            beschrieben.
+        </p>
+
+        <p class="para">
+            Dann wird ein <span class="classname">Zend_Auth_Adapter_Http</span> Objekt erstellt:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Http<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$config</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Da beides, Basis und Digest Authentifizierung, unterstützt werden, werden zwei
+            unterschiedliche Auflösungs-Objekte benötigt. Man könnte das auch einfach durch die
+            Verwendung von zwei unterschiedlichen Klassen bewerkstelligen:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$basicResolver</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Http_Resolver_File<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$basicResolver</span>-&gt;<span style="color: #006600;">setFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'files/basicPasswd.txt'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$digestResolver</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Auth_Adapter_Http_Resolver_File<span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$digestResolver</span>-&gt;<span style="color: #006600;">setFile</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'files/digestPasswd.txt'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span>-&gt;<span style="color: #006600;">setBasicResolver</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$basicResolver</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span>-&gt;<span style="color: #006600;">setDigestResolver</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$digestResolver</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <p class="para">
+            Letztendlich führen wir die Authentifizierung durch. Der Adapter benötigt eine Referenz
+            zu beidem, dem Anfrage und Antwort Objekten um seinen Job durchführen zu können:
+        </p>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/assert"><span style="color: #000066;">assert</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$request</span> instanceof Zend_Controller_Request_Http<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/assert"><span style="color: #000066;">assert</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$response</span> instanceof Zend_Controller_Response_Http<span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span>-&gt;<span style="color: #006600;">setRequest</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$request</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$adapter</span>-&gt;<span style="color: #006600;">setResponse</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$response</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$result</span> = <span style="color: #0000ff;">$adapter</span>-&gt;<span style="color: #006600;">authenticate</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span>!<span style="color: #0000ff;">$result</span>-&gt;<span style="color: #006600;">isValid</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Schlechter Benutzername/Passwort, oder abgebrochener Passwort Prompt</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li></ol></div></div></div>
+
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.auth.adapter.digest.html">Digest Authentication</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.auth.html">Zend_Auth</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.auth.adapter.ldap.html">LDAP Authentifizierung</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.auth.html">Zend_Auth</a></li>
+  <li><a href="zend.auth.introduction.html">Einf&uuml;hrung</a></li>
+  <li><a href="zend.auth.adapter.dbtable.html">Datenbanktabellen Authentifizierung</a></li>
+  <li><a href="zend.auth.adapter.digest.html">Digest Authentication</a></li>
+  <li class="active"><a href="zend.auth.adapter.http.html">HTTP Authentication Adapter</a></li>
+  <li><a href="zend.auth.adapter.ldap.html">LDAP Authentifizierung</a></li>
+  <li><a href="zend.auth.adapter.openid.html">Open ID Authentifikation</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

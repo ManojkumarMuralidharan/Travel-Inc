@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Verwenden von Plugins - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="learning.plugins.intro.html">Einf&uuml;hrung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="learning.plugins.html">Plugins in Zend Framework</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="learning.plugins.conclusion.html">Fazit</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="learning.plugins.usage" class="section"><div class="info"><h1 class="title">Verwenden von Plugins</h1></div>
+    
+
+    <p class="para">
+        Komponenten die Plugins verwenden, verwenden typischerweise
+        <span class="classname">Zend_Loader_PluginLoader</span> um Ihre Arbeit zu tun. Diese Klasse
+        registriert Plugins indem ein oder mehrere &quot;Präfix Pfade&quot; spezifiziert werden. Diese
+        Komponente ruft anschließend die  <span class="methodname">load()</span> Methode des PluginLoader&#039;s
+        auf, und übergibt Ihm den Kurznamen des Plugins. Der PluginLoader wird anschließend jeden
+        Präfix Pfad abfragen um zu sehen ob eine Klasse passt die dem Kurznamen entspricht.
+        Präfix Pfade werden also LIFO Reihenfolge (Last In, First Out) durchsucht, deshalb werden
+        jene Präfix Pfade abgeglichen die zuletzt registriert wurden -- was es erlaubt existierende
+        Plugins zu überladen.
+    </p>
+
+    <p class="para">
+        Einige Beispiele werden das alles etwas aufklären.
+    </p>
+
+    <div class="example"><div class="info"><p><b>Example #1 Grundsätzliches Plugin Beispiel: Hinzufügen eines einzelnen Präfix Pfades</b></p></div>
+        
+
+        <div class="example-contents"><p>
+            In diesem Beispiel nehmen wir an das einige Prüfungen geschrieben und im Verzeichnis
+            <var class="filename">foo/plugins/validators/</var> wurden, und das alle Klassen den
+            Klassenpräfix &quot;Foo_Validate_&quot; teilen; diese zwei Teile von Information formen unseren
+            &quot;Präfix Pfad&quot;. Weiters nehmen wir an das wir zwei Prüfungen haben, einen der &quot;Even&quot;
+            genannt wird (und sicherstellt das eine Zahl die geprüft wird gerade ist), und eine
+            andere die &quot;Dozens&quot; genannt wird (und sicherstellt das eine Zahl ein Vielfaches von 12
+            ist). Die drei könnten wie folgt anschauen:
+        </p></div>
+
+        <div class="programlisting text"><div class="textcode"><div class="text" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">foo/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">|-- plugins/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">|&nbsp; &nbsp;|-- validators/</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">|&nbsp; &nbsp;|&nbsp; &nbsp;|-- Even.php</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">|&nbsp; &nbsp;|&nbsp; &nbsp;|-- Dozens.php</div></li></ol></div></div></div>
+
+
+        <div class="example-contents"><p>
+            Jetzt informieren wir eine <span class="classname">Zend_Form_Element</span> Instanz über diesen
+            Präfix Pfad. <span class="classname">Zend_Form_Element</span>&#039;s
+             <span class="methodname">addPrefixPath()</span> Methode erwartet ein drittes Argument welches
+            den Typ des Plugins zeigt für den der Pfad registriert wird; in diesem Fall ist es ein
+            &quot;validate&quot; Plugin.
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addPrefixPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Foo_Validate'</span>, <span style="color: #ff0000;">'foo/plugins/validators/'</span>, <span style="color: #ff0000;">'validate'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <div class="example-contents"><p>
+            Jetzt können wir dem Element einfach den kurzen Namen der Prüfung angeben die wir
+            verwenden wollen. Im folgenden Beispiel verwenden wir einen Mix aus Standardprüfungen
+            (&quot;NotEmpty&quot;, &quot;Int&quot;) und eigenen Prüfungen (&quot;Even&quot;, &quot;Dozens&quot;).
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$element</span>-&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'NotEmpty'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; -&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Int'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; -&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Even'</span><span style="color: #66cc66;">&#41;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; -&gt;<span style="color: #006600;">addValidator</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Dozens'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <div class="example-contents"><p>
+            Wenn das Element geprüft werden soll, ruft es die Plugin Klasse vom PluginLoader ab.
+            Die ersten zwei Prüfungen werden zu <span class="classname">Zend_Validate_NotEmpty</span> und
+            <span class="classname">Zend_Validate_Int</span> aufgelöst; die nächsten zwei werden zu
+            <span class="classname">Foo_Validate_Even</span> und <span class="classname">Foo_Validate_Dozens</span>
+            aufgelöst.
+        </p></div>
+    </div>
+
+    <blockquote><p><b class="note">Note</b>: <span class="info"><b>Was passiert wenn ein Plugin nicht gefunden wird?</b><br /></span>
+        
+
+        
+            Was passiert wenn ein Plugin angefragt wird, aber der PluginLoader nicht in der Lage ist
+            eine zu Ihm passende Klasse zu finden? Im obigen Beispiel, zum Beispiel, wenn wir das
+            Plugin &quot;Bar&quot; mit dem Element registrieren, was würde dann passieren?
+        <br />
+
+        
+            Der Plugin Loader durchsucht jeden Präfix Pfad, prüft ob eine Datei gefunden wird die
+            in diesem Pfad auf den Plugin Namen passt. Wenn die Datei nicht gefunden wird, geht er
+            auf den nächsten Präfix Pfad weiter.
+        <br />
+
+        
+            Sobald der Stack von Präfix Pfaden erschöpft ist, und keine passende Datei gefunden
+            wurde, wirft es eine <span class="exceptionname">Zend_Loader_PluginLoader_Exception</span>.
+        <br />
+    </p></blockquote>
+
+    <div class="example"><div class="info"><p><b>Example #2 Fortgeschrittene Plugin Verwendung: Überladen existierender Plugins</b></p></div>
+        
+
+        <div class="example-contents"><p>
+            Eine Stärke des PluginLoaders ist dessen Verwendung eines LIFO Stacks welche es erlaubt
+            existierende Plugins zu überladen indem eine eigene Version lokal mit einem anderen
+            Präfix Pfad erstellt wird, und der Präfix Pfad später im Stack registriert wird.
+        </p></div>
+
+        <div class="example-contents"><p>
+            Nehmen wir zum Beispiel <span class="classname">Zend_View_Helper_FormButton</span> an (View
+            Helfer sind eine Form von Plugins). Dieser View Helfer akzeptiert drei Argumente, ein
+            Elementname (der auch als DOM Identifikator des Elements verwendet wird), einen Wert
+            (der als Button Label verwendet wird), und ein optionales Array an Attributen. Der
+            Helfer erzeugt dann das <acronym class="acronym">HTML</acronym> Markup für ein Formular Eingabeelement.
+        </p></div>
+
+        <div class="example-contents"><p>
+            Sagen wir, dass der Helfer stattdessen ein echtes <acronym class="acronym">HTML</acronym>
+            <b><tt>button</tt></b> Element erzeugen soll; dass wir nicht wollen das der Helfer
+            einen DOM Identifikator erzeugt, sondern statt dessen den Wert für einen CSS Klassen
+            Selektor; und das wir kein Interesse an der behandling eigener Attribute haben. Man
+            könnte dies auf verschiedenen wegen erreichen. In beiden Fällen erstellen wir eine
+            eigene View Helfer Klasse die das Verhalten implementiert welches wir wollen; der
+            Unterschied liegt darin wie wir Sie benennen und aufrufen wollen.
+        </p></div>
+
+        <div class="example-contents"><p>
+            Unser erstes Beispiel wird der Name des Elements mit einem eindeutigen Namen sein:
+            <span class="classname">Foo_View_Helper_CssButton</span> welcher den Plugin Namen &quot;CssButton&quot;
+            impliziert. Wärend das ein recht brauchbarer Ansatz ist, wirft es einige Probleme auf:
+            Wenn man bereits einen Button View Helfer im eigenen Code verwendet, muss man jetzt
+            einges umarbeiten; alternativ, wenn ein anderer Entwickler damit beginnt Code für diese
+            Anwendung zu schreiben, mus er unbeabsichtlicher Weise den Button View Helfer verwenden
+            statt den neuen View Helfer.
+        </p></div>
+
+        <div class="example-contents"><p>
+            Deshalb ist es better den Plugin Namen &quot;Button&quot; zu verwenden was uns den Klassennamen
+            <span class="classname">Foo_View_Helper_Button</span> gibt. Wir registrieren den Präfix Pfad in
+            der View:
+        </p></div>
+
+        <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Zend_View::addHelperPath() verwendet den PluginLoader; Trotzdem invertiert</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// er die Argumente, da er den Standardwert &quot;Zend_View_Helper&quot; für den Plugin</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Präfix anbietet.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">//</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Anbei nehmen wir an das die eigene Klasse im Verzeichnis</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// 'foo/view/helpers/' ist.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$view</span>-&gt;<span style="color: #006600;">addHelperPath</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'foo/view/helpers'</span>, <span style="color: #ff0000;">'Foo_View_Helper'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+
+        <div class="example-contents"><p>
+            Sobald das getan wurde, wird überall wo wir den &quot;Button&quot; Helfer verwenden auf die
+            eigene <span class="classname">Foo_View_Helper_Button</span> Klasse verwiesen!
+        </p></div>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="learning.plugins.intro.html">Einf&uuml;hrung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="learning.plugins.html">Plugins in Zend Framework</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="learning.plugins.conclusion.html">Fazit</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="learning.html">Learning Zend Framework</a></li>
+  <li class="header up"><a href="learning.plugins.html">Plugins in Zend Framework</a></li>
+  <li><a href="learning.plugins.intro.html">Einf&uuml;hrung</a></li>
+  <li class="active"><a href="learning.plugins.usage.html">Verwenden von Plugins</a></li>
+  <li><a href="learning.plugins.conclusion.html">Fazit</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

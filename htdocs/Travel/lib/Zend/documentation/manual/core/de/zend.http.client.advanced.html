@@ -1,0 +1,561 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>Zend_Http_Client - Fortgeschrittende Nutzung - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.http.client.html">Einf&uuml;hrung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.http.html">Zend_Http</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.http.client.adapters.html">Zend_Http_Client - Verbindungsadapter</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.http.client.advanced" class="section"><div class="info"><h1 class="title">Zend_Http_Client - Fortgeschrittende Nutzung</h1></div>
+    
+
+    <div class="section" id="zend.http.client.redirections" name="zend.http.client.redirections"><div class="info"><h1 class="title">HTTP Umleitungen</h1></div>
+        
+
+        <p class="para">
+            Standardmäßig verarbeitet <span class="classname">Zend_Http_Client</span>
+            <acronym class="acronym">HTTP</acronym> Umleitungen automatisch und folgt bis zu 5 Umleitungen. Dies
+            kann durch Setzen des &#039;maxredirects&#039; Konfigurationsparameters gändert werden.
+        </p>
+
+        <p class="para">
+            Gemäß dem <acronym class="acronym">HTTP</acronym>/1.1 RFC sollten <acronym class="acronym">HTTP</acronym> 301 und 302
+            Antworten vom Client behandelt werden, indem die selbe Anfrage erneut an die angebene
+            Stelle versendet wird - unter Verwendung der selben Anfragemethode. Allerdings haben
+            dies die meisten Clients nicht implementiert und verwenden beim Umleiten eine
+            <b><tt>GET</tt></b> Anfrage. Standardmäßig macht
+            <span class="classname">Zend_Http_Client</span> genau dasselbe - beim Umleiten einer 301 oder
+            302 Antwort, werden alle <b><tt>GET</tt></b> und POST Parameter zurückgesetzt und
+            eine <b><tt>GET</tt></b> Anfrage wird an die neue Stelle versandt. Dieses Verhalten
+            kann durch Setzen des &#039;strictredirects&#039; Konfigurationsparameters auf das boolesche
+            <b><tt>TRUE</tt></b> geändert werden.
+
+            <div class="example"><div class="info"><p><b>Example #1 Strikte Umleitung von 301 und 302 Antworten nach RFC 2616 erzwingen</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Strikte Umleitungen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setConfig</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'strictredirects'</span> =&gt; <span style="color: #000000; font-weight: bold;">true</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Nicht strikte Umleitungen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setConfig</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'strictredirects'</span> =&gt; <span style="color: #000000; font-weight: bold;">false</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+        </p>
+
+        <p class="para">
+            Man kann immer die Anzahl der durchgeführten Umleitungen nach dem Senden einer Anfrage
+            durch Verwendung der getRedirectionsCount() Methoden erhalten.
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.client.cookies" name="zend.http.client.cookies"><div class="info"><h1 class="title">Hinzufügen von Cookies und Verwendung von persistenten Cookies</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Http_Client</span> stellt eine einfache Schnittstelle zum
+            Hinzufügen von Cookies zu einer Anfrage bereit, so dass keine direkten Header
+            Änderungen notwendig sind. Dies wird durch Verwendung der setCookie() Methode erledigt.
+            Diese Methode kann auf mehrere Arten verwendet werden:
+
+            <div class="example"><div class="info"><p><b>Example #2 Cookies setzen durch Verwendung von setCookie()</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Ganz einfach: durch Übergabe von Namen und Wert für den Cookie</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setCookie</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'flavor'</span>, <span style="color: #ff0000;">'chocolate chips'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Durch direktes Übergeben eines unverarbeiteten Cookie Strings (Name=Wert)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Beachte, dass der Wert bereits URL kodiert sein muss</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setCookie</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'flavor=chocolate%20chips'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Durch Übergabe eins Zend_Http_Cookie Objekts</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$cookie</span> = Zend_Http_Cookie::<span style="color: #006600;">fromString</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'flavor=chocolate%20chips'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setCookie</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$cookie</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            Für weitere Informationen über <span class="classname">Zend_Http_Cookie</span> Objekte, siehe
+            <a href="zend.http.cookies.html" class="link">diesen Abschnitt</a>.
+        </p>
+
+        <p class="para">
+            <span class="classname">Zend_Http_Client</span> stellt außerdem die Möglichkeiten für &quot;Cookie
+            Stickiness&quot; bereit - das bedeutet, dass der Client intern alle gesendeten und erhaltenen
+            Cookies speichert und bei nachfolgenden Anfragen automatisch wieder mit sendet. Dies ist
+            z.B. nützlich, wenn man sich bei einer entfernten Site zuerst einloggen muss und einen
+            Authentifizierungs- oder Session-Cookie erhält, bevor man weitere Anfragen versenden
+            kann.
+
+            <div class="example"><div class="info"><p><b>Example #3 Cookie Stickiness aktivieren</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Um die Cookie Stickiness einzuschalten, setze eine Cookie Jar (Keksdose)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setCookieJar</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Erste Anfrage: einloggen und eine Session starten</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setUri</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://example.com/login.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setParameterPost</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'user'</span>, <span style="color: #ff0000;">'h4x0r'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setParameterPost</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'password'</span>, <span style="color: #ff0000;">'1337'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'POST'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Die Cookie Jar speichert die Cookies automatisch in der Antwort</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// wie z.B. ein Session ID Cookie.</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Nun können wir die nächste Anfrage senden - die gespeicherten Cookies</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// werden automatisch mit gesendet</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setUri</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://example.com/read_member_news.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'GET'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            Für weitere Informationen über die <span class="classname">Zend_Http_CookieJar</span> Klasse,
+            siehe <a href="zend.http.cookies.html#zend.http.cookies.cookiejar" class="link">diesen Abschnitt</a>.
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.client.custom_headers" name="zend.http.client.custom_headers"><div class="info"><h1 class="title">Setzen von individuellen Anfrageheadern</h1></div>
+        
+
+        <p class="para">
+            Das Setzen von individuellen Headern kann durch Verwendung der setHeaders() Methode
+            erledigt werden. Diese Methode ist sehr facettenreich und kann auf verschiedene Arten
+            verwendet werden, wie das folgende Beispiel zeigt:
+
+            <div class="example"><div class="info"><p><b>Example #4 Setzen eines einzelnen individuellen Anfrageheaders</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Setzen eines einzelnen Headers, vorherige werden überschrieben</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setHeaders</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Host'</span>, <span style="color: #ff0000;">'www.example.com'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Ein anderer Weg um genau das Gleiche zu erreichen</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setHeaders</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Host: www.example.com'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Setzen von verschiedenen Werten für den selben Header</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// (besonders für Cookie Header nützlich):</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setHeaders</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'Cookie'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'PHPSESSID=1234567890abcdef1234567890abcdef'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'language=he'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+        </p>
+
+        <p class="para">
+            setHeader() kann genauso einfach für das Setzen mehrerer Header in einem Aufruf durch
+            Übergabe eines Array mit Headern als einzigen Parameter verwendet werden:
+
+            <div class="example"><div class="info"><p><b>Example #5 Setzen eines mehreren individuellen Anfrageheaders</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Setzen von mehreren Headern, vorherige werden überschrieben</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setHeaders</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Host'</span> =&gt; <span style="color: #ff0000;">'www.example.com'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Accept-encoding'</span> =&gt; <span style="color: #ff0000;">'gzip,deflate'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'X-Powered-By'</span> =&gt; <span style="color: #ff0000;">'Zend Framework'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Das Array kann auch komplette Array Strings enthalten:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setHeaders</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Host: www.example.com'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'Accept-encoding: gzip,deflate'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'X-Powered-By: Zend Framework'</span><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.client.file_uploads" name="zend.http.client.file_uploads"><div class="info"><h1 class="title">Dateiuploads</h1></div>
+        
+
+        <p class="para">
+            Man kann Dateien über <acronym class="acronym">HTTP</acronym> hochladen, indem man die setFileUpload
+            Methode verwendet. Diese Methode nimmt einen Dateinamen als ersten Parameter, einen
+            Formularnamen als zweiten Parameter und Daten als einen dritten, optionalen Parameter
+            entgegen. Wenn der dritte Parameter <b><tt>NULL</tt></b> ist, wird angenommen, dass
+            der erste Dateinamen Parameter auf eine echte Datei auf der Platte verweist, und
+            <span class="classname">Zend_Http_Client</span> wird versuchen die Datei zu lesen und
+            hochzuladen. Wenn der Daten Parameter nicht <b><tt>NULL</tt></b> ist, wird der
+            erste Dateinamen Parameter als der Dateiname versendet, aber die Datei muss nicht
+            wirklich auf der Platte existieren. Der zweite Formularnamen Parameter wird immer
+            benötigt und ist gleichbedeutend mit dem &quot;name&quot; Attribut eines &gt;input&lt; Tags, wenn
+            die Datei durch ein <acronym class="acronym">HTML</acronym> Formular hochgeladen worden ist. Ein vierter
+            optionaler Parameter gibt den Content-type der Datei an. Wenn er nicht angegeben wird,
+            liest <span class="classname">Zend_Http_Client</span> die Datei von der Platte und verwendet die
+            mime_content_type Funktion, um den Content-type der Datei zu erraten, wenn er verfügbar
+            ist. Auf jeden Fall ist der Standard MIME Typ &#039;application/octet-stream&#039;.
+
+            <div class="example"><div class="info"><p><b>Example #6 Verwendung von setFileUpload um Dateien hochzuladen</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Hochladen beliebiger Daten als Datei</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$text</span> = <span style="color: #ff0000;">'this is some plain text'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setFileUpload</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'some_text.txt'</span>, <span style="color: #ff0000;">'upload'</span>, <span style="color: #0000ff;">$text</span>, <span style="color: #ff0000;">'text/plain'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Hochladen einer vorhandenen Datei</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setFileUpload</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'/tmp/Backup.tar.gz'</span>, <span style="color: #ff0000;">'bufile'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Dateien absenden</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'POST'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            Im ersten Beispiel, wird die Variable $text hochgeladen und als $_FILES[&#039;upload&#039;] auf
+            der Serverseite verfügbar sein. Im zweiten Beispiel wird die vorhandene Datei
+            /tmp/Backup.tar.gz auf den Server geladen und als $_FILES[&#039;bufile&#039;] verfügbar sein. Der
+            Content-type wird automatisch erraten, wenn möglich - und wenn nicht, wird der
+            Content-type auf &#039;application/octet-stream&#039; gesetzt.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Dateien hochladen</b><br /></span>
+            
+
+            
+                Beim Hochladen von Dateien wird der Content-type der <acronym class="acronym">HTTP</acronym> Anfrage
+                automatisch auf &#039;multipart/form-data&#039; gesetzt. Man sollte beachten, dass man eine
+                POST oder PUT Anfrage absenden muss, um Dateien hochzuladen. Die meisten Server
+                werden den Hauptteil der Anfrage bei anderen Anfragetypen ignorieren.
+            <br />
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.http.client.raw_post_data" name="zend.http.client.raw_post_data"><div class="info"><h1 class="title">Unverarbeitete POST Daten versenden</h1></div>
+        
+
+        <p class="para">
+            Man kann <span class="classname">Zend_Http_Client</span> verwenden, um mit der setRawData()
+            Methode unverarbeitete POST Daten zu versenden. Diese Methode nimmt zwei Parameter
+            entgegen: der erste ist die im Anfrage Hauptteil zu versendenen Daten. Der zweite
+            optionale Parameter ist der Content-type der Daten. Obwohl dieser Parameter optional
+            ist, sollte man ihn normalerweise vor dem Absenden der Anfrage setzen - entweder durch
+            Verwendung von setRawData() oder durch eine andere Methode: setEncType().
+
+            <div class="example"><div class="info"><p><b>Example #7 Unverarbeitete POST Daten versenden</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$xml</span> = <span style="color: #ff0000;">'&lt;book&gt;'</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'&nbsp; &lt;title&gt;Islands in the Stream&lt;/title&gt;'</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'&nbsp; &lt;author&gt;Ernest Hemingway&lt;/author&gt;'</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'&nbsp; &lt;year&gt;1970&lt;/year&gt;'</span> .</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp;<span style="color: #ff0000;">'&lt;/book&gt;'</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setRawData</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$xml</span>, <span style="color: #ff0000;">'text/xml'</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'POST'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Ein anderer Weg, um das selbe zu tun:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setRawData</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$xml</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">setEncType</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'text/xml'</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'POST'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+
+            Die Daten sollten auf der Serverseite über die <acronym class="acronym">PHP</acronym> Variable
+            $HTTP_RAW_POST_DATA oder über den php://input stream verfügbar sein.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Unverarbeitete POST Daten verwenden</b><br /></span>
+            
+
+            
+                Das Setzen von unverarbeiteten POST Daten für eine Anfrage überschreibt jeden POST
+                Parameter oder Dateiuploads. Man sollte nicht beides in der selben Anfrage
+                verwenden. Es ist zu beachten, dass die meisten Server den Hauptteil der Anfrage
+                ignorieren, wenn keine POST Anfrage gesendet wird.
+            <br />
+        </p></blockquote>
+    </div>
+
+    <div class="section" id="zend.http.client.http_authentication" name="zend.http.client.http_authentication"><div class="info"><h1 class="title">HTTP Authentifizierung</h1></div>
+        
+
+        <p class="para">
+            Derzeit unterstützt <span class="classname">Zend_Http_Client</span> nur die Basis
+            <acronym class="acronym">HTTP</acronym> Authentifizierung. Diese Funktion kann durch Verwendung der
+             <span class="methodname">setAuth()</span> Methode oder durch Spezifikation von Benutzername und
+            Passwort in der URI genutzt werden. Die  <span class="methodname">setAuth()</span> Methode nimmt
+            3 Parameter entgegen: den Benutzernamen, das Passwort und einen optionalen
+            Authentifizierungstyp Parameter. Wie gesagt, wird derzeit nur die Basis
+            Authentifizierung unterstützt (Unterstützung für eine Digest Authentifizierung ist
+            geplant).
+
+            <div class="example"><div class="info"><p><b>Example #8 Setzen von Benutzer und Password für eine HTTP Authentifizierung</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Verwende die Basis Authentifizierung</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setAuth</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'shahar'</span>, <span style="color: #ff0000;">'myPassword!'</span>, Zend_Http_Client::<span style="color: #006600;">AUTH_BASIC</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Da Basis Authentifizierung Standard ist, kann man auch dies verwenden:</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setAuth</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'shahar'</span>, <span style="color: #ff0000;">'myPassword!'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Man kann auch den Benutzernamen und das Passwort in der URI spezifizieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setUri</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://christer:secret@example.com'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+        </p>
+    </div>
+
+    <div class="section" id="zend.http.client.multiple_requests" name="zend.http.client.multiple_requests"><div class="info"><h1 class="title">Versenden mehrerer Anfragen mit dem selben Client</h1></div>
+        
+
+        <p class="para">
+            <span class="classname">Zend_Http_Client</span> wurde zusätzlich besonders dafür entwickelt, um
+            mehrere, aufeinander folgende Abfragen durch das selbe Objekt verarbeiten zu können.
+            Dies ist nützlich, wenn z.B. ein Skript es erfordert, Daten von verschiedenen Stellen
+            abzurufen, oder wenn eine spezielle <acronym class="acronym">HTTP</acronym> Ressource das Einloggen und
+            Erhalten eines Session Cookies erfordert.
+        </p>
+
+        <p class="para">
+            Beim Ausführen mehrere Anfrage an den selben Host, wird es besonders empfohlen, den
+            Konfigurationsschalter &#039;keepalive&#039; zu aktivieren. Wenn der Server keep-alive
+            Verbindungen unterstützt, wird auf diesem Weg die Verbindung zum Server nur beendet,
+            sobald alle Anfragen abgeschlossen sind und das Client Objekt zerstört wird. Dies
+            verhindert den Overhead beim Öffnen und Schließen von <acronym class="acronym">TCP</acronym>
+            Verbindungen zum Server.
+        </p>
+
+        <p class="para">
+            Wenn man verschiedene Anfragen mit dem selben Client durchführt, aber sicherstellen
+            möchte, dass alle anfragespezifischen Parameter entfernt werden, sollte man die
+            resetParameters() Methode verwenden. Dies stellt sicher, dass <b><tt>GET</tt></b>
+            und POST Parameter, Anfragehauptteil und anfragespezifischen Header zurückgesetzt und
+            nicht bei der nächsten Anfrage wiederverwendet werden.
+        </p>
+
+        <blockquote><p><b class="note">Note</b>: <span class="info"><b>Parameter zurück setzen</b><br /></span>
+            
+
+            
+                Bitte beachten, dass Header, die nicht anfragespezifisch sind, standardmäßig nicht
+                zurück gesetzt werden, wenn die  <span class="methodname">resetParameters()</span> Methode
+                verwendet wird. Nur die &#039;Content-length&#039; und &#039;Content-type&#039; Header werden zurück
+                gesetzt. Dies erlaubt das Setzen und Vergessen von Headern wie &#039;Accept-language&#039; und
+                &#039;Accept-encoding&#039;.
+            <br />
+
+            
+                Um alle Header und Daten aus der URI und der Methode zu löschen kann
+                 <span class="methodname">resetParameters(true)</span> verwendet werden.
+            <br />
+        </p></blockquote>
+
+        <p class="para">
+            Ein weiteres Feature, welches speziell für aufeinander folgende Anfragen entwickelt
+            worden ist, ist das Cookie Jar Objekt (Keksdose). Cookie Jars erlauben das automatische
+            Speichern von Cookies, die vom Server bei der ersten Anfrage gesetzt worden sind, und
+            das Versenden bei nachfolgenden Anfragen. Dies erlaubt es z.B. eine
+            Authentifizierungsanfrage zu durchlaufen, bevor die eigentliche Anfrage zum
+            Erhalten der Daten gesendet wird.
+        </p>
+
+        <p class="para">
+            Wenn die Applikation eine Authentifizierungsanfrage pro Benutzer erfordert und
+            nachfolgende Anfragen in mehr als einem Skript in der Applikation durchgeführt werden
+            könnten, könnte es eine gute Idee sein, das Cookie Jar Objekt in der Benutzersession zu
+            speichern. Auf diese Weise muß der Benutzer nur einmal pro Session authentifiziert
+            werden.
+        </p>
+
+        <div class="example"><div class="info"><p><b>Example #9 Durchführen von aufeinander folgenden Anfrage mit einem Client</b></p></div>
+            
+
+            <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Zuerst den Client instanzieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span> = <span style="color: #000000; font-weight: bold;">new</span> Zend_Http_Client<span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.example.com/fetchdata.php'</span>, <a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #ff0000;">'keepalive'</span> =&gt; <span style="color: #000000; font-weight: bold;">true</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Haben wir die Cookies in unserer Session gespeichert?</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #b1b100;">if</span> <span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #000066;">isset</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'cookiejar'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span> &amp;&amp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'cookiejar'</span><span style="color: #66cc66;">&#93;</span> instanceof Zend_Http_CookieJar<span style="color: #66cc66;">&#41;</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setCookieJar</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'cookiejar'</span><span style="color: #66cc66;">&#93;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #66cc66;">&#123;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Falls nicht, authentifiziere und speichere die Cookies</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setCookieJar</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setUri</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.example.com/login.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setParameterPost</span><span style="color: #66cc66;">&#40;</span><a href="http://www.php.net/array"><span style="color: #000066;">array</span></a><span style="color: #66cc66;">&#40;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'user'</span> =&gt; <span style="color: #ff0000;">'shahar'</span>,</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; &nbsp; &nbsp; <span style="color: #ff0000;">'pass'</span> =&gt; <span style="color: #ff0000;">'somesecret'</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #66cc66;">&#41;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span>Zend_Http_Client::<span style="color: #006600;">POST</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// Nun entferne die Parameter und setze die URI auf das Original</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// (Bitte beachten, dass der Cookie, der vom Server gesetzt worden ist,</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #808080; font-style: italic;">// nun in der Dose ist)</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">resetParameters</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp; &nbsp; <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setUri</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'http://www.example.com/fetchdata.php'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #66cc66;">&#125;</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$response</span> = <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span>Zend_Http_Client::<span style="color: #006600;">GET</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">&nbsp;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Speichere die Cookies in der Session für die nächste Seite</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$_SESSION</span><span style="color: #66cc66;">&#91;</span><span style="color: #ff0000;">'cookiejar'</span><span style="color: #66cc66;">&#93;</span> = <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">getCookieJar</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+        </div>
+    </div>
+
+    <div class="section" id="zend.http.client.streaming" name="zend.http.client.streaming"><div class="info"><h1 class="title">Daten Streaming</h1></div>
+        
+
+        <p class="para">
+            Standardmäßig akzeptiert <span class="classname">Zend_Http_Client</span> Daten als
+            <acronym class="acronym">PHP</acronym> Strings und gibt diese auch zurück. Trotzdem sind in vielen
+            Fällen große Dateien zu Senden oder zu Empfangen. Diese im Speicher zu halten könnte
+            unnötig oder zu teuer sein. Für diese Fälle unterstützt
+            <span class="classname">Zend_Http_Client</span> das Lesen von Daten aus Dateien (und generell
+            auch <acronym class="acronym">PHP</acronym> Streams) und das Schreiben von Daten in Dateien (Streams).
+        </p>
+
+        <p class="para">
+            Um Streams für die Übergabe von Daten zu <span class="classname">Zend_Http_Client</span> zu
+            verwenden, muss die Methode  <span class="methodname">setRawData()</span> verwendet werden,
+            wobei das Daten Argument eine Stream Ressource ist (z.B. das Ergebnis von
+             <span class="methodname">fopen()</span>).
+
+            <div class="example"><div class="info"><p><b>Example #10 Senden von Dateien zum HTTP Server durch Streamen</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$fp</span> = <a href="http://www.php.net/fopen"><span style="color: #000066;">fopen</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;mybigfile.zip&quot;</span>, <span style="color: #ff0000;">&quot;r&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setRawData</span><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$fp</span>, <span style="color: #ff0000;">'application/zip'</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'PUT'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+        </p>
+
+        <p class="para">
+            Aktuell unterstützen nur PUT Anfragen das Senden von Streams zum <acronym class="acronym">HTTP</acronym>
+            Server.
+        </p>
+
+        <p class="para">
+            Um Daten vom Server als Stream zu Empfangen kann  <span class="methodname">setStream()</span>
+            verwendet werden. Das optionale Argument spezifiziert den Dateinamen unter dem die Daten
+            gespeichert werden. Wenn das Argument einfach nur <b><tt>TRUE</tt></b> ist
+            (Standard), wird eine temporäre Datei verwenden und gelöscht sobald das Antwort Objekt
+            zerstört wird. Wenn das Argument auf <b><tt>FALSE</tt></b> gesetzt wird, ist die
+            Streaming-Funktionalität ausgeschaltet.
+        </p>
+
+        <p class="para">
+            Wenn Streaming verwendet wird, gibt die Methode  <span class="methodname">request()</span> ein
+            Objekt der Klasse <span class="classname">Zend_Http_Client_Response_Stream</span> zurück,
+            welches zwei nützliche Methoden hat:  <span class="methodname">getStreamName()</span> gibt den
+            Namen der Datei zurück in welcher die Antwort gespeichert wird, und
+             <span class="methodname">getStream()</span> gibt den Stream zurück von dem die Antwort gelesen
+            werden könnte.
+        </p>
+
+        <p class="para">
+            Man kann die Antwort entweder in eine vordefinierte Datei schreiben, oder eine temporäre
+            Datei hierfür verwenden und Sie woanders hinsenden, oder Sie durch Verwendung von
+            regulären Streaming Funktionen an eine andere Datei Senden.
+
+            <div class="example"><div class="info"><p><b>Example #11 Empfangen von Dateien vom HTTP Server durch Streamen</b></p></div>
+                
+
+                <div class="programlisting php"><div class="phpcode"><div class="php" style="font-family: monospace;"><ol><li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setStream</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>; <span style="color: #808080; font-style: italic;">// will use temp file</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$response</span> = <span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'GET'</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Datei kopieren</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><a href="http://www.php.net/copy"><span style="color: #000066;">copy</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$response</span>-&gt;<span style="color: #006600;">getStreamName</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #ff0000;">&quot;my/downloads/file&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Stream verwenden</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$fp</span> = <a href="http://www.php.net/fopen"><span style="color: #000066;">fopen</span></a><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;my/downloads/file2&quot;</span>, <span style="color: #ff0000;">&quot;w&quot;</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;">stream_copy_to_stream<span style="color: #66cc66;">&#40;</span><span style="color: #0000ff;">$response</span>-&gt;<span style="color: #006600;">getStream</span><span style="color: #66cc66;">&#40;</span><span style="color: #66cc66;">&#41;</span>, <span style="color: #0000ff;">$fp</span><span style="color: #66cc66;">&#41;</span>;</div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #808080; font-style: italic;">// Kann auch in eine bekannte Datei schreiben</span></div></li>
+<li style="font-family: 'Courier New', Courier, monospace; color: black; font-weight: normal; font-style: normal;"><div style="font-family: 'Courier New', Courier, monospace; font-weight: normal;"><span style="color: #0000ff;">$client</span>-&gt;<span style="color: #006600;">setStream</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">&quot;my/downloads/myfile&quot;</span><span style="color: #66cc66;">&#41;</span>-&gt;<span style="color: #006600;">request</span><span style="color: #66cc66;">&#40;</span><span style="color: #ff0000;">'GET'</span><span style="color: #66cc66;">&#41;</span>;</div></li></ol></div></div></div>
+
+            </div>
+        </p>
+    </div>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.http.client.html">Einf&uuml;hrung</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.http.html">Zend_Http</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.http.client.adapters.html">Zend_Http_Client - Verbindungsadapter</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.http.html">Zend_Http</a></li>
+  <li><a href="zend.http.client.html">Einf&uuml;hrung</a></li>
+  <li class="active"><a href="zend.http.client.advanced.html">Zend_Http_Client - Fortgeschrittende Nutzung</a></li>
+  <li><a href="zend.http.client.adapters.html">Zend_Http_Client - Verbindungsadapter</a></li>
+  <li><a href="zend.http.cookies.html">Zend_Http_Cookie und Zend_Http_CookieJar</a></li>
+  <li><a href="zend.http.response.html">Zend_Http_Response</a></li>
+  <li><a href="zend.http.user-agent.html">Zend_Http_UserAgent</a></li>
+  <li><a href="zend.http.user-agent-device.html">The UserAgent Device Interface</a></li>
+  <li><a href="zend.http.user-agent-features.html">The UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-features-wurfl.html">The WURFL UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-features-device-atlas.html">The DeviceAtlas UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-features-tera-wurfl.html">The TeraWurfl UserAgent Features Adapter</a></li>
+  <li><a href="zend.http.user-agent-storage.html">The UserAgent Storage Interface</a></li>
+  <li><a href="zend.http.user-agent-storage-session.html">The Session UserAgent Storage Adapter</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>動作原理 - Zend Framework Manual</title>
+
+</head>
+<body>
+<table width="100%">
+    <tr valign="top">
+        <td width="85%">
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.config.introduction.html">導入</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.config.html">Zend_Config</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.config.adapters.ini.html">Zend_Config_Ini(日本語)</a></div>
+                    </td>
+                </tr>
+            </table>
+<hr />
+<div id="zend.config.theory_of_operation" class="section"><div class="info"><h1 class="title">動作原理</h1></div>
+    
+
+    <p class="para">
+        <span class="classname">Zend_Config</span> のコンストラクタを通じて、
+        設定データに連想配列形式でアクセスできるようになります。
+        多次元の連想配列となる可能性もあり、
+        これによって汎用的なデータから何かに固有のデータまで扱えるようになります。
+        具象アダプタクラスの機能は、
+        どこかに保存されているデータを読み込んでこの連想配列形式を作成し、
+        し、<span class="classname">Zend_Config</span> のコンストラクタに渡すことです。
+        スクリプト内で直接配列を作成し、それを
+        <span class="classname">Zend_Config</span> のコンストラクタに渡すことも可能です。
+        この場合はアダプタクラスは使用しません。
+        場合によってはこのような方式のほうが適切なこともあるでしょう。
+    </p>
+
+    <p class="para">
+        設定データ配列の値が、それぞれ <span class="classname">Zend_Config</span>
+        オブジェクトのプロパティとなります。配列のキーがプロパティ名となります。
+        配列の値自身がまた配列であった場合、対応するプロパティの値は新しい
+        <span class="classname">Zend_Config</span> オブジェクトとなります。この中に配列の内容が読み込まれます。
+        この処理は再帰的に行われるので、
+        階層構造になっている設定データは任意のレベルでこの構造が繰り返されることになります。
+    </p>
+
+    <p class="para">
+        <span class="classname">Zend_Config</span> は内部で <em class="emphasis">Countable</em>
+        インターフェイスおよび <em class="emphasis">Iterator</em>
+        インターフェイスを実装しており、
+        これを使用して設定データに容易にアクセスできるようになっています。
+        つまり、<span class="classname">Zend_Config</span> オブジェクトに対して
+        <a href="http://php.net/count" class="link external">&raquo;  <span class="methodname">count()</span></a>
+        関数や <a href="http://php.net/foreach" class="link external">&raquo; <em class="emphasis">foreach</em></a>
+        などを使用できるということです。
+    </p>
+
+    <p class="para">
+        デフォルトでは、<span class="classname">Zend_Config</span>
+        で利用できる設定データは読み込み専用です。代入
+        (<strong class="command">$config-&gt;database-&gt;host = &#039;example.com&#039;;</strong> など)
+        を行おうとすると例外がスローされます。しかし、
+        コンストラクタでこの振る舞いを変更し、データの変更を許可することも可能です。
+        また、変更を許可した場合には、<span class="classname">Zend_Config</span>
+        は値の設定の解除もサポートしています
+        ( <span class="methodname">unset($config-&gt;database-&gt;host)</span> とします)。
+         <span class="methodname">readOnly()</span> メソッドを使用すると、
+        指定した <span class="classname">Zend_Config</span> オブジェクトの変更が許可されているかどうかを取得することができます。
+        また  <span class="methodname">setReadOnly()</span> メソッドを使用すると、
+        変更を許可する設定だった <span class="classname">Zend_Config</span>
+        オブジェクトに対してそれ以降の変更を禁じることができます。
+    </p>
+
+    <blockquote><p><b class="note">Note</b>: 
+        
+            メモリ上で変更したデータを何らかのメディアに保存しようとする際に、
+            ちょっと戸惑うかもしれません。
+            作成したり変更したりした設定データをメディアに保存する機能は、今のところ
+            <span class="classname">Zend_Config</span> の対象範囲外です。
+            設定データを作成・編集してメディアに保存するには、
+            サードパーティからオープンソースのソリューションが提供されています。
+        <br />
+    </p></blockquote>
+
+    <p class="para">
+        <span class="classname">Zend_Config</span> クラスを継承したアダプタクラスが、
+        それぞれの内容に応じて機能を拡張します。
+    </p>
+
+    <p class="para">
+        <span class="classname">Zend_Config</span> ファミリーのクラスを使用すると、
+        設定データをセクション単位でまとめることができます。
+        <span class="classname">Zend_Config</span> オブジェクトの特定のセクションだけを読み込んだり、
+        複数のセクションを指定して読み込んだり、あるいは
+        (何も指定しなければ) 全セクションを読み込んだりといったことが可能です。
+    </p>
+
+    <p class="para">
+        <span class="classname">Zend_Config</span> は単一継承モデルをサポートしており、
+        設定データの特定のセクションを別のセクションに継承させることができます。
+        この機能が提供されている理由は、
+        さまざまな目的のために設定データを二重管理する必要をなくすためです。
+        継承したセクションでは、親セクションから継承した値を上書きすることができます。
+        <acronym class="acronym">PHP</acronym> のクラス継承と同様に、あるセクションが親セクションを継承し、
+        そのセクションがまた上位セクションを継承し、といったことが可能です。
+        しかし多重継承 (例えば、セクション C がセクション A およびセクション B
+        のふたつを直接継承するなど) はサポートされていません。
+    </p>
+
+    <p class="para">
+        ふたつの <span class="classname">Zend_Config</span> オブジェクトがある場合に、
+         <span class="methodname">merge()</span> 関数でそれをひとつにまとめることができます。
+        たとえば、<var class="varname">$config</var> と <var class="varname">$localConfig</var>
+        がある場合に <var class="varname">$localConfig</var> のデータを <var class="varname">$config</var>
+        に統合するには <strong class="command">$config-&gt;merge($localConfig);</strong> とします。
+        <var class="varname">$localConfig</var> の中に <var class="varname">$config</var>
+        と同名の項目がある場合は、もとの値は上書きされます。
+    </p>
+
+    <blockquote><p><b class="note">Note</b>: 
+        
+            <span class="classname">Zend_Config</span> オブジェクトをまとめる場合は、
+            変更を許可する設定で作成する必要があります。つまり、
+            コンストラクタの 2 番目のパラメータに <b><tt>TRUE</tt></b> を渡します。
+            まとめが完了した後で  <span class="methodname">setReadOnly()</span>
+            メソッドを使用すると、それ以降の変更を禁じることができます。
+        <br />
+    </p></blockquote>
+</div>
+        <hr />
+
+            <table width="100%">
+                <tr>
+                    <td width="25%" style="text-align: left;">
+                    <a href="zend.config.introduction.html">導入</a>
+                    </td>
+
+                    <td width="50%" style="text-align: center;">
+                        <div class="up"><span class="up"><a href="zend.config.html">Zend_Config</a></span><br />
+                        <span class="home"><a href="manual.html">Programmer's Reference Guide</a></span></div>
+                    </td>
+
+                    <td width="25%" style="text-align: right;">
+                        <div class="next" style="text-align: right; float: right;"><a href="zend.config.adapters.ini.html">Zend_Config_Ini(日本語)</a></div>
+                    </td>
+                </tr>
+            </table>
+</td>
+        <td style="font-size: smaller;" width="15%"> <style type="text/css">
+#leftbar {
+	float: left;
+	width: 186px;
+	padding: 5px;
+	font-size: smaller;
+}
+ul.toc {
+	margin: 0px 5px 5px 5px;
+	padding: 0px;
+}
+ul.toc li {
+	font-size: 85%;
+	margin: 1px 0 1px 1px;
+	padding: 1px 0 1px 11px;
+	list-style-type: none;
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+ul.toc li.header {
+	font-size: 115%;
+	padding: 5px 0px 5px 11px;
+	border-bottom: 1px solid #cccccc;
+	margin-bottom: 5px;
+}
+ul.toc li.active {
+	font-weight: bold;
+}
+ul.toc li a {
+	text-decoration: none;
+}
+ul.toc li a:hover {
+	text-decoration: underline;
+}
+</style>
+ <ul class="toc">
+  <li class="header home"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="manual.html">Programmer's Reference Guide</a></li>
+  <li class="header up"><a href="reference.html">Zend Framework Reference</a></li>
+  <li class="header up"><a href="zend.config.html">Zend_Config</a></li>
+  <li><a href="zend.config.introduction.html">導入</a></li>
+  <li class="active"><a href="zend.config.theory_of_operation.html">動作原理</a></li>
+  <li><a href="zend.config.adapters.ini.html">Zend_Config_Ini(日本語)</a></li>
+  <li><a href="zend.config.adapters.json.html">Zend_Config_Json</a></li>
+  <li><a href="zend.config.adapters.xml.html">Zend_Config_Xml(日本語)</a></li>
+  <li><a href="zend.config.adapters.yaml.html">Zend_Config_Yaml</a></li>
+ </ul>
+ </td>
+    </tr>
+</table>
+</body>
+</html>

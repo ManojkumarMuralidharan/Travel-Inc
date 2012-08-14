@@ -25,6 +25,7 @@ header ("Location: login.php");
     //header("Content-Type: application/force-download");
     //header("Content-Type: application/octet-stream");
     //header("Content-Type: application/download");;
+<<<<<<< HEAD
  /*
 $host="10.6.50.29"; // Host name
 $mysql_userName="Manoj"; // Mysql username
@@ -33,6 +34,14 @@ $mysql_password="ITC"; // Mysql password
 include 'DB_details.php';
 //$db_name="travel"; // Database name
 $tbl_name="expenserecords"; // Table name
+=======
+ 
+$host="10.6.50.26"; // Host name
+$mysql_userName="Manoj"; // Mysql username
+$mysql_password="ITC"; // Mysql password
+$db_name="db1"; // Database name
+$tbl_name="entry"; // Table name
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 //$recordType=$_GET[
 //$userName=$_SESSION['username'];
@@ -48,6 +57,7 @@ mysql_connect($host, $mysql_userName, $mysql_password)or
 die("cannot connect");
 mysql_select_db($db_name)or die("cannot select DB");
 
+<<<<<<< HEAD
 
 //Get User Id
 $sql="SELECT iduser FROM user WHERE username='$reportUserName' ";
@@ -57,10 +67,15 @@ $iduser=mysql_result($result,0,"iduser");
 
 
 $addQuery='';
+=======
+//$sql="SELECT MONTH(`fromdate`),sum(cost),traveltype  FROM $tbl_name WHERE username='".$reportUserName."' AND (`approval` like 'WIP' OR `approval` like 'On Hold' OR `approval` like 'Approved' OR `approval` like 'Declined') AND (MONTH(`fromdate`)=".$str.") AND (YEAR(`fromdate`)=".$year.")   group by MONTH(`fromdate`),traveltype;";
+  $addQuery='';
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 $months=array();
 //if($type=='monthly'){
 $year=$_GET['year'];
 $checkedMonths=$_GET['months'];
+<<<<<<< HEAD
 
 
 $months= explode(";", $checkedMonths);
@@ -81,11 +96,18 @@ $str_months.=")";
 error_log("Months=".$str_months);
 
 
+=======
+$months= explode(";", $checkedMonths);
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 /*foreach ($months as $value) {
     $addQuery.=' AND MONTH(  `datefrom` ) ='.$value.' AND MONTH(  `dateto` ) ='.$value;
 }*/
 $str=substr_replace(implode("||", $months) ,"",-2);
+<<<<<<< HEAD
 $sql="SELECT MONTH(`fromdate`),sum(`cost`),`idtraveltype`  FROM $tbl_name WHERE idUser='".$iduser."' AND (`approval` like 'WIP' OR `approval` like 'On Hold' OR `approval` like 'Approved' OR `approval` like 'Declined') AND ".$str_months." AND (YEAR(`fromdate`)=".$year.")   group by MONTH(`fromdate`),`idtraveltype`;";
+=======
+$sql="SELECT MONTH(`fromdate`),sum(cost),traveltype  FROM $tbl_name WHERE username='".$reportUserName."' AND (`approval` like 'WIP' OR `approval` like 'On Hold' OR `approval` like 'Approved' OR `approval` like 'Declined') AND (MONTH(`fromdate`)=".$str.") AND (YEAR(`fromdate`)=".$year.")   group by MONTH(`fromdate`),traveltype;";
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 //$sql.=$addQuery;
 //}
 
@@ -158,7 +180,11 @@ while($row = mysql_fetch_array($result))
 $month_name=array("","January","Feburary","March","April","May","June","July","August","September","October","November","December");
 					$objPHPExcel->getActiveSheet()->SetCellValue('A'.$row_count, $month_name[intval($row[0])]);
 					$objPHPExcel->getActiveSheet()->getStyle('A'.$row_count.':A'.$row_count)->applyFromArray( $style_month_header );
+<<<<<<< HEAD
 					if($row[2]=='1'){
+=======
+					if($row[2]=='local'){
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 					$objPHPExcel->getActiveSheet()->SetCellValue('B'.$row_count, $row[1]);
 					}else{
 					$objPHPExcel->getActiveSheet()->SetCellValue('C'.$row_count, $row[1]);

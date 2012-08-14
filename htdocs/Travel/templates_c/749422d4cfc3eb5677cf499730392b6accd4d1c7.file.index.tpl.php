@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 <?php /* Smarty version Smarty-3.1.8, created on 2012-08-07 08:02:09
+=======
+<?php /* Smarty version Smarty-3.1.8, created on 2012-06-18 21:02:20
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
          compiled from ".\templates\index.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:228624fb40c7e6398b3-47310342%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +11,11 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     '749422d4cfc3eb5677cf499730392b6accd4d1c7' => 
     array (
       0 => '.\\templates\\index.tpl',
+<<<<<<< HEAD
       1 => 1344319259,
+=======
+      1 => 1340046076,
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
       2 => 'file',
     ),
   ),
@@ -77,13 +85,22 @@ ddaccordion.init({
 
 <script type="text/javascript" src="js/jquery.plupload.queue.js"></script>
 
+<<<<<<< HEAD
 <script type="text/javascript" src="js/plupload.full.js"></script>
+=======
+<script type="text/javascript" src="jquery.plupload.queue.js"></script>
+
+<script type="text/javascript" src="plupload.full.js"></script>
+
+<script type="text/javascript" src="jconfirmaction.jquery.js"></script>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 <script type="text/javascript" src="js/jconfirmaction.jquery.js"></script>
 
 <script type="text/javascript" src="js/logout.js"></script>
 
 <script type="text/javascript" src="js/reports.js"></script>
+
 
 
 <script type="text/javascript">
@@ -161,8 +178,12 @@ ddaccordion.init({
 		var securityQuestionId=<?php echo $_smarty_tpl->tpl_vars['securityQuestionId']->value;?>
 ;
 		var monthlyReportsYear='';
+<<<<<<< HEAD
 		var budgetYear='2011-2012';
 		//$('#travelTypeFormElement').text('Domestic');
+=======
+	
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 		
 		
 	   </script>
@@ -173,9 +194,15 @@ ddaccordion.init({
   NotifierjsConfig.position = ["bottom", "right"];
 </script>
 
+<<<<<<< HEAD
 <script language="javascript" type="text/javascript" src="js/niceforms.js"></script>
 <script language="javascript" type="text/javascript" src="js/popup.js"></script>
 <script language="javascript" type="text/javascript" src="js/datePicker.js"></script>
+=======
+<script language="javascript" type="text/javascript" src="niceforms.js"></script>
+<script language="javascript" type="text/javascript" src="popup.js"></script>
+<script language="javascript" type="text/javascript" src="datePicker.js"></script>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 <script type="text/javascript">
 //SETTING UP OUR POPUP  
@@ -183,9 +210,15 @@ ddaccordion.init({
 var popupStatus = 0;
 
 </script>
+<<<<<<< HEAD
 <link rel="stylesheet" type="text/css" media="all" href="css/niceforms-default.css" />
 <link rel="stylesheet" type="text/css" media="all" href="css/popupform-default.css"/>
 <link rel="stylesheet" type="text/css" media="all" href="css/jquery.plupload.queue.css"/>
+=======
+<link rel="stylesheet" type="text/css" media="all" href="niceforms-default.css" />
+<link rel="stylesheet" type="text/css" media="all" href="popupform-default.css"/>
+<link rel="stylesheet" type="text/css" media="all" href="jquery.plupload.queue.css"/>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 </head>
 <body>
@@ -227,6 +260,7 @@ var popupStatus = 0;
                     <li><a style="font-size:14px;" class="current" href="#" onClick="ChangePage('home');">Home</a></li>
                     <li><a style="font-size:14px;" href="#" onClick="ChangePage('settings');">Settings</a></li>
                     <li><a style="font-size:14px;" href="#Reports" onClick="ChangePage('reports');">Reports</a></li>
+<<<<<<< HEAD
 								
 					<?php ob_start();?><?php echo $_SESSION['profile'];?>
 <?php $_tmp1=ob_get_clean();?><?php if ($_tmp1=='finance'){?>
@@ -242,6 +276,12 @@ var popupStatus = 0;
 					<?php }?>
                     <li><a style="font-size:14px;" href="#" onClick="ChangePage('help');">Help</a></li>
 					<li><a style="font-size:14px;" href="#" onClick="ChangePage('contactus');">Contact Us</a></li>
+=======
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('uploadExcel');">Upload</a></li>
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('budget');">Budget</a></li>
+					
+                    <li><a style="font-size:14px;" href="#">Contact Us</a></li>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
                     </ul>
                     </div> 
                     

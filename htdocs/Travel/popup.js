@@ -518,7 +518,7 @@ $('#userRecordsPaginationElement a').click(function(e) {
 		fromDate: $('#newRequestFromDate').val(),ToDate: $('#newRequestToDate').val() , purpose:$('#newRequestPurpose').val() ,
 		cost:$('#newRequestCost').val() , comments:$('#newRequestComments').val()},
 		}).done(function(data) { 
-		//alert(data);
+		alert(data);
 		
 		if(data=='recordexists'){
 		Notifier.warning('Duplicate record');
@@ -536,6 +536,22 @@ $('#userRecordsPaginationElement a').click(function(e) {
 		//centerPopup('displayaddnewuser');
 		//load popup
 		//loadPopup('displayaddnewuser');
+	});
+	$("#duplicateRequestButton").click(function(){
+	alert();
+	disablePopup();
+	$("#newRequestSource").val($("#editRequestSource").val());
+	$("#newRequestDestination").val($("#editRequestDestination").val());
+	$("#newRequestFromDate").val($("#editRequestFromDate").val());
+	$("#newRequestToDate").val($("#editRequestToDate").val());
+	$("#newRequestPurpose").val($("#editRequestPurpose").val());
+	$("#newRequestCost").val($("#editRequestCost").val());
+	$("#newRequestComments").val($("#editRequestComments").val());
+	$('#travelTypeFormElement').text(travelType);
+		//centering with css
+		centerPopup('makerequest');
+		//load popup
+		loadPopup('makerequest');
 	});
 	
 	$("#editRequestButton").click(function(){
@@ -719,6 +735,7 @@ $('#userRecordsPaginationElement a').click(function(e) {
 	});
 	
 	$("#createRequest").click(function(){
+	$('#travelTypeFormElement').text(travelType);
 		//centering with css
 		centerPopup('makerequest');
 		//load popup

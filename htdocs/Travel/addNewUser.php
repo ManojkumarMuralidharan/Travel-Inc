@@ -1,5 +1,6 @@
 <?php
 
+<<<<<<< HEAD
 require('Smarty.class.php');
 include 'sendMail.php';
 session_start();
@@ -13,13 +14,26 @@ include 'DB_details.php';
 $tbl_name="user"; // Table name
 
 $supervisor_userName=$_SESSION['username'];
+=======
+require('C:/Users/TestUser/xampp/htdocs/Travel/lib/Smarty/libs/Smarty.class.php');
+session_start();
+
+$host="10.6.50.26"; // Host name
+$mysql_userName="Manoj"; // Mysql username
+$mysql_password="ITC"; // Mysql password
+$db_name="db1"; // Database name
+$tbl_name="login"; // Table name
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 $userName=$_POST["userName"];
 $supervisorName=$_POST["supervisor"];
 $userType=$_POST["userType"];
+<<<<<<< HEAD
 $psid=$_POST["psid"];
 $firstName=$_POST["firstName"];
 $lastName=$_POST["lastName"];
+=======
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 $password=include 'randomPassword.php';
 error_log($userName.$supervisorName.$userType, 0);
 
@@ -55,13 +69,18 @@ echo "userexists";
 				}else{
 					while($row = mysql_fetch_assoc($result))
 					{
+<<<<<<< HEAD
 					 if($row['idprofile']<2){
+=======
+					 if($row['profile']!='supervisor'){
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 						echo "supervisorError";
 						exit;
 					 }
 					} 
 				}
 
+<<<<<<< HEAD
 	$sql="SELECT MAX(`iduser`) as nextId FROM user";
 	$result=mysql_query($sql);	
 	$iduser=mysql_result($result,0,"nextId")+1;
@@ -80,6 +99,10 @@ echo "userexists";
 	
 	$sql="INSERT INTO `user` (`iduser`, `username`, `firstname`, `lastname`, `password`, `idsupervisor`, `idsecurityquestion`, `idprofile`, `active`, `answer`, `psid`) VALUES ('".$iduser."','".$userName."',  '".$firstName."', '".$lastName."', '".$password."',  '".$supervisorId."',  '1',  '".$idProfile."','1','ITC','".$psid."');";
 	
+=======
+	$sql="INSERT INTO ".$db_name.".`".$tbl_name."` (`username` ,`password` ,`supervisor` ,`active` ,`profile`)VALUES (
+	'".$userName."',  '".$password."',  '".$supervisorName."',  '1',  '".$userType."');";
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 	//$sql="INSERT INTO login VALUES (value1, value2, value3,...);"
 
 	if (!mysql_query($sql))
@@ -88,6 +111,7 @@ echo "userexists";
 	  mysql_close();
 	  echo "fail";
 	  }else{
+<<<<<<< HEAD
 		//mysql_close();
 		
 	  $to=$supervisor_userName;
@@ -128,5 +152,10 @@ echo "userexists";
 		
 	  
 	  
+=======
+		mysql_close();
+		echo "success";
+	  }
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 }
 ?>

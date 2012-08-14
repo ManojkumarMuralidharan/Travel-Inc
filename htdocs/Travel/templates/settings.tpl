@@ -11,12 +11,20 @@
     
     
 <form id="settings" class="niceform">
+<<<<<<< HEAD
 <table style="padding-left:0px;" border=0>
+=======
+<table style="padding-left:0px;">
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 <tr style="padding-top:10px;padding-bottom:20px;"><td><h2>Password</h2></td><td></td></tr>
 <tr><td>Current Password </td><td><input id="currentPassword" type="password" length="10" /></td></tr>
 <tr><td>New Password </td><td><input id="newPassword" type="password" length="10"/> </td></tr>
 <tr><td>Re-type Password </td><td><input id="reNewPassword" type="password" length="10"/></td></tr>
+<<<<<<< HEAD
 <tr><td></td><td >
+=======
+<tr><td></td><td>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 		   <a href="#" style="position:relative;" id="clearPassword" class="bt_red"><span class="bt_red_lft"></span><strong>Clear</strong><span class="bt_red_r"></span></a> 
 		   <a href="#" style="position:relative;" id="updatePassword" class="bt_green"><span class="bt_green_lft"></span><strong>Update</strong><span class="bt_green_r"></span></a> 
 
@@ -28,6 +36,7 @@
 </select></td></tr>
 <tr><td>Answer</td><td><input id="securityAnswer" type="text" length="15";/></td></tr>
 <tr><td> </td><td>
+<<<<<<< HEAD
 <div style="align:center;padding-top:0px;">
 	 
 	 <a href="#" style="position:relative;" id="securityQuesConfirm" class="bt_green"><span class="bt_green_lft"></span><strong>Confirm</strong><span class="bt_green_r"></span></a>
@@ -42,6 +51,16 @@
 	 {/if}
 
 
+=======
+<div style="align:center;padding-top:30px;">
+	 
+	 <a href="#" style="position:relative;" id="securityQuesConfirm" class="bt_green"><span class="bt_green_lft"></span><strong>Confirm</strong><span class="bt_green_r"></span></a>
+     {if {$smarty.session.profile} eq 'supervisor'}
+	 <a href="#" id="createNewUser" style="position:relative;" class="bt_green"><span class="bt_green_lft"></span><strong>Add User</strong><span class="bt_green_r"></span></a>
+	 {/if}
+ </div> 
+</td></tr>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 </table>
 </form>
 
@@ -64,6 +83,7 @@
 		   <td> User Name:</td><td><input type="text" style="width:170px" id="addNewUserName"  /></td>
 		   </tr>
 		   <tr>
+<<<<<<< HEAD
 		   <td> First Name:</td><td><input type="text" style="width:170px" id="addNewUserFirstName"  /></td>
 		   </tr>
 		   <tr>
@@ -76,6 +96,11 @@
            <td> PSID :</td><td><div class="ui-widget"><input id="addNewPsid" /></div></td>
 		   </tr>
 		   <tr>
+=======
+           <td> Supervisor Name:</td><td><div class="ui-widget"><input id="newSupervisor" /></div></td>
+		   </tr>
+		   <tr>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 		   <td>Role</td>
 		   <td>
 		   <div>
@@ -114,6 +139,12 @@
 	 
 	 
 	 
+<<<<<<< HEAD
       <div id="backgroundPopupNewUser"></div>  
      <div id="backgroundPopup"></div>  
 	
+=======
+              
+      <div id="backgroundPopupNewUser"></div>  
+    
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e

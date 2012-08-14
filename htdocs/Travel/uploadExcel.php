@@ -1,4 +1,5 @@
 <?
+<<<<<<< HEAD
 //session_start();
 /*
 $host="10.6.50.29"; // Host name
@@ -8,6 +9,14 @@ $mysql_password="ITC"; // Mysql password
 
 include 'DB_details.php';
 //$db_name="travel"; // Database name
+=======
+session_start();
+
+$host="localhost"; // Host name
+$mysql_userName="Manoj"; // Mysql username
+$mysql_password="ITC"; // Mysql password
+$db_name="db1"; // Database name
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 $tbl_name="peoplesoftdata"; // Table name
 
 
@@ -51,12 +60,16 @@ foreach($rowIterator as $row){
         }else if('Y' == $cell->getColumn()){
             $array_data[$rowIndex]['psid'] = $cell->getCalculatedValue();
         }
+<<<<<<< HEAD
 			
+=======
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
     }
 	
 	
 	
 }
+<<<<<<< HEAD
 error_log("Row Index is".$rowIndex);
 //error_log( print_r($array_data));
 $array_data2=array();
@@ -69,6 +82,20 @@ $array_data2=array();
 	}
 error_log("done");
 	//print_r($array_data2);
+=======
+
+$array_data2=array();
+	$rowCount=0;
+	foreach ($array_data as $array) {
+	if($array['psid']!=""){
+	$array_data2[$rowCount++]=$array;
+//	unset($array);
+//	echo "unset";
+	}
+//	var_dump($array);
+	}
+print_r($array_data2);
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 
 
@@ -76,6 +103,7 @@ mysql_connect($host, $mysql_userName, $mysql_password)or
 die("cannot connect");
 mysql_select_db($db_name)or die("cannot select DB");
 $count=0;
+<<<<<<< HEAD
 
 error_log("Row count is".$rowCount);
 
@@ -87,6 +115,9 @@ $rowCount--;
 
 foreach($array_data2 as $array){
 
+=======
+foreach($array_data2 as $array){
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 $check_sql="SELECT EXISTS(SELECT * FROM `peoplesoftdata` WHERE `jrnlid`='".$array['jrnlid']."' AND `jrnldate`='".$array['jrnldt']."' AND `jrnlln`='".$array['jrnlln']."' ) as Result";
 error_log($check_sql);
 $result=mysql_query($check_sql);
@@ -96,12 +127,16 @@ continue;
 }
 error_log('-----result-----'.$result.'---count---'.$count);
 
+<<<<<<< HEAD
 $sql="INSERT INTO `peoplesoftdata` (`jrnlid`, `jrnldate`, `jrnlln`, `cost`, `psid`) VALUES ('".$array['jrnlid']." ', '".$array['jrnldt']."', '".$array['jrnlln']."', '".$array['cost']."', '".$array['psid']."');";
 
 $sql="INSERT INTO `peoplesoftdata` (`jrnlid`, `jrnldate`, `jrnlln`, `cost`, `psid`) VALUES ('".$array['jrnlid']." ', '".$array['jrnldt']."', '".$array['jrnlln']."', '".$array['cost']."', '".$array['psid']."');";
 
 $sql2="INSERT INTO `budget` (`iduser`,`proposedbudget`,`actuabudget`,`fiscalyear`,`psid`) VALUES (1, 2, 3) ON DUPLICATE KEY UPDATE `actuabudget` = `actuabudget` + 1;";
 
+=======
+$sql="INSERT INTO `db1`.`peoplesoftdata` (`jrnlid`, `jrnldate`, `jrnlln`, `cost`, `psid`) VALUES ('".$array['jrnlid']." ', '".$array['jrnldt']."', '".$array['jrnlln']."', '".$array['cost']."', '".$array['psid']."');";
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 //$sql="SELECT * FROM  $tbl_name WHERE  `username` LIKE  '".$userName."' AND `supervisor` LIKE  '".$supervisor."' AND `datefrom` LIKE  '".$requestTravelFromDate."' AND `dateto` LIKE  '".$requestTravelToDate."' AND `placefrom` LIKE  '".$requestTravelSource."' AND `placeto` LIKE  '".$requestTravelDestination."' AND `purpose` LIKE '".$requestTravelPurpose."' AND `cost` LIKE '".$requestTravelCost."'  AND `traveltype` LIKE '".$requestTravelType."' AND `approval` LIKE 'WIP';";
 error_log($sql);
 	  if (!mysql_query($sql))
@@ -114,7 +149,12 @@ error_log($sql);
 	  }
 }
 echo "success";
+<<<<<<< HEAD
 
+=======
+//var_dump($array_data2);
+//print_r($array_data);
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 
 ?>

@@ -1,5 +1,6 @@
 <?php
 
+<<<<<<< HEAD
 require('Smarty.class.php');
 session_start();
 
@@ -12,13 +13,26 @@ include 'sendMail.php';
 include 'DB_details.php';
 //$db_name="travel"; // Database name
 $tbl_name="expenserecords"; // Table name
+=======
+require('C:/Users/TestUser/xampp/htdocs/Travel/lib/Smarty/libs/Smarty.class.php');
+session_start();
+
+$host="10.6.50.26"; // Host name
+$mysql_userName="Manoj"; // Mysql username
+$mysql_password="ITC"; // Mysql password
+$db_name="db1"; // Database name
+$tbl_name="entry"; // Table name
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 $id_post=$_POST["id"];
 
 $userName=$_SESSION['username'];
 $supervisor=$_SESSION['supervisor'];
 
+<<<<<<< HEAD
 //echo $supervisor;
+=======
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 // To protect MySQL injection (more detail about MySQL injection)
 
@@ -38,6 +52,7 @@ mysql_select_db($db_name)or die("cannot select DB");
 //error_log($id_post);
 //$id_array= explode(",", $id_post);
 
+<<<<<<< HEAD
 
 //Get User Id
 $sql="SELECT iduser FROM user WHERE username='$userName' ";
@@ -50,10 +65,16 @@ $iduser=mysql_result($result,0,"iduser");
 foreach ($id_post as $id) {
 	
 	$sql="SELECT * FROM  $tbl_name WHERE  `idexpenserecords` = '".$id."' AND `iduser` =  '".$iduser."' ;";
+=======
+foreach ($id_post as $id) {
+		
+	$sql="SELECT * FROM  $tbl_name WHERE  `id` = '".$id."' AND `username` LIKE  '".$userName."' AND `supervisor` LIKE  '".$supervisor."' ;";
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 	error_log($sql);
 
 	$result=mysql_query($sql);
 	$count=mysql_num_rows($result);
+<<<<<<< HEAD
 	$idtraveltype=mysql_result($result,0,"idtraveltype");
 	$stage=mysql_result($result,0,"stage");
 	$user=mysql_result($result,0,"idUser");
@@ -69,6 +90,10 @@ foreach ($id_post as $id) {
 	
 	if($count>=1){
 	$sql="UPDATE ".$db_name.".".$tbl_name." SET `approval`='cancelled' WHERE  `".$tbl_name."`.`idexpenserecords` ='".$id."' LIMIT 1 ;";
+=======
+	if($count>=1){
+	$sql="DELETE FROM ".$db_name.".".$tbl_name."  WHERE  `".$tbl_name."`.`id` ='".$id."' LIMIT 1 ;";
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 	error_log($sql);
 		//$sql="INSERT INTO ".$db_name.".`".$tbl_name."` (`username` ,`password` ,`supervisor` ,`active` ,`profile`)VALUES ('".$userName."',  '".$password."',  '".$supervisorName."',  '1',  '".$userType."');";
@@ -80,7 +105,10 @@ foreach ($id_post as $id) {
 		  echo "fail";
 		  exit;
 		  }else{
+<<<<<<< HEAD
 		  sendMessage($id,$userName,$user_iduser,$placefrom,$placefrom,$fromdate,$todate,$idtraveltype,$cost,'Cancelled');
+=======
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 			//echo "success";
 		  }
 	}else{
@@ -92,6 +120,7 @@ foreach ($id_post as $id) {
 }
 
 echo "success";
+<<<<<<< HEAD
 function sendMessage($id,$userName,$user_iduser,$placefrom,$placeto,$fromdate,$todate,$idtraveltype,$cost,$action){
 $requestTravelType="";
 if($idtraveltype=='1'){
@@ -158,4 +187,6 @@ $requestTravelType.="International";
 
 
 }
+=======
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 ?>

@@ -3,10 +3,17 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>IN ADMIN PANEL | Powered by INDEZINER</title>
+<<<<<<< HEAD
 <link rel="stylesheet" type="text/css" href="css/style.css" />
 <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="js/notifier.js"></script>
 <script type="text/javascript" src="js/ddaccordion.js"></script>
+=======
+<link rel="stylesheet" type="text/css" href="style.css" />
+<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="notifier.js"></script>
+<script type="text/javascript" src="ddaccordion.js"></script>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 <script type="text/javascript">
 ddaccordion.init({
 	headerclass: "submenuheader", //Shared CSS class name of headers group
@@ -30,7 +37,11 @@ ddaccordion.init({
 })
 </script>
 
+<<<<<<< HEAD
 <script type="text/javascript" src="js/jconfirmaction.jquery.js"></script>
+=======
+<script type="text/javascript" src="jconfirmaction.jquery.js"></script>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 
 
@@ -39,6 +50,7 @@ ddaccordion.init({
   NotifierjsConfig.position = ["bottom", "right"];
 </script>
 
+<<<<<<< HEAD
 
 <script language="javascript" type="text/javascript" src="js/popup-login.js"></script>
 <link rel="stylesheet" type="text/css" media="all" href="css/popupform-default.css" />
@@ -48,6 +60,12 @@ ddaccordion.init({
 <script language="javascript" type="text/javascript" src="js/reports.js"></script>
 
 <link rel="stylesheet" type="text/css" media="all" href="css/niceforms-default.css" />
+=======
+<script language="javascript" type="text/javascript" src="niceforms.js"></script>
+<script language="javascript" type="text/javascript" src="reports.js"></script>
+
+<link rel="stylesheet" type="text/css" media="all" href="niceforms-default.css" />
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 <script type="text/javascript">
 	
@@ -78,6 +96,7 @@ ddaccordion.init({
 						else{
 						$('#securityQuestionContent').replaceWith(response);
 						var NF = new niceform($('#securityQuestionContent'));
+<<<<<<< HEAD
 						//  return true;
 						//	alert(NF);
 						}
@@ -117,6 +136,37 @@ ddaccordion.init({
 								   });
 
 									 return false;
+=======
+						//	alert(NF);
+						}
+							  $("#resetPassword").click(function(){
+							 // Notifier.success('password Resetting');
+							  $.ajax({
+								type: "POST",
+								url: "resetPassword.php",
+								data: { answer: $('#passwordAnswer').val(),  } ,
+								success: function(response)
+								{
+									//alert(response);
+									if(response == 'success'){
+									Notifier.success('Password reset');
+									Notifier.success('A e-mail notification has been sent');
+									setTimeout(function(){ Notifier.success('Please wait while we redirect you to our site');}, 1000);
+									
+									
+									
+									setTimeout(function(){ window.location = "index.php";}, 5000);
+									
+									}
+									else if(response=='wrongAnswer')
+									Notifier.error('Password reset failed');
+									
+								}
+							   });
+
+							     return false;
+							  
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 							  });
 					}
 					});
@@ -164,7 +214,11 @@ ddaccordion.init({
                     </dl>
 
                      <dl class="submit">
+<<<<<<< HEAD
 					<input type="button" name="submit" id="getSecurityQuestion" style="width:150px;" value="Security Question " />
+=======
+					<input type="button" name="submit" id="getSecurityQuestion" value="AnswerSecurityQuestion" />
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
                      </dl>
 					<dl class="" style="color:red;font-size:13px;padding-left:300px;">
                     <span name="loginComment" id="loginComment" value="" />
@@ -186,6 +240,7 @@ ddaccordion.init({
     
     </div>
 
+<<<<<<< HEAD
 	
 <!-- start of Information Popup -->
 		<div id="popupLoading">
@@ -200,5 +255,8 @@ ddaccordion.init({
 	
 	<div id="backgroundPopup"></div>  
 	
+=======
+</div>		
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 </body>
 </html>

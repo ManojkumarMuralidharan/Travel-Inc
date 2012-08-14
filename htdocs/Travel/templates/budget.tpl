@@ -6,6 +6,7 @@
 	
     <div class="right_content" >   
 	   
+<<<<<<< HEAD
 	<table>
 	<tr>
 	<td>
@@ -29,6 +30,9 @@
 	</td>
 	</tr>
 	</table>
+=======
+	
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
     
 <table id="rounded-corner" summary="Budget details">
     <thead>
@@ -36,11 +40,16 @@
         	
             <th scope="col" class="rounded-company">PSID</th>
             <th scope="col" class="rounded">Name</th>
+<<<<<<< HEAD
 			<th scope="col" class="rounded">Proposed</th>
 			<th scope="col" class="rounded">Actuals</th>
 			<th scope="col" class="rounded">Fiscal Year</th>
 			<th scope="col" class="rounded">Current expense</br> limit</th>
 			<th scope="col" class="rounded-q4"></th>
+=======
+			<th scope="col" class="rounded">Propsed</br> Budget</th>
+			<th scope="col" class="rounded-q4">Budget</th>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 		
             
 
@@ -48,7 +57,11 @@
     </thead>
         <tfoot>
     	<tr>
+<<<<<<< HEAD
         	<td colspan="6" style="width:835px;"class="rounded-foot-left"><em>Your have {$budgetUserCount} results.</em></td>
+=======
+        	<td colspan="3" style="width:835px;"class="rounded-foot-left"><em>Your have {$budgetUserCount} results.</em></td>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
         	<td class="rounded-foot-right">&nbsp;</td>
 
         </tr>

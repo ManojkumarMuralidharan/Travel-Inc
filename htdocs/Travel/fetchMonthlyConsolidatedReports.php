@@ -1,10 +1,17 @@
 <?php
+<<<<<<< HEAD
 /*
 $host="10.6.50.26"; // Host name
 $mysql_userName="Manoj"; // Mysql username
 $mysql_password="ITC"; // Mysql password
 */
 
+=======
+
+$host="10.6.50.26"; // Host name
+$mysql_userName="Manoj"; // Mysql username
+$mysql_password="ITC"; // Mysql password
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 $db_name="db1"; // Database name
 $tbl_name="entry"; // Table name
 session_start();

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 <?php /* Smarty version Smarty-3.1.8, created on 2012-07-17 20:20:11
+=======
+<?php /* Smarty version Smarty-3.1.8, created on 2012-06-18 22:25:58
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
          compiled from ".\templates\budget.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:312574fdf7b40445a62-90434052%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +11,11 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     '7f8e959f14b854ddf4a1d6fbf34e913935b3ad41' => 
     array (
       0 => '.\\templates\\budget.tpl',
+<<<<<<< HEAD
       1 => 1342543577,
+=======
+      1 => 1340051153,
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
       2 => 'file',
     ),
   ),
@@ -32,6 +40,7 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 	
     <div class="right_content" >   
 	   
+<<<<<<< HEAD
 	<table>
 	<tr>
 	<td>
@@ -55,6 +64,9 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 	</td>
 	</tr>
 	</table>
+=======
+	
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
     
 <table id="rounded-corner" summary="Budget details">
     <thead>
@@ -62,11 +74,16 @@ $_valid = $_smarty_tpl->decodeProperties(array (
         	
             <th scope="col" class="rounded-company">PSID</th>
             <th scope="col" class="rounded">Name</th>
+<<<<<<< HEAD
 			<th scope="col" class="rounded">Proposed</th>
 			<th scope="col" class="rounded">Actuals</th>
 			<th scope="col" class="rounded">Fiscal Year</th>
 			<th scope="col" class="rounded">Current expense</br> limit</th>
 			<th scope="col" class="rounded-q4"></th>
+=======
+			<th scope="col" class="rounded">Propsed</br> Budget</th>
+			<th scope="col" class="rounded-q4">Budget</th>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 		
             
 
@@ -74,7 +91,11 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     </thead>
         <tfoot>
     	<tr>
+<<<<<<< HEAD
         	<td colspan="6" style="width:835px;"class="rounded-foot-left"><em>Your have <?php echo $_smarty_tpl->tpl_vars['budgetUserCount']->value;?>
+=======
+        	<td colspan="3" style="width:835px;"class="rounded-foot-left"><em>Your have <?php echo $_smarty_tpl->tpl_vars['budgetUserCount']->value;?>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
  results.</em></td>
         	<td class="rounded-foot-right">&nbsp;</td>
 

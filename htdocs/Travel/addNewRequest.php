@@ -1,5 +1,6 @@
 <?php
 
+<<<<<<< HEAD
 require('Smarty.class.php');
 include 'sendMail.php';
 session_start();
@@ -17,6 +18,18 @@ $requestTravelType=$_POST["travelType"];
 if($requestTravelType=='Domestic'){
 $requestTravelType='Local';
 }
+=======
+require('C:/Users/TestUser/xampp/htdocs/Travel/lib/Smarty/libs/Smarty.class.php');
+session_start();
+
+$host="10.6.50.26"; // Host name
+$mysql_userName="Manoj"; // Mysql username
+$mysql_password="ITC"; // Mysql password
+$db_name="db1"; // Database name
+$tbl_name="entry"; // Table name
+
+$requestTravelType=$_POST["travelType"];
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 $requestTravelSource=$_POST["source"];
 $requestTravelDestination=$_POST["destination"];
 $requestTravelFromDate=$_POST["fromDate"];
@@ -27,10 +40,13 @@ $requestTravelComments=$_POST["comments"];
 
 $userName=$_SESSION['username'];
 
+<<<<<<< HEAD
 mysql_connect($host, $mysql_userName, $mysql_password)or
 die("cannot connect");
 mysql_select_db($db_name)or die("cannot select DB");
 
+=======
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 error_log('\n Before \n'.$userName.",".$requestTravelType.','.$requestTravelSource.",".$requestTravelDestination.",".$requestTravelFromDate.",".$requestTravelToDate.",".$requestTravelPurpose.",".$requestTravelCost.",".$requestTravelComments, 0);
 
 // To protect MySQL injection (more detail about MySQL injection)
@@ -44,6 +60,7 @@ $requestTravelPurpose=stripslashes($requestTravelPurpose);
 $requestTravelCost=stripslashes($requestTravelCost);
 $requestTravelComments=stripslashes($requestTravelComments);
 
+<<<<<<< HEAD
 $requestTravelType=mysql_real_escape_string($requestTravelType);
 $requestTravelSource=mysql_real_escape_string($requestTravelSource);
 $requestTravelDestination=mysql_real_escape_string($requestTravelDestination);
@@ -52,6 +69,16 @@ $requestTravelToDate=mysql_real_escape_string($requestTravelToDate);
 $requestTravelPurpose=mysql_real_escape_string($requestTravelPurpose);
 $requestTravelCost=mysql_real_escape_string($requestTravelCost);
 $requestTravelComments=mysql_real_escape_string($requestTravelComments);
+=======
+//$requestTravelType=mysql_real_escape_string($requestTravelType);
+//$requestTravelSource=mysql_real_escape_string($requestTravelSource);
+//$requestTravelDestination=mysql_real_escape_string($requestTravelDestination);
+//$requestTravelFromDate=mysql_real_escape_string($requestTravelFromDate);
+//$requestTravelToDate=mysql_real_escape_string($requestTravelToDate);
+//$requestTravelPurpose=mysql_real_escape_string($requestTravelPurpose);
+//$requestTravelCost=mysql_real_escape_string($requestTravelCost);
+//$requestTravelComments=mysql_real_escape_string($requestTravelComments);
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 //error_log('\nAfter \n'.$requestTravelType.','.$requestTravelSource.",".$requestTravelDestination.",".$requestTravelFromDate.",".$requestTravelToDate.",".$requestTravelPurpose.",".$requestTravelCost.",".$requestTravelComments, 0);
 
 $supervisor=$_SESSION['supervisor'];
@@ -60,6 +87,7 @@ $supervisor=$_SESSION['supervisor'];
 //$requestTravelToDate=str_replace("/","-",$requestTravelToDate);
 //$requestTravelFromDate=str_replace("/","-",$requestTravelFromDate);
 
+<<<<<<< HEAD
 //Get User Id
 $sql="SELECT iduser FROM user WHERE username='$userName' ";
 $result=mysql_query($sql);
@@ -88,6 +116,24 @@ error_log($sql);
 
 $result=mysql_query($sql);
 
+=======
+$sql="SELECT * FROM  $tbl_name WHERE  `username` LIKE  '".$userName."' AND `supervisor` LIKE  '".$supervisor."' AND `datefrom` LIKE  '".$requestTravelFromDate."' AND `dateto` LIKE  '".$requestTravelToDate."' AND `placefrom` LIKE  '".$requestTravelSource."' AND `placeto` LIKE  '".$requestTravelDestination."' AND `purpose` LIKE '".$requestTravelPurpose."' AND `cost` LIKE '".$requestTravelCost."'  AND `traveltype` LIKE '".$requestTravelType."' AND `approval` LIKE 'WIP';";
+error_log($sql);
+
+mysql_connect($host, $mysql_userName, $mysql_password)or
+die("cannot connect");
+mysql_select_db($db_name)or die("cannot select DB");
+
+/*$sql="SELECT name FROM $tbl_name WHERE username='".$userName."' AND ";
+$result=mysql_query($sql);
+$count=mysql_num_rows($result);
+if($count>=1){
+echo "recordexists";
+}*/
+
+//$sql="SELECT * FROM $tbl_name WHERE username='".$userName."' AND ";
+$result=mysql_query($sql);
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 $count=mysql_num_rows($result);
 if($count>=1){
 echo "recordexists";
@@ -98,6 +144,7 @@ $toDate=date("Y-m-d",strtotime($requestTravelToDate));
 $requestTravelFromDate=date("Y-m-d",strtotime($requestTravelFromDate));
 $requestTravelToDate=date("Y-m-d",strtotime($requestTravelToDate));
 
+<<<<<<< HEAD
 $sql="SELECT MAX(`idexpenserecords`) as `expenseId` FROM expenserecords ;";
 $result=mysql_query($sql);
 $expenseId=0;
@@ -144,12 +191,20 @@ $sql="INSERT INTO expenseworkflow(`idexpenseworkflow` ,`idworkflow` ,`stage` ,`i
 
 
 	error_log($sql);
+=======
+$sql="INSERT INTO ".$db_name.".".$tbl_name." (`username`, `supervisor`, `datefrom`, `dateto`,`placefrom`, `placeto`, `purpose`, `cost`, `approval`, `traveltype`, `reason`,`fromdate`,`todate` ) VALUES('".$userName."', '".$supervisor."', '".$requestTravelFromDate."', '" 
+.$requestTravelToDate."','".$requestTravelSource."','".$requestTravelDestination."','".$requestTravelPurpose."', '".$requestTravelCost."', 'WIP','".$requestTravelType."', '".$requestTravelComments."','".$fromDate."','".$toDate."');";
+	error_log($sql);
+	//$sql="INSERT INTO ".$db_name.".`".$tbl_name."` (`username` ,`password` ,`supervisor` ,`active` ,`profile`)VALUES ('".$userName."',  '".$password."',  '".$supervisorName."',  '1',  '".$userType."');";
+	//$sql="INSERT INTO login VALUES (value1, value2, value3,...);"
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 	if (!mysql_query($sql))
 	  {
 	  die('Error: ' . mysql_error());
 	  echo "fail";
 	  }else{
+<<<<<<< HEAD
 	  
 	  //To user
 	  //$to="Manojkumar.Muralidharan@itcinfotech.com";
@@ -241,6 +296,8 @@ $sql="INSERT INTO expenseworkflow(`idexpenseworkflow` ,`idworkflow` ,`stage` ,`i
 	  sendMail($to,$body,$subject);
 	  
 	  
+=======
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 		echo "success";
 	  }
 }

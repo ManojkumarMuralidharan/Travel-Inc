@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 <?php /* Smarty version Smarty-3.1.8, created on 2012-07-27 22:39:01
+=======
+<?php /* Smarty version Smarty-3.1.8, created on 2012-06-15 23:40:20
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
          compiled from ".\templates\uploadExcel.tpl" */ ?>
 <?php /*%%SmartyHeaderCode:132094fdb696a1a8a06-46990087%%*/if(!defined('SMARTY_DIR')) exit('no direct access allowed');
 $_valid = $_smarty_tpl->decodeProperties(array (
@@ -7,7 +11,11 @@ $_valid = $_smarty_tpl->decodeProperties(array (
     '4e66638fc7544cdf944dfbe9c94ed114f691954b' => 
     array (
       0 => '.\\templates\\uploadExcel.tpl',
+<<<<<<< HEAD
       1 => 1343336202,
+=======
+      1 => 1339796416,
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
       2 => 'file',
     ),
   ),
@@ -63,4 +71,8 @@ $_valid = $_smarty_tpl->decodeProperties(array (
 
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 	<div id="backgroundPopup"></div>  	<?php }} ?>

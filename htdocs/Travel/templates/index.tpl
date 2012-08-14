@@ -48,13 +48,22 @@ ddaccordion.init({
 
 <script type="text/javascript" src="js/jquery.plupload.queue.js"></script>
 
+<<<<<<< HEAD
 <script type="text/javascript" src="js/plupload.full.js"></script>
+=======
+<script type="text/javascript" src="jquery.plupload.queue.js"></script>
+
+<script type="text/javascript" src="plupload.full.js"></script>
+
+<script type="text/javascript" src="jconfirmaction.jquery.js"></script>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 <script type="text/javascript" src="js/jconfirmaction.jquery.js"></script>
 
 <script type="text/javascript" src="js/logout.js"></script>
 
 <script type="text/javascript" src="js/reports.js"></script>
+
 
 
 <script type="text/javascript">
@@ -130,8 +139,12 @@ ddaccordion.init({
 		var reportUserName='{$reportUserName}';
 		var securityQuestionId={$securityQuestionId};
 		var monthlyReportsYear='';
+<<<<<<< HEAD
 		var budgetYear='2011-2012';
 		//$('#travelTypeFormElement').text('Domestic');
+=======
+	
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 		
 		
 	   </script>
@@ -142,9 +155,15 @@ ddaccordion.init({
   NotifierjsConfig.position = ["bottom", "right"];
 </script>
 
+<<<<<<< HEAD
 <script language="javascript" type="text/javascript" src="js/niceforms.js"></script>
 <script language="javascript" type="text/javascript" src="js/popup.js"></script>
 <script language="javascript" type="text/javascript" src="js/datePicker.js"></script>
+=======
+<script language="javascript" type="text/javascript" src="niceforms.js"></script>
+<script language="javascript" type="text/javascript" src="popup.js"></script>
+<script language="javascript" type="text/javascript" src="datePicker.js"></script>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 <script type="text/javascript">
 //SETTING UP OUR POPUP  
@@ -152,9 +171,15 @@ ddaccordion.init({
 var popupStatus = 0;
 
 </script>
+<<<<<<< HEAD
 <link rel="stylesheet" type="text/css" media="all" href="css/niceforms-default.css" />
 <link rel="stylesheet" type="text/css" media="all" href="css/popupform-default.css"/>
 <link rel="stylesheet" type="text/css" media="all" href="css/jquery.plupload.queue.css"/>
+=======
+<link rel="stylesheet" type="text/css" media="all" href="niceforms-default.css" />
+<link rel="stylesheet" type="text/css" media="all" href="popupform-default.css"/>
+<link rel="stylesheet" type="text/css" media="all" href="jquery.plupload.queue.css"/>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 </head>
 <body>
@@ -193,6 +218,7 @@ var popupStatus = 0;
                     <li><a style="font-size:14px;" class="current" href="#" onClick="ChangePage('home');">Home</a></li>
                     <li><a style="font-size:14px;" href="#" onClick="ChangePage('settings');">Settings</a></li>
                     <li><a style="font-size:14px;" href="#Reports" onClick="ChangePage('reports');">Reports</a></li>
+<<<<<<< HEAD
 								
 					{if {$smarty.session.profile} eq 'finance'}
 					
@@ -205,6 +231,12 @@ var popupStatus = 0;
 					{/if}
                     <li><a style="font-size:14px;" href="#" onClick="ChangePage('help');">Help</a></li>
 					<li><a style="font-size:14px;" href="#" onClick="ChangePage('contactus');">Contact Us</a></li>
+=======
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('uploadExcel');">Upload</a></li>
+					<li><a style="font-size:14px;" href="#" onClick="ChangePage('budget');">Budget</a></li>
+					
+                    <li><a style="font-size:14px;" href="#">Contact Us</a></li>
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
                     </ul>
                     </div> 
                     

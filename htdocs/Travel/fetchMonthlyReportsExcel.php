@@ -25,6 +25,7 @@ header ("Location: login.php");
     //header("Content-Type: application/force-download");
     //header("Content-Type: application/octet-stream");
     //header("Content-Type: application/download");;
+<<<<<<< HEAD
  /*
 $host="10.6.50.26"; // Host name
 $mysql_userName="Manoj"; // Mysql username
@@ -32,6 +33,14 @@ $mysql_password="ITC"; // Mysql password*/
 include 'DB_details.php';
 //$db_name="travel"; // Database name
 $tbl_name="expenserecords"; // Table name
+=======
+ 
+$host="10.6.50.26"; // Host name
+$mysql_userName="Manoj"; // Mysql username
+$mysql_password="ITC"; // Mysql password
+$db_name="db1"; // Database name
+$tbl_name="entry"; // Table name
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 //$recordType=$_GET[
 //$userName=$_SESSION['username'];
@@ -47,6 +56,7 @@ mysql_connect($host, $mysql_userName, $mysql_password)or
 die("cannot connect");
 mysql_select_db($db_name)or die("cannot select DB");
 
+<<<<<<< HEAD
 //Get User Id
 $sql="SELECT iduser FROM user WHERE username='$reportUserName' ";
 $result=mysql_query($sql);
@@ -56,6 +66,10 @@ $iduser=mysql_result($result,0,"iduser");
 
 $sql="SELECT * FROM $tbl_name WHERE idUser='".$iduser."' AND (`approval` like 'WIP' OR `approval` like 'On Hold' OR `approval` like 'approved' OR `approval` like 'declined')   ;";
 $addQuery='';
+=======
+$sql="SELECT * FROM $tbl_name WHERE username='".$reportUserName."' AND (`approval` like 'WIP' OR `approval` like 'On Hold' OR `approval` like 'Approved' OR `approval` like 'Declined')   ;";
+  $addQuery='';
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 $months=array();
 if($type=='monthly'){
 $year=$_GET['year'];
@@ -65,7 +79,11 @@ $months= explode(";", $checkedMonths);
     $addQuery.=' AND MONTH(  `datefrom` ) ='.$value.' AND MONTH(  `dateto` ) ='.$value;
 }*/
 $str=substr_replace(implode("||", $months) ,"",-2);
+<<<<<<< HEAD
 $sql="SELECT * FROM $tbl_name WHERE idUser='".$iduser."' AND (`approval` like 'WIP' OR `approval` like 'On Hold' OR `approval` like 'approved' OR `approval` like 'declined') AND (MONTH(`fromdate`)=".$str.") AND (YEAR(`fromdate`)=".$year.")   order by MONTH(`fromdate`);";
+=======
+$sql="SELECT * FROM $tbl_name WHERE username='".$reportUserName."' AND (`approval` like 'WIP' OR `approval` like 'On Hold' OR `approval` like 'Approved' OR `approval` like 'Declined') AND (MONTH(`fromdate`)=".$str.") AND (YEAR(`fromdate`)=".$year.")   order by MONTH(`fromdate`);";
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 //$sql.=$addQuery;
 }
 
@@ -118,8 +136,13 @@ $objPHPExcel->getActiveSheet()->SetCellValue('E1', 'Source');
 $objPHPExcel->getActiveSheet()->SetCellValue('F1', 'Destination');
 $objPHPExcel->getActiveSheet()->SetCellValue('G1', 'Travel Type');
 $objPHPExcel->getActiveSheet()->SetCellValue('H1', 'Cost');
+<<<<<<< HEAD
 $objPHPExcel->getActiveSheet()->SetCellValue('I1', 'Comments');
 $objPHPExcel->getActiveSheet()->SetCellValue('J1', 'Approval ');
+=======
+$objPHPExcel->getActiveSheet()->SetCellValue('I1', 'Purpose');
+$objPHPExcel->getActiveSheet()->SetCellValue('J1', 'Comments');
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 $objPHPExcel->getActiveSheet()->getStyle('A1:A1')->applyFromArray( $style_header );
 $objPHPExcel->getActiveSheet()->getStyle('B1:B1')->applyFromArray( $style_header );
@@ -135,7 +158,11 @@ $objPHPExcel->getActiveSheet()->getStyle('J1:J1')->applyFromArray( $style_header
 $format_flag='';
 while($row = mysql_fetch_assoc($result))
 {
+<<<<<<< HEAD
 		$month_current=explode("-",$row['fromdate']);
+=======
+		$month_current=explode("-",$row['datefrom']);
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 		if($format_flag!=$month_current[1]){
 		$row_count++;
 		$format_flag=$month_current[1];
@@ -143,6 +170,7 @@ while($row = mysql_fetch_assoc($result))
 		$objPHPExcel->getActiveSheet()->SetCellValue('A'.$row_count, $month_name[intval($format_flag)]);
 		$objPHPExcel->getActiveSheet()->getStyle('A'.$row_count.':A'.$row_count)->applyFromArray( $style_month_header );
 		}
+<<<<<<< HEAD
 		error_log($row['fromdate']."-----".$row['todate']);
 		$datefrom=explode("-",$row['fromdate']);
 		$dateto=explode("-",$row['todate']);
@@ -158,6 +186,23 @@ while($row = mysql_fetch_assoc($result))
 					$objPHPExcel->getActiveSheet()->SetCellValue('H'.$row_count, $row['cost']);
 					$objPHPExcel->getActiveSheet()->SetCellValue('I'.$row_count, $row['comments']);
 					$objPHPExcel->getActiveSheet()->SetCellValue('J'.$row_count, $row['approval']);
+=======
+		error_log($row['datefrom']."-----".$row['dateto']);
+		$datefrom=explode("-",$row['datefrom']);
+		$dateto=explode("-",$row['dateto']);
+			//if(((in_array($datefrom[0], $months))&&$datefrom[2]==$year)||((in_array($dateto[0], $months))&&$dateto[2]==$year)){
+			
+
+					$objPHPExcel->getActiveSheet()->SetCellValue('B'.$row_count, $row['id']);
+					$objPHPExcel->getActiveSheet()->SetCellValue('C'.$row_count, $row['datefrom']);
+					$objPHPExcel->getActiveSheet()->SetCellValue('D'.$row_count, $row['dateto']);
+					$objPHPExcel->getActiveSheet()->SetCellValue('E'.$row_count, $row['placefrom']);
+					$objPHPExcel->getActiveSheet()->SetCellValue('F'.$row_count, $row['placeto']);
+					$objPHPExcel->getActiveSheet()->SetCellValue('G'.$row_count, $row['traveltype']);
+					$objPHPExcel->getActiveSheet()->SetCellValue('H'.$row_count, $row['cost']);
+					$objPHPExcel->getActiveSheet()->SetCellValue('I'.$row_count, $row['purpose']);
+					$objPHPExcel->getActiveSheet()->SetCellValue('J'.$row_count, $row['comments']);
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 					$row_count++;
 			
 		//	}

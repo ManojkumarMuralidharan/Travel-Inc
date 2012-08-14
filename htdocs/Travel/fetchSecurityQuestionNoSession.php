@@ -16,6 +16,7 @@ session_start();
             <td><a href='#'><img src='images/user_edit.png' alt='' title='' border='0' /></a></td>
            
         </tr>";
+<<<<<<< HEAD
 
 $host="10.6.50.26"; // Host name
 $mysql_userName="Manoj"; // Mysql username
@@ -24,6 +25,14 @@ $mysql_password="ITC"; // Mysql password
 include 'DB_details.php';
 //$db_name="travel"; // Database name
 $tbl_name="user"; // Table name
+=======
+*/
+$host="10.6.50.26"; // Host name
+$mysql_userName="Manoj"; // Mysql username
+$mysql_password="ITC"; // Mysql password
+$db_name="db1"; // Database name
+$tbl_name="login"; // Table name
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 //$recordType=$_GET[
 $userName=$_POST["userName"];
@@ -41,21 +50,58 @@ error_log($sql);
 $result=mysql_query($sql);
 $count=mysql_num_rows($result);
 if($count>=1){
+<<<<<<< HEAD
 			$sql="SELECT `idsecurityquestion` FROM $tbl_name WHERE username='".$userName."';";
 								$result=mysql_query($sql);
 								$count=mysql_num_rows($result);
 								if($count==1){
 									$securityid=mysql_result($result,0,"idsecurityquestion");
+=======
+			$sql="SELECT securityid FROM $tbl_name WHERE username='".$userName."';";
+								$result=mysql_query($sql);
+								$count=mysql_num_rows($result);
+								if($count==1){
+									$securityid=mysql_result($result,0,"securityid");
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 									//$result=mysql_query($sql);
 									//echo $profile;
 									//$_SESSION['securityId']=$securityid;
 									
+<<<<<<< HEAD
 										$sql="SELECT `securityquestion` FROM securityquestion WHERE idsecurityquestion ='".$securityid."';";
 										$result=mysql_query($sql);
 										$count=mysql_num_rows($result);
 										if($count==1){
 											$securityQuestionContent=mysql_result($result,0,"securityquestion");
 											
+=======
+										$sql="SELECT questions FROM securityquestions WHERE securityId='".$securityid."';";
+										$result=mysql_query($sql);
+										$count=mysql_num_rows($result);
+										if($count==1){
+											$securityQuestionContent=mysql_result($result,0,"questions");
+											
+											//echo '<table><tr><td>Question</td><td>'.$securityQuestionContent.'</td></tr><tr><td></td><td><input type="button" name="submit" id="resetPassword" value="ResetPassword" /></td></tr></table>';
+											
+/*										echo '<fieldset>
+											<dl>
+												<dt><label for="email">SecurityQuestion:</label></dt>
+												<dd><span>'.$securityQuestionContent.'</span></dd>
+											</dl>
+											<dl>
+												<dt><label for="Answer">Answer:</label></dt>
+												<dd><input type="text" name="text" id="passwordAnswer" size="54" /></dd>
+											</dl>
+											
+											 <dl class="submit">
+											<input type="button" name="submit" id="resetPassword" value="ResetPassword" />
+											 </dl>
+											<dl class="" style="color:red;font-size:13px;padding-left:300px;">
+											<span name="loginComment" id="loginComment" value="" />
+											 </dl>
+                    
+											</fieldset>'; */
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 											
 										echo '<fieldset>
 												<dl>
@@ -68,7 +114,11 @@ if($count>=1){
 												</dl>
 												
 												 <dl class="submit">
+<<<<<<< HEAD
 												<img class="NFButtonLeft" src="img/0.png"><input type="button" name="submit" style="width:150px" id="resetPassword" value="ResetPassword" class="NFButton"><img src="img/0.png" class="NFButtonRight">
+=======
+												<img class="NFButtonLeft" src="img/0.png"><input type="button" name="submit" id="resetPassword" value="ResetPassword" class="NFButton"><img src="img/0.png" class="NFButtonRight">
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 												 </dl>
 												<dl class="" style="color:red;font-size:13px;padding-left:300px;">
 												<span name="loginComment" id="loginComment" value="">

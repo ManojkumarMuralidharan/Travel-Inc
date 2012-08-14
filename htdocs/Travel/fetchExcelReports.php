@@ -31,6 +31,7 @@ return;
     header("Content-Type: application/octet-stream");
     header("Content-Type: application/download");;
 
+<<<<<<< HEAD
 //$host="10.6.50.17"; // Host name
 //$mysql_userName="Manoj"; // Mysql username
 //$mysql_password="ITC"; // Mysql password
@@ -41,6 +42,14 @@ $tbl_name="expenserecords"; // Table name
 mysql_connect($host, $mysql_userName, $mysql_password)or
 die("cannot connect");
 mysql_select_db($db_name)or die("cannot select DB");
+=======
+$host="10.6.50.26"; // Host name
+$mysql_userName="Manoj"; // Mysql username
+$mysql_password="ITC"; // Mysql password
+$db_name="db1"; // Database name
+$tbl_name="entry"; // Table name
+
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 
 //$recordType=$_GET[
 
@@ -58,13 +67,18 @@ $toDate=date("Y-m-d",strtotime($toDate));
 
 $profile=$_SESSION['profile'];
 $reportUserName='';
+<<<<<<< HEAD
 	if($profile=='supervisor'||$profile=='president'||$profile=='finance'||$profile=='hr'){
+=======
+	if($profile=='supervisor'){
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 		$reportUserName=$_GET['reportUserName'];
 	}else if($profile=='user'){
 		$reportUserName=$_SESSION['username'];
 	}
 //error_log($userName.$supervisorName.$userType, 0);
 
+<<<<<<< HEAD
 //Get User Id
 $sql="SELECT `iduser` FROM user WHERE username='$reportUserName' ";
 $result=mysql_query($sql);
@@ -86,6 +100,20 @@ if($travelType!='both'){
 	$sql.=' AND `fromdate` BETWEEN "'.$fromDate.'" AND "'.$toDate.'" AND `idtraveltype` = '.$traveltypeId ;
 }else
 	$sql.=' AND `fromdate` BETWEEN "'.$fromDate.'" AND "'.$toDate.'" AND (`idtraveltype` = 1 OR `idtraveltype` = 2) ';
+=======
+mysql_connect($host, $mysql_userName, $mysql_password)or
+die("cannot connect");
+mysql_select_db($db_name)or die("cannot select DB");
+
+$sql="SELECT * FROM $tbl_name WHERE username='".$reportUserName."' AND (`approval` like 'WIP' OR `approval` like 'On Hold' OR `approval` like 'Approved' OR `approval` like 'Declined')  ";
+
+if($fromDate!=''&&$toDate!=''){
+if($travelType!='both')
+$sql.=' AND `fromdate` BETWEEN "'.$fromDate.'" AND "'.$toDate.'" AND `traveltype` like "'.$travelType.'" ';
+else
+$sql.=' AND `fromdate` BETWEEN "'.$fromDate.'" AND "'.$toDate.'" AND (`traveltype` like "local" OR `traveltype` like "international") ';
+
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 }
 
 $sql.=" ;";
@@ -160,6 +188,7 @@ while($row = mysql_fetch_assoc($result))
 
 
 
+<<<<<<< HEAD
 $objPHPExcel->getActiveSheet()->SetCellValue('A'.$row_count, $row['idexpenserecords']);
 $objPHPExcel->getActiveSheet()->SetCellValue('B'.$row_count, $row['fromdate']);
 $objPHPExcel->getActiveSheet()->SetCellValue('C'.$row_count, $row['todate']);
@@ -168,6 +197,16 @@ $objPHPExcel->getActiveSheet()->SetCellValue('E'.$row_count, $row['placeto']);
 $objPHPExcel->getActiveSheet()->SetCellValue('F'.$row_count, $row['idtraveltype']);
 $objPHPExcel->getActiveSheet()->SetCellValue('G'.$row_count, $row['cost']);
 $objPHPExcel->getActiveSheet()->SetCellValue('H'.$row_count, $row['reason']);
+=======
+$objPHPExcel->getActiveSheet()->SetCellValue('A'.$row_count, $row['id']);
+$objPHPExcel->getActiveSheet()->SetCellValue('B'.$row_count, $row['datefrom']);
+$objPHPExcel->getActiveSheet()->SetCellValue('C'.$row_count, $row['dateto']);
+$objPHPExcel->getActiveSheet()->SetCellValue('D'.$row_count, $row['placefrom']);
+$objPHPExcel->getActiveSheet()->SetCellValue('E'.$row_count, $row['placeto']);
+$objPHPExcel->getActiveSheet()->SetCellValue('F'.$row_count, $row['traveltype']);
+$objPHPExcel->getActiveSheet()->SetCellValue('G'.$row_count, $row['cost']);
+$objPHPExcel->getActiveSheet()->SetCellValue('H'.$row_count, $row['purpose']);
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 $objPHPExcel->getActiveSheet()->SetCellValue('I'.$row_count, $row['comments']);
 $objPHPExcel->getActiveSheet()->SetCellValue('J'.$row_count, $row['approval']);
 $row_count++;

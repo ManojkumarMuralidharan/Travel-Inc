@@ -305,10 +305,17 @@
 		   <tr>
 		   
 		   <td>
+<<<<<<< HEAD
 		   <input type="button" name="submit" id="editRequestButton" value="Edit" />
 		   </td>
 		   <td>
 		   <input type="button" name="submit" id="duplicateRequestButton" value="Duplicate" />
+=======
+		   <input type="button" name="submit" id="editRequestButton" value="Edit Request" />
+		   </td>
+		   <td>
+		   <input type="button" name="submit" id="duplicateRequestButton" value="Duplicate Request" />
+>>>>>>> e9b52fa88c01bcaeb3dc9e837ad804574c19146e
 		   </td>
 		   
 		   </tr>
